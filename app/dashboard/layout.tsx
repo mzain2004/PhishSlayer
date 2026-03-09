@@ -39,27 +39,37 @@ export default function DashboardLayout({
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: authData }) => {
-      if (authData.user) {
-        supabase
-          .from("profiles")
-          .select("id, role, display_name, avatar_url")
-          .eq("id", authData.user.id)
-          .single()
-          .then(({ data: profData }) => {
-            if (profData) {
-              setProfile({
-                id: authData.user.id,
-                email: authData.user.email || "",
-                role: (profData.role as UserRole) || "analyst",
-                display_name: profData.display_name,
-                avatar_url: profData.avatar_url,
-              });
-            }
-          });
+    const fetchProfile = async () => {
+      const supabase = createClient();
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) return;
+
+      const { data: profData, error } = await supabase
+        .from("profiles")
+        .select("id, role, display_name, avatar_url")
+        .eq("id", authData.user.id)
+        .single();
+
+      if (error) {
+        console.error("Sidebar profile fetch error:", error);
+        setProfile({
+          id: authData.user.id,
+          email: authData.user.email || "",
+          role: "analyst",
+          display_name: null,
+          avatar_url: null,
+        });
+      } else if (profData) {
+        setProfile({
+          id: authData.user.id,
+          email: authData.user.email || "",
+          role: (profData.role as UserRole) || "analyst",
+          display_name: profData.display_name,
+          avatar_url: profData.avatar_url,
+        });
       }
-    });
+    };
+    fetchProfile();
   }, []);
 
   const role = profile?.role;

@@ -146,8 +146,10 @@ export async function updateProfile(data: {
   
   const { error: dbError } = await supabase
     .from('profiles')
-    .update(profileUpdate)
-    .eq('id', user.id);
+    .upsert({
+      id: user.id,
+      ...profileUpdate
+    }, { onConflict: 'id' });
 
   if (dbError) return { error: "Failed to sync with profile database: " + dbError.message };
 

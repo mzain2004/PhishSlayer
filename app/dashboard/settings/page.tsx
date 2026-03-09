@@ -64,11 +64,11 @@ export default function PlatformSettingsPage() {
       }),
       supabase.auth.getSession().then(({ data }) => {
         if (data.session) {
-          const createdAt = new Date(
-            data.session.user.created_at,
-          ).toLocaleString();
-          const tokenEnd = data.session.access_token.slice(-8);
-          setSessionInfo({ created_at: createdAt, token: tokenEnd });
+          const session = data.session as any;
+          const createdAtStr = session.created_at
+            ? new Date(session.created_at * 1000).toLocaleDateString()
+            : new Date(data.session.user.created_at).toLocaleDateString();
+          setSessionInfo({ created_at: createdAtStr, token: "" });
         }
       }),
     ]).finally(() => {
@@ -373,14 +373,9 @@ export default function PlatformSettingsPage() {
                       </span>
                     </div>
                     {sessionInfo ? (
-                      <>
-                        <p className="text-sm text-slate-600 mt-1">
-                          Logged in since {sessionInfo.created_at}
-                        </p>
-                        <p className="text-xs text-slate-400 font-mono mt-1">
-                          Token: ••••••••{sessionInfo.token}
-                        </p>
-                      </>
+                      <p className="text-sm text-slate-600 mt-1">
+                        Signed in since: {sessionInfo.created_at}
+                      </p>
                     ) : (
                       <Loader2 className="w-4 h-4 animate-spin text-emerald-600 mt-2" />
                     )}

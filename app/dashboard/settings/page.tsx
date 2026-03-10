@@ -562,44 +562,6 @@ export default function PlatformSettingsPage() {
             </div>
           )}
 
-          {/* Subscription Section */}
-          <div className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-800">
-            <div className="p-6 md:p-8 md:w-1/3 shrink-0">
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-teal-400" /> Subscription
-              </h3>
-              <p className="text-sm text-slate-400 mt-2">
-                Your current plan and billing information.
-              </p>
-            </div>
-            <div className="p-6 md:p-8 flex-1 flex flex-col justify-center">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                    Current Plan
-                  </p>
-                  <span
-                    className={`inline-flex px-3 py-1.5 rounded-full text-sm font-black uppercase tracking-wider ${
-                      subscriptionTier === "enterprise"
-                        ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
-                        : subscriptionTier === "pro"
-                          ? "bg-teal-500/10 text-teal-400 border border-teal-500/20"
-                          : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
-                    }`}
-                  >
-                    {subscriptionTier}
-                  </span>
-                </div>
-                <a
-                  href="/pricing"
-                  className="inline-block px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-bold hover:bg-teal-400 transition-colors"
-                >
-                  {subscriptionTier === "free" ? "Upgrade Plan" : "Manage Plan"}
-                </a>
-              </div>
-            </div>
-          </div>
-
           {/* Digest Schedule */}
           {notifyDigest && (
             <div className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-800">

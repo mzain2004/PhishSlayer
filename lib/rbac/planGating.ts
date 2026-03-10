@@ -1,5 +1,11 @@
 export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
 
+export const PLAN_PRICES: Record<SubscriptionTier, number> = {
+  free: 0,
+  pro: 99,
+  enterprise: 299,
+};
+
 export const PLAN_FEATURES: Record<SubscriptionTier, {
   maxScansPerDay: number;
   aiHeuristics: boolean;

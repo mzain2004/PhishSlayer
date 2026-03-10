@@ -35,6 +35,8 @@ import {
 import AIHeuristicsPanel from "./AIHeuristicsPanel";
 import PortPatrolPanel from "./PortPatrolPanel";
 import TakedownModal from "./TakedownModal";
+import { canAccessFeature, type SubscriptionTier } from "@/lib/rbac/planGating";
+import { createClient } from "@/lib/supabase/client";
 
 type ScanRecord = {
   id?: string;
@@ -73,6 +75,7 @@ export default function ThreatIntelligencePage() {
   const [takedownOpen, setTakedownOpen] = useState(false);
   const [siemPushing, setSiemPushing] = useState(false);
   const heuristicStore = useHeuristicStore();
+  const [userTier, setUserTier] = useState<SubscriptionTier>("free");
 
   const {
     activeTab,
@@ -103,6 +106,21 @@ export default function ThreatIntelligencePage() {
       })
       .catch(() => {})
       .finally(() => setLoaded(true));
+
+    // Fetch user subscription tier
+    const sb = createClient();
+    sb.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        sb.from("profiles")
+          .select("subscription_tier")
+          .eq("id", user.id)
+          .single()
+          .then(({ data }) => {
+            if (data?.subscription_tier)
+              setUserTier(data.subscription_tier as SubscriptionTier);
+          });
+      }
+    });
   }, []);
 
   // Auto-trigger deep scan when scan is available
@@ -538,6 +556,28 @@ export default function ThreatIntelligencePage() {
           </div>
         );
       case "ai-heuristics":
+        if (!canAccessFeature(userTier, "aiHeuristics")) {
+          return (
+            <div className="p-8 min-h-[400px] flex flex-col items-center justify-center gap-4 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center">
+                <span className="text-2xl">🔒</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">
+                AI Heuristics Engine
+              </h3>
+              <p className="text-sm text-slate-500 max-w-sm">
+                AI-powered behavioral analysis requires a Pro or Enterprise
+                plan.
+              </p>
+              <a
+                href="/pricing"
+                className="px-6 py-2.5 bg-violet-600 text-white text-sm font-bold rounded-lg hover:bg-violet-700 transition-colors"
+              >
+                Upgrade Now
+              </a>
+            </div>
+          );
+        }
         return (
           <div className="p-4 min-h-[400px]">
             <AIHeuristicsPanel
@@ -547,6 +587,25 @@ export default function ThreatIntelligencePage() {
           </div>
         );
       case "port-patrol":
+        if (!canAccessFeature(userTier, "portPatrol")) {
+          return (
+            <div className="p-8 min-h-[400px] flex flex-col items-center justify-center gap-4 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center">
+                <span className="text-2xl">🔒</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Port Patrol</h3>
+              <p className="text-sm text-slate-500 max-w-sm">
+                Active port reconnaissance requires a Pro or Enterprise plan.
+              </p>
+              <a
+                href="/pricing"
+                className="px-6 py-2.5 bg-orange-600 text-white text-sm font-bold rounded-lg hover:bg-orange-700 transition-colors"
+              >
+                Upgrade Now
+              </a>
+            </div>
+          );
+        }
         return (
           <div className="p-4 min-h-[400px]">
             <PortPatrolPanel target={scan?.target || ""} />

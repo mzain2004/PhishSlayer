@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/intel/sync",
+      "schedule": "0 */12 * * *"
+    },
+    {
+      "path": "/api/digest/weekly",
+      "schedule": "0 9 * * 1"
+    }
+  ]
+}

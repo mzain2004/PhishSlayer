@@ -24,7 +24,8 @@ export type AuditAction =
   | 'deep_scan_triggered'
   | 'ai_heuristic_analysis'
   | 'port_patrol_scan'
-  | 'siem_push';
+  | 'siem_push'
+  | 'weekly_digest_sent';
 
 export interface AuditEntry {
   action: AuditAction;

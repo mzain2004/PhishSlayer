@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Monitor,
   Send,
+  CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -52,6 +53,9 @@ export default function PlatformSettingsPage() {
   const [siemWebhookUrl, setSiemWebhookUrl] = useState("");
   const [siemTesting, setSiemTesting] = useState(false);
   const [siemSaving, setSiemSaving] = useState(false);
+  const [subscriptionTier, setSubscriptionTier] = useState("free");
+  const [digestSchedule, setDigestSchedule] = useState("monday_9am");
+  const [digestSaving, setDigestSaving] = useState(false);
 
   const supabase = createClient();
 
@@ -65,6 +69,8 @@ export default function PlatformSettingsPage() {
           setNotifyDigest(user.notifyDigest ?? false);
           setApiKey(user.apiKey || null);
           setSiemWebhookUrl((user as any).siem_webhook_url || "");
+          setSubscriptionTier((user as any).subscription_tier || "free");
+          setDigestSchedule((user as any).digest_schedule || "monday_9am");
         }
       }),
       supabase.auth.getSession().then(({ data }) => {
@@ -558,7 +564,103 @@ export default function PlatformSettingsPage() {
             </div>
           )}
 
-          {/* Section 5: Danger Zone */}
+          {/* Subscription Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100">
+            <div className="p-6 md:p-8 md:w-1/3 shrink-0">
+              <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-teal-600" /> Subscription
+              </h3>
+              <p className="text-sm text-slate-500 mt-2">
+                Your current plan and billing information.
+              </p>
+            </div>
+            <div className="p-6 md:p-8 flex-1 flex flex-col justify-center">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                    Current Plan
+                  </p>
+                  <span
+                    className={`inline-flex px-3 py-1.5 rounded-full text-sm font-black uppercase tracking-wider ${
+                      subscriptionTier === "enterprise"
+                        ? "bg-indigo-100 text-indigo-700"
+                        : subscriptionTier === "pro"
+                          ? "bg-teal-100 text-teal-700"
+                          : "bg-slate-100 text-slate-700"
+                    }`}
+                  >
+                    {subscriptionTier}
+                  </span>
+                </div>
+                <a
+                  href="/pricing"
+                  className="inline-block px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-bold hover:bg-teal-700 transition-colors"
+                >
+                  {subscriptionTier === "free" ? "Upgrade Plan" : "Manage Plan"}
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Digest Schedule */}
+          {notifyDigest && (
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100">
+              <div className="p-6 md:p-8 md:w-1/3 shrink-0">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <BellRing className="w-5 h-5 text-teal-600" /> Weekly Digest
+                </h3>
+                <p className="text-sm text-slate-500 mt-2">
+                  Choose when to receive your weekly threat summary.
+                </p>
+              </div>
+              <div className="p-6 md:p-8 flex-1 flex flex-col justify-center">
+                <div className="space-y-3">
+                  <select
+                    value={digestSchedule}
+                    onChange={(e) => setDigestSchedule(e.target.value)}
+                    className="w-full max-w-xs px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900"
+                  >
+                    <option value="monday_9am">Every Monday at 9 AM</option>
+                    <option value="sunday_midnight">
+                      Every Sunday at midnight
+                    </option>
+                    <option value="friday_5pm">Every Friday at 5 PM</option>
+                  </select>
+                  <button
+                    onClick={async () => {
+                      setDigestSaving(true);
+                      try {
+                        const {
+                          data: { user },
+                        } = await supabase.auth.getUser();
+                        if (!user) throw new Error("Not authenticated");
+                        const { error } = await supabase
+                          .from("profiles")
+                          .update({ digest_schedule: digestSchedule })
+                          .eq("id", user.id);
+                        if (error) throw error;
+                        toast.success("Digest schedule saved");
+                      } catch (err: any) {
+                        toast.error(err.message || "Failed to save");
+                      } finally {
+                        setDigestSaving(false);
+                      }
+                    }}
+                    disabled={digestSaving}
+                    className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-bold hover:bg-teal-700 transition-colors disabled:opacity-50"
+                  >
+                    {digestSaving ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Save Schedule"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Section: Danger Zone */}
           <div className="border border-red-200 bg-red-50 rounded-xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>
               <h3 className="text-lg font-semibold text-red-700 flex items-center gap-2">

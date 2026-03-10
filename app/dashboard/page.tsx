@@ -155,14 +155,14 @@ export default function DashboardOverviewPage() {
 
   return (
     <>
-      <div className="relative flex-1 flex flex-col p-6 md:p-8 bg-[#0a0f1e] min-h-full w-full pb-24">
+      <div className="relative flex-1 flex flex-col p-6 md:p-8 bg-transparent min-h-full w-full pb-24">
         {/* Header */}
         <header className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-10">
           <div>
-            <h2 className="text-white text-3xl font-bold tracking-tight">
+            <h2 className="text-white text-3xl font-bold tracking-tighter">
               Command Center
             </h2>
-            <p className="text-slate-500 text-sm mt-1 font-medium">
+            <p className="text-slate-400 text-sm mt-1 font-medium">
               Enterprise Security Posture — God&apos;s Eye View
             </p>
           </div>
@@ -206,10 +206,10 @@ export default function DashboardOverviewPage() {
               className="relative flex items-center"
             >
               <div
-                className={`flex items-center bg-slate-900 border border-slate-700 transition-all rounded-full overflow-hidden ${
+                className={`flex items-center bg-slate-950/50 backdrop-blur-md border border-white/10 transition-all rounded-full overflow-hidden ${
                   isSearchExpanded
                     ? "w-64 px-4 focus-within:ring-2 focus-within:ring-teal-500/50 focus-within:border-teal-500"
-                    : "w-12 hover:bg-slate-800"
+                    : "w-12 hover:bg-white/5"
                 } h-12`}
               >
                 <button
@@ -247,67 +247,93 @@ export default function DashboardOverviewPage() {
         {/* ── KPI Cards ─────────────────────────────────────────── */}
         <div className="w-full max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Total Scans */}
-          <div className="bg-[#0f1629] border border-slate-800 rounded-xl p-5 border-t-2 border-t-teal-500">
-            <div className="flex items-center gap-2 mb-3">
-              <Radar className="w-4 h-4 text-teal-400" />
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">
-                Total Scans
-              </span>
+          <div className="relative overflow-hidden bg-[#0f1629]/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] hover:border-white/20 transition-all duration-500 group">
+            {/* Neon light bleed */}
+            <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-teal-500/20 to-transparent opacity-80 pointer-events-none" />
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-teal-400 to-transparent opacity-100" />
+            <div className="absolute -inset-x-0 -bottom-0 h-1/2 bg-gradient-to-t from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-3">
+                <Radar className="w-4 h-4 text-teal-400" />
+                <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">
+                  Total Scans
+                </span>
+              </div>
+              <p className="text-4xl font-bold text-white tracking-tight">
+                <Metric value={totalScans} />
+              </p>
+              <p className="text-sm text-slate-400 mt-1 font-medium">
+                All time
+              </p>
             </div>
-            <p className="text-4xl font-bold text-white">
-              <Metric value={totalScans} />
-            </p>
-            <p className="text-sm text-slate-500 mt-1">All time</p>
           </div>
 
           {/* Malicious */}
-          <div className="bg-[#0f1629] border border-slate-800 rounded-xl p-5 border-t-2 border-t-red-500">
-            <div className="flex items-center gap-2 mb-3">
-              <ShieldAlert className="w-4 h-4 text-red-400" />
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">
-                Malicious
-              </span>
+          <div className="relative overflow-hidden bg-[#0f1629]/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] hover:border-white/20 transition-all duration-500 group">
+            {/* Neon light bleed */}
+            <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-red-500/20 to-transparent opacity-80 pointer-events-none" />
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-100" />
+            <div className="absolute -inset-x-0 -bottom-0 h-1/2 bg-gradient-to-t from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldAlert className="w-4 h-4 text-red-400" />
+                <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">
+                  Malicious
+                </span>
+              </div>
+              <p className="text-4xl font-bold text-red-400 tracking-tight">
+                <Metric value={maliciousScans} />
+              </p>
+              <p className="text-sm text-slate-400 mt-1 font-medium">
+                {loaded && totalScans > 0
+                  ? `${((maliciousScans / totalScans) * 100).toFixed(1)}% detection rate`
+                  : "—"}
+              </p>
             </div>
-            <p className="text-4xl font-bold text-red-400">
-              <Metric value={maliciousScans} />
-            </p>
-            <p className="text-sm text-slate-500 mt-1">
-              {loaded && totalScans > 0
-                ? `${((maliciousScans / totalScans) * 100).toFixed(1)}% detection rate`
-                : "—"}
-            </p>
           </div>
 
           {/* Active Incidents */}
-          <div className="bg-[#0f1629] border border-slate-800 rounded-xl p-5 border-t-2 border-t-orange-500">
-            <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-4 h-4 text-orange-400" />
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">
-                Active Incidents
-              </span>
+          <div className="relative overflow-hidden bg-[#0f1629]/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] hover:border-white/20 transition-all duration-500 group">
+            {/* Neon light bleed */}
+            <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-orange-500/20 to-transparent opacity-80 pointer-events-none" />
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-orange-400 to-transparent opacity-100" />
+            <div className="absolute -inset-x-0 -bottom-0 h-1/2 bg-gradient-to-t from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="w-4 h-4 text-orange-400" />
+                <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">
+                  Active Incidents
+                </span>
+              </div>
+              <p className="text-4xl font-bold text-orange-400 tracking-tight">
+                <Metric value={activeIncidents} />
+              </p>
+              <p className="text-sm text-slate-400 mt-1 font-medium">
+                {loaded ? `${resolvedCount} resolved` : "—"}
+              </p>
             </div>
-            <p className="text-4xl font-bold text-orange-400">
-              <Metric value={activeIncidents} />
-            </p>
-            <p className="text-sm text-slate-500 mt-1">
-              {loaded ? `${resolvedCount} resolved` : "—"}
-            </p>
           </div>
 
           {/* Intel Vault */}
-          <div className="bg-[#0f1629] border border-slate-800 rounded-xl p-5 border-t-2 border-t-indigo-500">
-            <div className="flex items-center gap-2 mb-3">
-              <Database className="w-4 h-4 text-teal-400" />
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">
-                Intel Vault
-              </span>
+          <div className="relative overflow-hidden bg-[#0f1629]/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] hover:border-white/20 transition-all duration-500 group">
+            {/* Neon light bleed */}
+            <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-indigo-500/20 to-transparent opacity-80 pointer-events-none" />
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-100" />
+            <div className="absolute -inset-x-0 -bottom-0 h-1/2 bg-gradient-to-t from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-3">
+                <Database className="w-4 h-4 text-indigo-400" />
+                <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">
+                  Intel Vault
+                </span>
+              </div>
+              <p className="text-4xl font-bold text-indigo-400 tracking-tight">
+                <Metric value={intelVaultSize} />
+              </p>
+              <p className="text-sm text-slate-400 mt-1 font-medium">
+                Proprietary indicators
+              </p>
             </div>
-            <p className="text-4xl font-bold text-teal-400">
-              <Metric value={intelVaultSize} />
-            </p>
-            <p className="text-sm text-slate-500 mt-1">
-              Proprietary indicators
-            </p>
           </div>
         </div>
 
@@ -345,8 +371,10 @@ export default function DashboardOverviewPage() {
         {/* ── Charts + Activity Feed ────────────────────────────── */}
         <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
           {/* Bar Chart */}
-          <div className="lg:col-span-2 bg-[#0f1629] border border-slate-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
+          <div className="relative overflow-hidden lg:col-span-2 bg-[#0f1629]/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] hover:border-white/20 transition-all duration-500 group">
+            <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
+            <div className="flex items-center justify-between mb-6 relative z-10">
               <div className="flex items-center gap-2">
                 <Activity className="w-5 h-5 text-teal-400" />
                 <h3 className="text-sm font-semibold text-white">
@@ -365,9 +393,9 @@ export default function DashboardOverviewPage() {
                 <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
               </div>
             ) : categoryData.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-52 text-center">
-                <Activity className="w-8 h-8 text-slate-700 mb-2" />
-                <p className="text-sm text-slate-500">
+              <div className="flex flex-col items-center justify-center h-52 text-center relative z-10">
+                <Activity className="w-8 h-8 text-slate-600 mb-2" />
+                <p className="text-sm text-slate-400 font-medium">
                   No category data yet. Run some scans.
                 </p>
               </div>
@@ -421,8 +449,10 @@ export default function DashboardOverviewPage() {
           </div>
 
           {/* Activity Feed */}
-          <div className="bg-[#0f1629] border border-slate-800 rounded-xl p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
+          <div className="relative overflow-hidden bg-[#0f1629]/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 flex flex-col shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] hover:border-white/20 transition-all duration-500 group">
+            <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
+            <div className="flex items-center justify-between mb-4 relative z-10">
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-teal-400" />
                 <h3 className="text-sm font-semibold text-white">
@@ -435,16 +465,18 @@ export default function DashboardOverviewPage() {
                 <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
               </div>
             ) : recentScans.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <Radar className="w-8 h-8 text-slate-700 mb-2" />
-                <p className="text-sm text-slate-500">No scans yet.</p>
+              <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10">
+                <Radar className="w-8 h-8 text-slate-600 mb-2" />
+                <p className="text-sm text-slate-400 font-medium">
+                  No scans yet.
+                </p>
               </div>
             ) : (
               <ul className="space-y-2 flex-1">
                 {recentScans.map((s, i) => (
                   <li
                     key={i}
-                    className={`bg-[#0a0f1e] border border-slate-800 rounded-lg p-4 border-l-4 ${verdictColor(s.verdict)} hover:bg-slate-800/50 transition-colors cursor-pointer`}
+                    className={`relative z-10 bg-white/[0.03] backdrop-blur-md shadow-[0_2px_8px_rgba(0,0,0,0.2)] border border-white/5 rounded-lg p-4 border-l-4 ${verdictColor(s.verdict)} hover:bg-white/[0.06] transition-colors cursor-pointer`}
                     onClick={() => router.push("/dashboard/threats")}
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -460,7 +492,7 @@ export default function DashboardOverviewPage() {
                     <div className="flex items-center justify-between">
                       {s.risk_score !== undefined && (
                         <span
-                          className={`text-xs font-mono ${
+                          className={`text-xs font-mono font-medium ${
                             s.risk_score >= 75
                               ? "text-red-400"
                               : s.risk_score >= 40
@@ -471,7 +503,7 @@ export default function DashboardOverviewPage() {
                           Risk: {s.risk_score}/100
                         </span>
                       )}
-                      <span className="text-slate-500 text-xs">
+                      <span className="text-slate-400 text-[11px] font-medium tracking-wide">
                         {s.date
                           ? new Date(s.date).toLocaleDateString("en-US", {
                               month: "short",
@@ -493,7 +525,7 @@ export default function DashboardOverviewPage() {
         <div className="w-full max-w-7xl mx-auto flex flex-wrap items-end justify-between gap-6 px-2">
           <div className="flex flex-wrap gap-6 sm:gap-8">
             <div className="flex flex-col gap-1">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Posture Delta
               </p>
               <div className="flex items-center gap-2">
@@ -508,7 +540,7 @@ export default function DashboardOverviewPage() {
               </div>
             </div>
             <div className="flex flex-col gap-1 border-l border-slate-800 pl-6 sm:pl-8">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Avg Risk Index
               </p>
               <div className="flex items-center gap-2">

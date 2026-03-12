@@ -96,7 +96,7 @@ _Built and maintained by [@mzain2004](https://github.com/mzain2004) (Muhammad Za
 
 | Layer           | Technology                             |
 | --------------- | -------------------------------------- |
-| **Framework**   | Next.js 16 (App Router)                |
+| **Framework**   | Next.js 15.5.12 (App Router)           |
 | **Language**    | TypeScript                             |
 | **Auth & DB**   | Supabase (PostgreSQL + SSR Auth + RLS) |
 | **Styling**     | Tailwind CSS v3.4 + shadcn/ui          |
@@ -165,6 +165,9 @@ STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 
 # Site
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+# EDR Agent
+AGENT_SECRET=your_agent_secret
 ```
 
 ### Run Locally
@@ -186,19 +189,21 @@ phish-slayer/
 │   ├── api/
 │   │   ├── v1/scan/        # Public REST API
 │   │   ├── intel/sync/     # URLhaus CRON harvester
-│   │   └── stripe/webhook/ # Stripe payment webhooks
+│   │   └── agent/          # EDR Agent APIs (WS, Commands, Download)
 │   └── dashboard/
 │       ├── page.tsx         # God's Eye Command Center
 │       ├── incidents/       # Incident management + Excel export
 │       ├── scans/           # Scan launcher & history
 │       ├── threats/         # Threat deep-dive + PDF export
 │       ├── intel/           # Intel Vault + API docs
-│       └── settings/        # User/org configuration
+│       └── agents/          # EDR Agent Fleet Management
 ├── lib/
 │   ├── ai/analyzer.ts       # Gemini AI threat analysis
 │   ├── scanners/             # VirusTotal integration
 │   ├── supabase/             # Auth, actions, middleware
-│   └── agent/                # Endpoint monitoring agent
+│   └── agent/                # Endpoint monitoring agent code
+├── public/                 # Agent installer scripts
+├── server.js               # Custom Next.js server with WebSocket support
 ├── middleware.ts             # Route protection guard
 └── vercel.json               # CRON job configuration
 ```
@@ -219,6 +224,19 @@ phish-slayer/
 ## 📜 License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+---
+
+## PM2 Deployment Update
+
+After the EDR server extension, the Azure VM PM2 config MUST be updated manually to prevent crashes:
+
+```bash
+pm2 stop phish-slayer
+pm2 delete phish-slayer
+pm2 start server.js --name phish-slayer --node-args="--max-old-space-size=512"
+pm2 save
+```
 
 ---
 

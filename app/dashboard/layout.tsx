@@ -20,6 +20,7 @@ import {
   Users as UsersIcon,
   ClipboardList,
   Key,
+  Terminal,
 } from "lucide-react";
 import { ROLE_COLORS, ROLE_LABELS, type UserRole } from "@/lib/rbac/roles";
 
@@ -88,6 +89,7 @@ export default function DashboardLayout({
     { name: "Scan Manager", href: "/dashboard/scans", icon: Radar },
     { name: "Threat Intel", href: "/dashboard/threats", icon: Shield },
     { name: "Agent Monitor", href: "/dashboard/agent", icon: Activity },
+    { name: "Agent Fleet", href: "/dashboard/agents", icon: Terminal },
     { name: "Incident Reports", href: "/dashboard/incidents", icon: FileText },
     // Hide Intel Vault for analysts
     ...(role !== "analyst"

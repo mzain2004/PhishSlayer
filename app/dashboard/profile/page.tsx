@@ -1,13 +1,8 @@
-// SETUP: Create a public bucket called "avatars" in Supabase Storage
-// Storage → New Bucket → Name: avatars → Public: true
-
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
 import { toast } from "sonner";
 import {
-  Pencil,
-  Clock,
   User,
   IdCard,
   Mail,
@@ -15,16 +10,10 @@ import {
   Building2,
   ChevronDown,
   Lock,
-  ShieldCheck,
-  MessageSquare,
   Monitor,
-  Smartphone,
-  Laptop,
   LogOut,
   Ban,
-  BellRing,
   Loader2,
-  Upload,
   Camera,
 } from "lucide-react";
 import {
@@ -38,7 +27,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function UserProfilePage() {
   const [formData, setFormData] = useState({
     display_name: "",
-    phone_number: "", // NEVER use email here
+    phone_number: "", // Link to profile.phone_number
     department: "Security Operations",
     avatar_url: "",
   });
@@ -49,9 +38,7 @@ export default function UserProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPending, startTransition] = useTransition();
-  const [sessionInfo, setSessionInfo] = useState<{ created_at: string } | null>(
-    null,
-  );
+  const [sessionInfo, setSessionInfo] = useState<{ created_at: string } | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -71,7 +58,7 @@ export default function UserProfilePage() {
       if (user) {
         setFormData({
           display_name: user.fullName || "",
-          phone_number: user.phone || "", // NEVER use email here
+          phone_number: user.phone || "", // Correctly mapping profile.phone_number
           department: user.department || "Security Operations",
           avatar_url: user.avatarUrl || "",
         });
@@ -81,15 +68,8 @@ export default function UserProfilePage() {
     });
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (previewImage) URL.revokeObjectURL(previewImage);
-    };
-  }, [previewImage]);
-
   const getInitials = () => {
-    if (formData.display_name)
-      return formData.display_name.charAt(0).toUpperCase();
+    if (formData.display_name) return formData.display_name.charAt(0).toUpperCase();
     if (email) return email.charAt(0).toUpperCase();
     return "?";
   };
@@ -98,28 +78,26 @@ export default function UserProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Show local preview immediately
     const localUrl = URL.createObjectURL(file);
     setPreviewImage(localUrl);
-
-    // Upload to Supabase Storage
     setIsUploading(true);
+
     try {
-      const formData = new FormData();
-      formData.append("avatar", file);
-      const result = await uploadAvatar(formData);
+      const data = new FormData();
+      data.append("avatar", file);
+      const result = await uploadAvatar(data);
 
       if (result?.error) {
         toast.error(result.error);
         setPreviewImage(null);
       } else {
-        toast.success("Avatar uploaded successfully!");
+        toast.success("Avatar updated");
         if (result?.avatarUrl)
           setFormData((prev) => ({ ...prev, avatar_url: result.avatarUrl }));
-        setPreviewImage(null); // Use the real URL now
+        setPreviewImage(null);
       }
     } catch {
-      toast.error("Failed to upload avatar.");
+      toast.error("Failed to upload avatar");
       setPreviewImage(null);
     } finally {
       setIsUploading(false);
@@ -136,7 +114,7 @@ export default function UserProfilePage() {
       if (result?.error) {
         toast.error(result.error);
       } else {
-        toast.success("Profile information synchronized.");
+        toast.success("Profile synchronized");
         window.dispatchEvent(new Event("profile-updated"));
       }
     });
@@ -144,24 +122,19 @@ export default function UserProfilePage() {
 
   const handlePasswordChange = () => {
     if (!newPassword || !confirmPassword) {
-      toast.error("Please fill in both password fields.");
+      toast.error("Fill both password fields");
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match.");
+      toast.error("Passwords do not match");
       return;
     }
-    if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters.");
-      return;
-    }
-
     startTransition(async () => {
       const result = await updatePassword(newPassword);
       if (result?.error) {
         toast.error(result.error);
       } else {
-        toast.success("Password updated successfully.");
+        toast.success("Password updated");
         setNewPassword("");
         setConfirmPassword("");
       }
@@ -171,7 +144,7 @@ export default function UserProfilePage() {
   if (!loaded) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-teal-400" />
       </div>
     );
   }
@@ -179,306 +152,190 @@ export default function UserProfilePage() {
   const displayAvatar = previewImage || formData.avatar_url;
 
   return (
-    <div className="bg-[#0a0f1e] text-white font-sans min-h-screen w-full">
-      {/* Scrollable Content Area */}
-      <div className="w-full max-w-5xl mx-auto space-y-8 pb-12 p-6 md:p-10">
-        {/* Profile Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-slate-800">
-          <div className="flex items-center gap-6">
-            <div className="relative group">
-              <div className="w-24 h-24 rounded-full bg-slate-900 border-4 border-slate-800 shadow-sm flex items-center justify-center overflow-hidden relative">
-                {displayAvatar ? (
-                  <img
-                    src={displayAvatar}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-3xl font-bold text-teal-400">
-                    {getInitials()}
-                  </span>
-                )}
-                {isUploading && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full">
-                    <Loader2 className="w-6 h-6 animate-spin text-white" />
-                  </div>
-                )}
-              </div>
-              <label className="absolute bottom-0 right-0 w-8 h-8 bg-slate-900 border border-slate-700 rounded-full flex items-center justify-center text-slate-400 hover:text-teal-400 hover:border-teal-500/50 shadow-sm hover:shadow-md transition-all cursor-pointer">
-                <Camera className="w-4 h-4" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                  disabled={isUploading}
-                />
-              </label>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">
-                {formData.display_name || "Your Profile"}
-              </h1>
-              <p className="text-slate-400 font-medium">
-                {formData.department}
-              </p>
-              <div className="flex items-center gap-2 mt-2 text-sm text-green-400 font-medium">
-                <div className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400/50 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+    <div className="px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#30363d]">
+        <div>
+          <h1 className="text-[#e6edf3] text-2xl font-semibold tracking-tight">Profile Settings</h1>
+          <p className="text-[#8b949e] text-sm mt-0.5">Manage your identity and account security</p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={isPending}
+          className="px-6 py-2 bg-teal-500 hover:bg-teal-400 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-teal-500/10 disabled:opacity-50"
+        >
+          {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+          {isPending ? "Saving..." : "Save Changes"}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left: Avatar & Personal Info */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Avatar Card */}
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+            <h3 className="text-[#e6edf3] text-sm font-semibold mb-6">Profile Picture</h3>
+            <div className="flex items-center gap-6">
+              <div className="relative group">
+                <div className="w-24 h-24 rounded-full bg-[#0d1117] border border-[#30363d] flex items-center justify-center overflow-hidden">
+                  {displayAvatar ? (
+                    <img src={displayAvatar} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-3xl font-bold text-teal-400">{getInitials()}</span>
+                  )}
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 animate-spin text-white" />
+                    </div>
+                  )}
                 </div>
-                <span>Session active</span>
+                <label className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#1c2128] border border-[#30363d] rounded-full flex items-center justify-center text-[#8b949e] hover:text-teal-400 cursor-pointer transition-colors shadow-lg">
+                  <Camera className="w-4 h-4" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                </label>
+              </div>
+              <div>
+                <p className="text-[#e6edf3] text-sm font-medium">Update your photo</p>
+                <p className="text-[#8b949e] text-xs mt-1">JPG, GIF or PNG. Max size of 2MB.</p>
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3 w-full md:w-auto">
-            <button
-              onClick={handleSave}
-              disabled={isPending}
-              className="flex-1 md:flex-none px-6 py-2.5 bg-teal-500 hover:bg-teal-400 text-white rounded-lg text-sm font-bold transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border-none"
-            >
-              {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-              {isPending ? "Saving…" : "Save Changes"}
-            </button>
+
+          {/* Personal Info Card */}
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <User className="w-4 h-4 text-[#6e7681]" />
+              <h3 className="text-[#e6edf3] text-sm font-semibold">Personal Information</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[#8b949e] text-xs font-medium">Full Name</label>
+                <div className="relative">
+                  <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6e7681]" />
+                  <input
+                    type="text"
+                    value={formData.display_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
+                    className="w-full pl-10 pr-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
+                    placeholder="E.g. John Doe"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[#8b949e] text-xs font-medium">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6e7681]" />
+                  <input
+                    type="email"
+                    value={email}
+                    disabled
+                    className="w-full pl-10 pr-4 py-2 bg-[#1c2128] border border-[#30363d] rounded-lg text-sm text-[#6e7681] cursor-not-allowed outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[#8b949e] text-xs font-medium">Phone Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6e7681]" />
+                  <input
+                    type="tel"
+                    value={formData.phone_number}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone_number: e.target.value }))}
+                    className="w-full pl-10 pr-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
+                    placeholder="+1 (555) 000-0000"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[#8b949e] text-xs font-medium">Department</label>
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6e7681]" />
+                  <select
+                    value={formData.department}
+                    onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                    className="w-full pl-10 pr-10 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none appearance-none transition-all"
+                  >
+                    <option>Security Operations</option>
+                    <option>IT Administration</option>
+                    <option>Executive</option>
+                    <option>Engineering</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8b949e] pointer-events-none" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Personal Information Card */}
-        <section className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
-            <div>
-              <h2 className="text-lg font-semibold text-white">
-                Personal Information
-              </h2>
-              <p className="text-sm text-slate-400">
-                Manage your personal details and contact preferences.
-              </p>
+        {/* Right: Security & Sessions */}
+        <div className="space-y-8">
+          {/* Security Card */}
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <Lock className="w-4 h-4 text-[#6e7681]" />
+              <h3 className="text-[#e6edf3] text-sm font-semibold">Security</h3>
             </div>
-            <User className="w-6 h-6 text-slate-400" />
-          </div>
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-400">
-                Full Name
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-teal-400">
-                  <IdCard className="w-5 h-5" />
-                </span>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[#8b949e] text-xs font-medium">New Password</label>
                 <input
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 border rounded-lg text-sm outline-none"
-                  type="text"
-                  value={formData.display_name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      display_name: e.target.value,
-                    }))
-                  }
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
+                  placeholder="••••••••"
                 />
               </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-400">
-                Email Address
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-teal-400">
-                  <Mail className="w-5 h-5" />
-                </span>
+              <div className="space-y-2">
+                <label className="text-[#8b949e] text-xs font-medium">Confirm Password</label>
                 <input
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-500 cursor-not-allowed outline-none"
-                  type="email"
-                  value={email}
-                  disabled
-                  title="Email cannot be changed here"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
+                  placeholder="••••••••"
                 />
               </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-400">
-                Phone Number
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-teal-400">
-                  <Phone className="w-5 h-5" />
-                </span>
-                <input
-                  className="bg-slate-900 border border-slate-700 text-white rounded-lg px-4 py-2.5 w-full pl-10 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500/20 placeholder:text-slate-500"
-                  type="tel"
-                  value={formData.phone_number}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      phone_number: e.target.value,
-                    }))
-                  }
-                  placeholder="+1 (555) 000-0000"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-400">
-                Department
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-teal-400">
-                  <Building2 className="w-5 h-5" />
-                </span>
-                <select
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 border rounded-lg text-sm appearance-none outline-none"
-                  value={formData.department}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      department: e.target.value,
-                    }))
-                  }
-                >
-                  <option>Security Operations</option>
-                  <option>IT Administration</option>
-                  <option>Executive</option>
-                  <option>Engineering</option>
-                </select>
-                <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                  <ChevronDown className="w-5 h-5" />
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Change Password Card */}
-        <section className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col">
-          <div className="px-6 py-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
-            <div>
-              <h2 className="text-lg font-semibold text-white">
-                Change Password
-              </h2>
-              <p className="text-sm text-slate-400">
-                Ensure your account is using a long, random password.
-              </p>
-            </div>
-            <Lock className="w-5 h-5 text-slate-400" />
-          </div>
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-400">
-                New Password
-              </label>
-              <input
-                className="w-full px-4 py-2.5 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 border rounded-lg text-sm outline-none"
-                type="password"
-                placeholder="••••••••"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-400">
-                Confirm Password
-              </label>
-              <input
-                className="w-full px-4 py-2.5 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 border rounded-lg text-sm outline-none"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
-            <div className="md:col-span-2 flex justify-start">
               <button
                 onClick={handlePasswordChange}
-                disabled={isPending || !newPassword || !confirmPassword}
-                className="px-6 py-2.5 bg-teal-500 hover:bg-teal-400 text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border-none"
+                disabled={isPending || !newPassword}
+                className="w-full py-2 bg-[#1c2128] border border-[#30363d] text-[#e6edf3] hover:bg-[#21262d] text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
               >
-                {isPending && newPassword ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Lock className="w-4 h-4" />
-                )}
                 Update Password
               </button>
             </div>
           </div>
-        </section>
 
-        {/* Security Settings Group */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 2FA Card Replacement */}
-          <section className="lg:col-span-2 bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
+          {/* Session Info */}
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+            <h3 className="text-[#e6edf3] text-sm font-semibold mb-6">Current Session</h3>
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-[#3fb950]/10 flex items-center justify-center border border-[#3fb950]/20">
+                <Monitor className="w-5 h-5 text-[#3fb950]" />
+              </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">
-                  Two-Factor Authentication
-                </h2>
-                <p className="text-sm text-slate-400">
-                  Secure your account with an extra layer of protection.
-                </p>
+                <p className="text-[#e6edf3] text-sm font-medium">Web Desktop</p>
+                <p className="text-[#3fb950] text-[10px] font-bold uppercase tracking-wider">Active Now</p>
               </div>
-              <Lock className="w-5 h-5 text-slate-400" />
             </div>
-            <div className="p-6 flex-1 flex items-center justify-center text-center">
-              <p className="text-slate-400 font-medium">
-                Two-factor authentication is managed through your Supabase
-                account settings.
+            {sessionInfo && (
+              <p className="text-[#8b949e] text-xs border-t border-[#30363d] pt-4">
+                Started: <span className="text-[#e6edf3]">{sessionInfo.created_at}</span>
               </p>
-            </div>
-          </section>
-
-          {/* Session Management Card */}
-          <section className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-800 bg-slate-900/50">
-              <h2 className="text-lg font-semibold text-white">
-                Active Sessions
-              </h2>
-              <p className="text-sm text-slate-400">
-                Devices logged into your account.
-              </p>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-400">
-                  <Monitor className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white flex items-center gap-2">
-                    Current Device
-                    <span className="w-2 h-2 rounded-full bg-green-400"></span>
-                  </p>
-                  <p className="text-xs text-green-400 font-bold tracking-tight uppercase">
-                    Active now
-                  </p>
-                </div>
-              </div>
-
-              {sessionInfo ? (
-                <p className="text-sm text-slate-400 font-medium pt-2 border-t border-slate-800">
-                  Session started:{" "}
-                  <span className="text-white font-semibold">
-                    {sessionInfo.created_at}
-                  </span>
-                </p>
-              ) : (
-                <div className="flex justify-center pt-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-teal-500" />
-                </div>
-              )}
-            </div>
-            <div className="mt-auto px-6 py-4 bg-slate-900/50 border-t border-slate-800 flex flex-col gap-3">
+            )}
+            <div className="mt-6 flex flex-col gap-3">
               <button
                 onClick={async () => {
                   const supabase = createClient();
                   await supabase.auth.signOut({ scope: "local" });
                   window.location.href = "/auth/login";
                 }}
-                className="w-full py-2 border border-slate-700 bg-transparent rounded-lg text-sm font-bold text-slate-300 hover:border-slate-500 hover:text-white transition-colors flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-2 w-full py-2 bg-transparent border border-[#30363d] text-[#e6edf3] hover:border-[#8b949e] text-sm font-medium rounded-lg transition-colors"
               >
-                <LogOut className="w-4 h-4" />
-                Logout This Device
+                <LogOut className="w-4 h-4" /> Sign Out
               </button>
               <button
                 onClick={async () => {
@@ -486,36 +343,30 @@ export default function UserProfilePage() {
                   await supabase.auth.signOut({ scope: "global" });
                   window.location.href = "/auth/login";
                 }}
-                className="w-full py-2 border border-red-500/20 bg-red-500/10 rounded-lg text-sm font-bold text-red-400 hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-2 w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 text-sm font-medium rounded-lg transition-colors"
               >
-                <Ban className="w-4 h-4" />
-                Logout All Devices
+                <Ban className="w-4 h-4" /> Global Sign Out
               </button>
             </div>
-          </section>
-        </div>
-
-        {/* Danger Zone */}
-        <div className="pt-6">
-          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-base font-semibold text-red-400">
-                Delete Account
-              </h3>
-              <p className="text-sm text-red-400/80 mt-1">
-                Once you delete your account, there is no going back. Please be
-                certain.
-              </p>
-            </div>
-            <button
-              onClick={() =>
-                toast.error("Account termination workflow initiated.")
-              }
-              className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/20 hover:text-red-300 transition-colors whitespace-nowrap"
-            >
-              Delete Account
-            </button>
           </div>
+        </div>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="border border-red-500/20 bg-red-500/[0.02] rounded-xl p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h3 className="text-[#f85149] text-sm font-semibold">Delete Account</h3>
+            <p className="text-[#8b949e] text-xs mt-1">
+              Once deleted, your data cannot be recovered. Please proceed with extreme caution.
+            </p>
+          </div>
+          <button
+            onClick={() => toast.error("Account removal protected. Contact Security Ops.")}
+            className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 text-sm font-medium rounded-lg transition-colors"
+          >
+            Delete Account
+          </button>
         </div>
       </div>
     </div>

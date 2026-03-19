@@ -116,8 +116,8 @@ export default function DashboardOverviewPage() {
       <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 hover:border-[#8b949e]/30 transition-all duration-200">
-            <div className="h-px w-full bg-gradient-to-r from-teal-500/60 via-teal-500/20 to-transparent mb-4 -mt-5 -mx-5 px-0 rounded-t-xl" />
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 hover:border-teal-500/50 shadow-[0_0_15px_rgba(45,212,191,0.05)] hover:shadow-[0_0_30px_rgba(45,212,191,0.15)] transition-all duration-500 group">
+            <div className="h-px w-full bg-gradient-to-r from-teal-500/80 via-teal-500/30 to-transparent mb-4 -mt-5 -mx-5 px-0 rounded-t-xl animate-pulse duration-1000" />
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-[#6e7681] font-semibold">Total Scans</span>
@@ -130,8 +130,8 @@ export default function DashboardOverviewPage() {
             </div>
           </div>
 
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 hover:border-[#8b949e]/30 transition-all duration-200">
-            <div className="h-px w-full bg-gradient-to-r from-red-500/60 via-red-500/20 to-transparent mb-4 -mt-5 -mx-5 px-0 rounded-t-xl" />
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 hover:border-red-500/50 shadow-[0_0_15px_rgba(248,81,73,0.05)] hover:shadow-[0_0_30px_rgba(248,81,73,0.15)] transition-all duration-500 group">
+            <div className="h-px w-full bg-gradient-to-r from-red-500/80 via-red-500/30 to-transparent mb-4 -mt-5 -mx-5 px-0 rounded-t-xl animate-pulse duration-1000" />
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-[#6e7681] font-semibold">Malicious</span>
@@ -144,8 +144,8 @@ export default function DashboardOverviewPage() {
             </div>
           </div>
 
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 hover:border-[#8b949e]/30 transition-all duration-200">
-            <div className="h-px w-full bg-gradient-to-r from-amber-500/60 via-amber-500/20 to-transparent mb-4 -mt-5 -mx-5 px-0 rounded-t-xl" />
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 hover:border-amber-500/50 shadow-[0_0_15px_rgba(227,179,65,0.05)] hover:shadow-[0_0_30px_rgba(227,179,65,0.15)] transition-all duration-500 group">
+            <div className="h-px w-full bg-gradient-to-r from-amber-500/80 via-amber-500/30 to-transparent mb-4 -mt-5 -mx-5 px-0 rounded-t-xl animate-pulse duration-1000" />
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-[#6e7681] font-semibold">Active Incidents</span>
@@ -158,8 +158,8 @@ export default function DashboardOverviewPage() {
             </div>
           </div>
 
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 hover:border-[#8b949e]/30 transition-all duration-200">
-            <div className="h-px w-full bg-gradient-to-r from-violet-500/60 via-violet-500/20 to-transparent mb-4 -mt-5 -mx-5 px-0 rounded-t-xl" />
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 hover:border-violet-500/50 shadow-[0_0_15px_rgba(167,139,250,0.05)] hover:shadow-[0_0_30px_rgba(167,139,250,0.15)] transition-all duration-500 group">
+            <div className="h-px w-full bg-gradient-to-r from-violet-500/80 via-violet-500/30 to-transparent mb-4 -mt-5 -mx-5 px-0 rounded-t-xl animate-pulse duration-1000" />
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-[#6e7681] font-semibold">Intel Vault</span>

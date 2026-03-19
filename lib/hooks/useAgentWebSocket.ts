@@ -11,8 +11,18 @@ export interface AgentData {
   threatCount: number;
 }
 
+export interface MitigationLog {
+  agentId: string;
+  action: string;
+  pid?: number;
+  ip?: string;
+  success: boolean;
+  timestamp: string;
+}
+
 export function useAgentWebSocket() {
   const [agents, setAgents] = useState<AgentData[]>([]);
+  const [mitigationLogs, setMitigationLogs] = useState<MitigationLog[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -38,7 +48,20 @@ export function useAgentWebSocket() {
           if (data.type === 'agent_list') {
             setAgents(data.agents || []);
           } else if (data.type === 'telemetry') {
-            // Update specific agent threat count if needed, or rely on agent_list
+            if (data.type === 'telemetry' && data.action && (data.action === 'kill_process' || data.action === 'block_ip')) {
+              // It's a mitigation log wrapped in telemetry
+              setMitigationLogs((prev) => {
+                const updated = [{
+                  agentId: data.agentId,
+                  action: data.action,
+                  pid: data.pid,
+                  ip: data.ip,
+                  success: data.success,
+                  timestamp: data.timestamp
+                }, ...prev];
+                return updated.slice(0, 10);
+              });
+            }
           } else if (data.type === 'command_result') {
             // Optional: emit event or toast notification for command results
             console.log('Command result:', data);
@@ -85,5 +108,5 @@ export function useAgentWebSocket() {
     }
   }, []);
 
-  return { agents, isConnected, error, sendCommand };
+  return { agents, isConnected, error, sendCommand, mitigationLogs };
 }

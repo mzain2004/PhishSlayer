@@ -7,6 +7,7 @@ import { scanTarget } from '@/lib/scanners/threatScanner';
 import { logAuditEvent } from '@/lib/audit/auditLogger';
 import { sendCriticalThreatAlert, sendIncidentAssignmentEmail, sendWeeklyDigest } from '@/lib/email/emailService';
 import { z } from 'zod';
+import { canAccessFeature, type SubscriptionTier } from '@/lib/rbac/planGating';
 
 // ── Discord Webhook Alert (fire-and-forget) ───────────────────────────
 async function fireDiscordAlert(scan: {
@@ -469,8 +470,23 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
     // Step 1: Call VirusTotal
     const finding = await scanTarget(validTarget);
 
-    // Step 2: Call Gemini with the stripped payload
-    const aiData = await scoreCtiFinding(finding.summary);
+    // Step 2: Call Gemini ONLY if user has AI Heuristics feature
+    const { data: profile } = await supabase.from('profiles').select('subscription_tier').eq('id', user?.id || '').single();
+    const tier = (profile?.subscription_tier as SubscriptionTier) || 'free';
+    const hasAi = canAccessFeature(tier, 'aiHeuristics');
+
+    let aiData = null;
+    if (hasAi) {
+      aiData = await scoreCtiFinding(finding.summary);
+    } else {
+      // Fallback for Free Tier
+      const baseRisk = finding.verdict === 'malicious' ? 70 : finding.verdict === 'suspicious' ? 40 : 0;
+      aiData = {
+        ai_summary: "AI Analysis Locked — Upgrade to SOC Pro or Command & Control to unlock deep-dive Gemini heuristics.",
+        risk_score: baseRisk,
+        threat_category: finding.verdict === 'malicious' ? 'Verified Threat' : 'N/A'
+      };
+    }
 
     // Step 3: Single INSERT — Completed
     const { error } = await supabase.from('scans').insert([{
@@ -753,19 +769,36 @@ export async function inviteOrgUser(email: string, roleAssignment: UserRole) {
     return { error: 'Service role key not configured. Cannot invite users.' };
   }
 
+  // Quick check if email is already registered in Auth (sometimes inviteUserByEmail throws obscure errors)
+  const { data: existingProfiles } = await serviceClient.from('profiles').select('id').eq('email', email);
+  if (existingProfiles && existingProfiles.length > 0) {
+    return { error: 'Email is already registered.' };
+  }
+
   // Invite user via auth.admin
-  const { data: inviteData, error: inviteError } = await serviceClient.auth.admin.inviteUserByEmail(email);
-  if (inviteError) return { error: inviteError.message };
+  const { data: inviteData, error: inviteError } = await serviceClient.auth.admin.inviteUserByEmail(email, {
+    data: { role: roleAssignment }
+  });
+  
+  if (inviteError) {
+    if (inviteError.message.includes('already registered')) {
+      return { error: 'Email is already registered.' };
+    }
+    return { error: inviteError.message };
+  }
 
   if (inviteData.user) {
-    // Update the profile with the selected role immediately
+    // Upsert the profile with the selected role immediately
     const { error: profileError } = await serviceClient
       .from('profiles')
-      .update({ role: roleAssignment })
-      .eq('id', inviteData.user.id);
+      .upsert({ 
+        id: inviteData.user.id, 
+        role: roleAssignment
+      }, { onConflict: 'id' });
       
     if (profileError) {
-      console.error('Failed to set role for invited user:', profileError);
+      console.error('Failed to upsert role for invited user:', profileError);
+      return { error: 'Database error saving new user profile.' };
     }
   }
 
@@ -782,6 +815,65 @@ export async function inviteOrgUser(email: string, roleAssignment: UserRole) {
 
 // ── Weekly Digest Trigger ───────────────────────────────────────────
 
+const supportTicketSchema = z.object({
+  subject: z.string().trim().min(1, "Subject is required"),
+  category: z.string().trim().min(1, "Category is required"),
+  priority: z.string().trim().min(1, "Priority is required"),
+  message: z.string().trim().min(1, "Message is required"),
+});
+
+export async function submitSupportTicket(payload: { subject: string; category: string; priority: string; message: string; }) {
+  const parsed = supportTicketSchema.safeParse(payload);
+  if (!parsed.success) return { error: "Invalid ticket payload" };
+  const d = parsed.data;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase.from('support_tickets').insert([{
+    user_id: user.id,
+    subject: d.subject,
+    category: d.category,
+    priority: d.priority,
+    message: d.message,
+    status: 'open'
+  }]);
+
+  if (error) {
+    console.error("Support ticket insert error:", error);
+    return { error: "Database error saving ticket" };
+  }
+
+  // Fire Discord Webhook
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (webhookUrl) {
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          embeds: [{
+            title: '🎫 New Support Ticket',
+            color: d.priority === 'Critical' ? 16711680 : 3447003, // Red or Blue
+            fields: [
+              { name: 'Subject', value: d.subject, inline: true },
+              { name: 'Priority', value: d.priority, inline: true },
+              { name: 'User', value: user.email || 'Unknown', inline: false },
+              { name: 'Message', value: d.message.slice(0, 1024), inline: false },
+            ],
+            footer: { text: 'Phish-Slayer Support System' },
+            timestamp: new Date().toISOString(),
+          }],
+        }),
+      });
+    } catch (err) {
+      console.error('Discord webhook failed for ticket:', err);
+    }
+  }
+
+  return { success: true };
+}
 export async function triggerWeeklyDigest() {
   const role = await getServerRole();
   if (!role || !canManageUsers(role)) {

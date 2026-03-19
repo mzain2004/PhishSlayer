@@ -132,12 +132,12 @@ export default function PlatformSettingsPage() {
 
   const handleLogoutLocal = async () => {
     await supabase.auth.signOut({ scope: "local" });
-    router.push("/auth/login");
+    router.push("/");
   };
 
   const handleLogoutGlobal = async () => {
     await supabase.auth.signOut({ scope: "global" });
-    router.push("/auth/login");
+    router.push("/");
   };
 
   if (!loaded) {

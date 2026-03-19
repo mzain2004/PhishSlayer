@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { exec, execSync } from "child_process";
 import { promisify } from "util";
 import os from "os";
 import chokidar from 'chokidar';
@@ -6,6 +6,15 @@ import crypto from 'crypto';
 import fs from 'fs';
 import psList from 'ps-list';
 import WebSocket from 'ws';
+import dotenv from 'dotenv';
+import path from 'path';
+
+const envPath = path.resolve(process.cwd(), '.env.local');
+console.log('[Agent] Loading env from:', envPath);
+dotenv.config({ path: envPath });
+
+console.log('[Agent] AGENT_SECRET found:', !!process.env.AGENT_SECRET);
+console.log('[Agent] NEXT_PUBLIC_SITE_URL found:', !!process.env.NEXT_PUBLIC_SITE_URL);
 
 const execAsync = promisify(exec);
 
@@ -183,7 +192,7 @@ async function pollNetworkActivity(userId: string) {
       } else {
         const result = await response.json();
         console.log(
-          `[EndpointMonitor] 🛡️ Flagged ${anomalies.length} connections. Processed: ${result.processed}, Critical/High: ${result.flagged}`
+          `[EndpointMonitor] 🛡️ Flagged ${anomalies.length} connections. Processed: ${(result as any).processed}, Critical/High: ${(result as any).flagged}`
         );
       }
     } catch (apiError) {
@@ -313,7 +322,7 @@ class FileIntegrityMonitor {
       ignoreInitial: false,
       depth: 2,
       awaitWriteFinish: { stabilityThreshold: 500 },
-      ignored: /(^|[\/\\])\../, // ignore hidden files
+      ignored: [/(^|[\/\\])\../, '**/DriverData/**', '**/*~setup*'], // ignore hidden files
     });
 
     // Build baseline on 'add' events during initial scan
@@ -542,17 +551,20 @@ class AgentWebSocket {
   private readonly serverUrl: string;
   private readonly agentSecret: string;
   private readonly agentId: string;
+  private readonly userId: string;
   private readonly onCommand: (cmd: AgentCommand) => void;
 
   constructor(
     serverUrl: string,
     agentSecret: string,
     agentId: string,
+    userId: string,
     onCommand: (cmd: AgentCommand) => void
   ) {
     this.serverUrl = serverUrl;
     this.agentSecret = agentSecret;
     this.agentId = agentId;
+    this.userId = userId;
     this.onCommand = onCommand;
   }
 
@@ -565,28 +577,38 @@ class AgentWebSocket {
     );
 
     this.ws = new WebSocket(this.serverUrl, {
+      perMessageDeflate: false,
       headers: {
         'x-agent-secret': this.agentSecret,
         'x-agent-id': this.agentId,
+        'x-user-id': this.userId,
         'x-hostname': os.hostname(),
         'x-platform': process.platform,
       },
     });
 
+    this.ws.on('upgrade', (response) => {
+      console.log('[WSClient] Upgrade headers:', JSON.stringify(response.headers));
+    });
+
     this.ws.on('open', () => {
       console.log('[WSClient] Connected to Phish-Slayer cloud.');
-      this.reconnectAttempts = 0;
-      this.startPing();
 
-      // Send registration message
-      this.send({
-        type: 'agent_register',
-        agentId: this.agentId,
-        hostname: os.hostname(),
-        platform: process.platform,
-        version: '1.0.0',
-        timestamp: new Date().toISOString(),
-      });
+      this.reconnectAttempts = 0;
+      setTimeout(() => {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({
+            type: 'agent_register',
+            agentId: this.agentId,
+            hostname: os.hostname(),
+            platform: process.platform,
+            version: '1.0.0',
+            timestamp: new Date().toISOString()
+          }));
+          console.log('[WSClient] Registration message sent');
+          this.startPing();
+        }
+      }, 100);
     });
 
     this.ws.on('message', (data: WebSocket.Data) => {
@@ -599,17 +621,15 @@ class AgentWebSocket {
       }
     });
 
-    this.ws.on('close', (code, reason) => {
-      console.warn(
-        `[WSClient] Disconnected. Code: ${code}, ` +
-        `Reason: ${reason.toString()}`
-      );
-      this.stopPing();
-      this.scheduleReconnect();
-    });
-
     this.ws.on('error', (err: any) => {
       console.error('[WSClient] WebSocket error:', err.message);
+      // Do NOT call scheduleReconnect here — let onclose handle it
+    });
+
+    this.ws.on('close', (code, reason) => {
+      console.warn(`[WSClient] Disconnected. Code: ${code}, Reason: ${reason.toString()}`);
+      this.stopPing();
+      this.scheduleReconnect();
     });
   }
 
@@ -632,8 +652,7 @@ class AgentWebSocket {
       console.error('[WSClient] Max reconnect attempts reached. Giving up.');
       return;
     }
-    const delay = this.RECONNECT_DELAY * 
-      Math.pow(1.5, this.reconnectAttempts); // exponential backoff
+    const delay = Math.min(10000 * Math.pow(1.5, this.reconnectAttempts), 60000); // capped exponential backoff
     console.log(`[WSClient] Reconnecting in ${delay}ms...`);
     this.reconnectAttempts++;
     setTimeout(() => this.connect(), delay);
@@ -641,7 +660,11 @@ class AgentWebSocket {
 
   send(data: object): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(data));
+      try {
+        this.ws.send(JSON.stringify(data));
+      } catch (err: any) {
+        console.error('[WSClient] Send failed:', err.message);
+      }
     }
   }
 
@@ -653,11 +676,28 @@ class AgentWebSocket {
 }
 
 class CommandExecutor {
-  async blockIp(ip: string): Promise<{ success: boolean; output: string }> {
+  private wsClient?: AgentWebSocket;
+
+  setWsClient(ws: AgentWebSocket) {
+    this.wsClient = ws;
+  }
+
+  private logMitigation(action: string, target: any, success: boolean) {
+    if (this.wsClient) {
+      this.wsClient.send({
+        type: 'mitigation_log',
+        action,
+        [action === 'kill_process' ? 'pid' : 'ip']: target,
+        success,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+  blockIp(ip: string): { success: boolean; output?: string; error?: string } {
     // Validate IP format first
     const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
     if (!ipRegex.test(ip)) {
-      return { success: false, output: 'Invalid IP format' };
+      return { success: false, error: 'Invalid IP format' };
     }
 
     // Prevent blocking localhost or private ranges
@@ -668,51 +708,48 @@ class CommandExecutor {
       (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
       (parts[0] === 192 && parts[1] === 168)
     ) {
-      return { success: false, output: 'Refusing to block private IP' };
+      return { success: false, error: 'Refusing to block private IP' };
     }
 
     try {
       let cmd: string;
       if (process.platform === 'win32') {
-        cmd = `netsh advfirewall firewall add rule name="PhishSlayer-Block-${ip}" ` +
-              `dir=out action=block remoteip=${ip}`;
-      } else if (process.platform === 'darwin') {
-        cmd = `echo "block out quick from any to ${ip}" | sudo pfctl -ef -`;
+        cmd = `netsh advfirewall firewall add rule name="PhishSlayer-Block" dir=in action=block remoteip=${ip}`;
       } else {
-        cmd = `sudo iptables -A OUTPUT -d ${ip} -j DROP`;
+        cmd = `iptables -A INPUT -s ${ip} -j DROP && iptables -A OUTPUT -d ${ip} -j DROP`;
       }
 
-      const { stdout, stderr } = await execAsync(cmd);
-      console.log(`[Executor] Blocked IP ${ip}:`, stdout || stderr);
-      return { success: true, output: stdout || stderr };
+      execSync(cmd);
+      this.logMitigation('block_ip', ip, true);
+      return { success: true, output: `Blocked ${ip}` };
     } catch (err: any) {
-      console.error(`[Executor] Failed to block IP ${ip}:`, err.message);
-      return { success: false, output: err.message };
+      this.logMitigation('block_ip', ip, false);
+      if (err.message && err.message.includes('EPERM')) {
+        return { success: false, error: 'Insufficient privileges. Agent must run as root/admin.' };
+      }
+      return { success: false, error: err.message };
     }
   }
 
-  async killProcess(
-    pid: number
-  ): Promise<{ success: boolean; output: string }> {
-    // Never allow killing system processes
+  killProcess(pid: number): { success: boolean; output?: string; error?: string } {
     if (pid <= 4) {
-      return { success: false, output: 'Refusing to kill system process' };
+      return { success: false, error: 'Refusing to kill system process' };
     }
 
     try {
-      let cmd: string;
       if (process.platform === 'win32') {
-        cmd = `taskkill /F /PID ${pid}`;
+        execSync('taskkill /F /PID ' + pid);
       } else {
-        cmd = `kill -9 ${pid}`;
+        execSync('kill -9 ' + pid);
       }
-
-      const { stdout, stderr } = await execAsync(cmd);
-      console.log(`[Executor] Killed PID ${pid}:`, stdout || stderr);
-      return { success: true, output: stdout || stderr };
+      this.logMitigation('kill_process', pid, true);
+      return { success: true, output: `Killed PID ${pid}` };
     } catch (err: any) {
-      console.error(`[Executor] Failed to kill PID ${pid}:`, err.message);
-      return { success: false, output: err.message };
+      this.logMitigation('kill_process', pid, false);
+      if (err.message && err.message.includes('EPERM')) {
+        return { success: false, error: 'Insufficient privileges. Agent must run as root/admin.' };
+      }
+      return { success: false, error: err.message };
     }
   }
 
@@ -746,28 +783,28 @@ async function main() {
     process.exit(1);
   }
 
-  const agentId = os.hostname() + '-' + process.pid;
+  const agentId = crypto.randomUUID();
+  const userId = '1e4f7048-09e0-4fec-85d8-36d69d48b2ad'; // Defaulting to the known enterprise user
   const executor = new CommandExecutor();
 
-  // Initialize WebSocket connection
-  const wsUrl = SERVER_URL.replace('https://', 'wss://')
-                           .replace('http://', 'ws://') + 
-                           '/api/agent/ws';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const url = siteUrl.replace('http://', 'ws://').replace('https://', 'wss://') + '/api/agent/ws';
   
   const wsClient = new AgentWebSocket(
-    wsUrl,
+    url,
     AGENT_SECRET,
     agentId,
+    userId,
     async (cmd) => {
       console.log('[Agent] Executing command:', cmd.command);
       let result;
 
       switch (cmd.command) {
         case 'block_ip':
-          result = await executor.blockIp(cmd.payload.ip!);
+          result = executor.blockIp(cmd.payload.ip!);
           break;
         case 'kill_process':
-          result = await executor.killProcess(cmd.payload.pid!);
+          result = executor.killProcess(cmd.payload.pid!);
           break;
         case 'quarantine_file':
           result = await executor.quarantineFile(cmd.payload.filePath!);
@@ -790,6 +827,7 @@ async function main() {
   );
 
   wsClient.connect();
+  executor.setWsClient(wsClient);
 
   // Initialize FIM
   const fim = new FileIntegrityMonitor();
@@ -843,7 +881,7 @@ async function main() {
 
   console.log('[Agent] Phish-Slayer EDR Agent running.');
   console.log('[Agent] Monitoring: Network + Files + Processes');
-  console.log('[Agent] WebSocket: Connected to', wsUrl);
+  console.log('[Agent] WebSocket: Connected to', url);
 
   // Graceful shutdown
   process.on('SIGINT', () => {
@@ -860,3 +898,6 @@ const isMain = process.argv[1] && (process.argv[1].includes('endpointMonitor') |
 if (isMain) {
   main().catch(console.error);
 }
+
+
+

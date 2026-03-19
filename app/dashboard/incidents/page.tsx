@@ -15,14 +15,17 @@ import {
   Search,
   Filter,
   Users,
+  Plus,
+  X,
 } from "lucide-react";
 import {
+  assignIncident,
+  createIncident,
   getIncidents,
+  getOrgUsers,
   resolveIncident,
   deleteIncident,
   blockIp,
-  getOrgUsers,
-  assignIncident,
 } from "@/lib/supabase/actions";
 import { useRole } from "@/lib/rbac/useRole";
 import { canAssignIncidents, isReadOnly } from "@/lib/rbac/roles";
@@ -76,6 +79,13 @@ export default function IncidentReportsPage() {
   const [dateRange, setDateRange] = useState<"all" | "today" | "7" | "30">(
     "all",
   );
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newIncident, setNewIncident] = useState({
+    title: "",
+    severity: "Medium",
+    description: "",
+    assignee: "Unassigned",
+  });
 
   useEffect(() => {
     Promise.all([
@@ -177,6 +187,31 @@ export default function IncidentReportsPage() {
       } finally {
         setActionId(null);
         setActionType(null);
+      }
+    });
+  };
+  
+  const handleCreateIncident = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newIncident.title) {
+      toast.error("Title is required");
+      return;
+    }
+    startTransition(async () => {
+      try {
+        const res = await createIncident(newIncident);
+        if (res.error) throw new Error(res.error);
+        toast.success("Incident created successfully.");
+        setIsCreateModalOpen(false);
+        setNewIncident({
+          title: "",
+          severity: "Medium",
+          description: "",
+          assignee: "Unassigned",
+        });
+        await refreshData();
+      } catch (err: any) {
+        toast.error(err.message || "Failed to create incident.");
       }
     });
   };
@@ -345,6 +380,14 @@ export default function IncidentReportsPage() {
               >
                 <Download className="w-4 h-4" />
                 Export
+              </button>
+
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-500 transition-colors shadow-lg shadow-teal-900/20"
+              >
+                <Plus className="w-4 h-4" />
+                New Incident
               </button>
             </div>
           </div>
@@ -588,6 +631,112 @@ export default function IncidentReportsPage() {
           </div>
         )}
       </main>
+
+      {/* Create Incident Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300">
+          <div className="bg-[#0f1629] border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button
+              onClick={() => setIsCreateModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="p-8">
+              <h2 className="text-2xl font-bold text-white mb-2">Create New Incident</h2>
+              <p className="text-slate-400 text-sm mb-6">Manually log a threat or security investigation.</p>
+
+              <form onSubmit={handleCreateIncident} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-300 mb-1.5 pl-1">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newIncident.title}
+                    onChange={(e) => setNewIncident({ ...newIncident, title: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:ring-2 focus:ring-teal-500/50 outline-none transition-all"
+                    placeholder="e.g. Unusual login from Russia"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-1.5 pl-1">
+                      Severity
+                    </label>
+                    <select
+                      value={newIncident.severity}
+                      onChange={(e) => setNewIncident({ ...newIncident, severity: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all cursor-pointer"
+                    >
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                      <option value="Critical">Critical</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-1.5 pl-1">
+                      Initial Assignee
+                    </label>
+                    <select
+                      value={newIncident.assignee}
+                      onChange={(e) => setNewIncident({ ...newIncident, assignee: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all cursor-pointer"
+                    >
+                      <option value="Unassigned">Unassigned</option>
+                      {orgUsers.map(u => (
+                        <option key={u.id} value={u.display_name}>{u.display_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-300 mb-1.5 pl-1">
+                    Description
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={newIncident.description}
+                    onChange={(e) => setNewIncident({ ...newIncident, description: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:ring-2 focus:ring-teal-500/50 outline-none transition-all resize-none"
+                    placeholder="Describe the threat or suspicious activity observed..."
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(false)}
+                    className="flex-1 px-6 py-3 rounded-xl border border-slate-700 font-semibold text-slate-300 hover:bg-slate-800 transition-all active:scale-95"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="flex-1 px-6 py-3 rounded-xl bg-teal-600 font-bold text-white hover:bg-teal-500 transition-all shadow-xl shadow-teal-900/30 disabled:opacity-50 disabled:scale-100 active:scale-95"
+                  >
+                    {isPending ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Creating...
+                      </div>
+                    ) : (
+                      "Create Incident"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

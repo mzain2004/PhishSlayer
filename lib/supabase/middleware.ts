@@ -32,22 +32,19 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // ── Unauthenticated: block /dashboard/* and /
-  if (!user) {
-    if (pathname === '/' || pathname.startsWith('/dashboard')) {
-      const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = '/auth/login';
-      return NextResponse.redirect(loginUrl);
-    }
+  // The ONLY redirect rules allowed:
+  // Unauthenticated user visits /dashboard/* → redirect to /auth/login
+  if (!user && pathname.startsWith('/dashboard')) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/auth/login';
+    return NextResponse.redirect(loginUrl);
   }
 
-  // ── Authenticated: redirect away from / and /auth/*
-  if (user) {
-    if (pathname === '/' || pathname.startsWith('/auth')) {
-      const dashUrl = request.nextUrl.clone();
-      dashUrl.pathname = '/dashboard';
-      return NextResponse.redirect(dashUrl);
-    }
+  // Authenticated user visits /auth/* → redirect to /dashboard
+  if (user && pathname.startsWith('/auth')) {
+    const dashUrl = request.nextUrl.clone();
+    dashUrl.pathname = '/dashboard';
+    return NextResponse.redirect(dashUrl);
   }
 
   return response;

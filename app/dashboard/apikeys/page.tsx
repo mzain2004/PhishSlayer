@@ -89,16 +89,16 @@ export default function ApiKeysPage() {
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-900">
+      <div className="bg-[#161b22] rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)] border border-[#30363d] overflow-hidden mb-8">
+        <div className="p-6 border-b border-[#30363d] flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-[#e6edf3]">
             Production Key
           </h3>
           {!apiKey && (
             <button
               onClick={handleGenerate}
               disabled={isPending}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-[#2dd4bf] hover:bg-teal-400 text-black font-bold text-sm rounded-lg transition-colors disabled:opacity-50"
             >
               {isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -114,7 +114,7 @@ export default function ApiKeysPage() {
           {apiKey ? (
             <div className="space-y-6">
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-slate-700">
+                <label className="text-sm font-bold text-[#e6edf3]">
                   Your API Secret Key
                 </label>
                 <div className="flex items-center gap-2">
@@ -123,11 +123,11 @@ export default function ApiKeysPage() {
                       type={showKey ? "text" : "password"}
                       value={apiKey}
                       readOnly
-                      className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 font-mono text-sm tracking-wider focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="w-full pl-4 pr-12 py-3 bg-[#0a0f1e] border border-[#30363d] rounded-lg text-teal-400 font-mono text-sm tracking-wider focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                     <button
                       onClick={() => setShowKey(!showKey)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300"
                       title={showKey ? "Hide key" : "Show key"}
                     >
                       {showKey ? (
@@ -139,7 +139,7 @@ export default function ApiKeysPage() {
                   </div>
                   <button
                     onClick={handleCopy}
-                    className="px-4 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg shadow-sm transition-colors flex justify-center items-center"
+                    className="px-4 py-3 bg-[#161b22] border border-[#30363d] hover:bg-[#1c2128] text-[#e6edf3] font-semibold rounded-lg shadow-sm transition-colors flex justify-center items-center"
                     title="Copy to clipboard"
                   >
                     <Copy className="w-4 h-4" />
@@ -151,11 +151,11 @@ export default function ApiKeysPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-3 pt-4 border-t border-[#30363d]">
                 <button
                   onClick={handleGenerate}
                   disabled={isPending}
-                  className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-[#e6edf3] bg-[#161b22] border border-[#30363d] hover:bg-[#1c2128] rounded-lg transition-colors disabled:opacity-50"
                 >
                   {isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -167,7 +167,7 @@ export default function ApiKeysPage() {
                 <button
                   onClick={handleRevoke}
                   disabled={isPending}
-                  className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
                 >
                   <Trash2 className="w-4 h-4" />
                   Revoke Key
@@ -176,18 +176,18 @@ export default function ApiKeysPage() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <Key className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <h4 className="text-lg font-bold text-slate-900 mb-1">
+              <Key className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+              <h4 className="text-lg font-bold text-[#e6edf3] mb-1">
                 No API Key Configured
               </h4>
-              <p className="text-sm text-slate-500 mb-6 max-w-sm mx-auto">
+              <p className="text-sm text-slate-400 mb-6 max-w-sm mx-auto">
                 Generate an API key to integrate Phish-Slayer scanning natively
                 into your CI/CD pipelines or SOAR playbook.
               </p>
               <button
                 onClick={handleGenerate}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-lg transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#2dd4bf] hover:bg-teal-400 text-black font-bold text-sm rounded-lg transition-colors disabled:opacity-50"
               >
                 {isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

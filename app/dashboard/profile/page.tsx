@@ -331,7 +331,7 @@ export default function UserProfilePage() {
                 onClick={async () => {
                   const supabase = createClient();
                   await supabase.auth.signOut({ scope: "local" });
-                  window.location.href = "/auth/login";
+                  window.location.href = "/";
                 }}
                 className="flex items-center justify-center gap-2 w-full py-2 bg-transparent border border-[#30363d] text-[#e6edf3] hover:border-[#8b949e] text-sm font-medium rounded-lg transition-colors"
               >
@@ -341,7 +341,7 @@ export default function UserProfilePage() {
                 onClick={async () => {
                   const supabase = createClient();
                   await supabase.auth.signOut({ scope: "global" });
-                  window.location.href = "/auth/login";
+                  window.location.href = "/";
                 }}
                 className="flex items-center justify-center gap-2 w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 text-sm font-medium rounded-lg transition-colors"
               >

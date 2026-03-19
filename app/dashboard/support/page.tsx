@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { submitSupportTicket } from "@/lib/supabase/actions";
+import { useTransition } from "react";
 
 const SYSTEM_STATUS = [
   { name: "API Services", status: "Operational" },
@@ -136,23 +138,40 @@ export default function SupportPage() {
     loadUser();
   }, []);
 
+  const [isSubmitting, startTransition] = useTransition();
+
   const handleSubmitTicket = (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject || !message) {
       toast.error("Please fill in all required fields.");
       return;
     }
-    toast.success(
-      `Ticket submitted! We'll respond within 24 hours.${
-        attachedFile ? ` Attachment: ${attachedFile.name}` : ""
-      }`,
-    );
-    setSubject("");
-    setCategory("General Question");
-    setPriority("Low");
-    setMessage("");
-    setAttachedFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    startTransition(async () => {
+      const result = await submitSupportTicket({
+        subject,
+        category,
+        priority,
+        message
+      });
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success(
+        `Ticket submitted! We'll respond within 24 hours.${
+          attachedFile ? ` Attachment: ${attachedFile.name}` : ""
+        }`,
+      );
+      setSubject("");
+      setCategory("General Question");
+      setPriority("Low");
+      setMessage("");
+      setAttachedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    });
   };
 
   const toggleFaq = (index: number) => {
@@ -331,10 +350,11 @@ export default function SupportPage() {
                 </div>
                 <button
                   type="submit"
-                  className="flex items-center gap-2 px-6 py-2.5 bg-teal-500 hover:bg-teal-400 text-white rounded-lg text-sm font-bold transition-colors w-full sm:w-auto justify-center"
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-teal-500 hover:bg-teal-400 text-white rounded-lg text-sm font-bold transition-colors w-full sm:w-auto justify-center disabled:opacity-50"
                 >
-                  <Send className="w-4 h-4" />
-                  Submit Ticket
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {isSubmitting ? "Submitting..." : "Submit Ticket"}
                 </button>
               </div>
             </form>

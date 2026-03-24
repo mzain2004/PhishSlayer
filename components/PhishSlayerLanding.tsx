@@ -1,8 +1,14 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, Suspense, lazy } from "react";
 import Link from "next/link";
-import { motion, useInView, AnimatePresence, useScroll } from "framer-motion";
+import {
+  motion,
+  useInView,
+  AnimatePresence,
+  useScroll,
+  useReducedMotion,
+} from "framer-motion";
 import {
   Shield,
   Menu,
@@ -19,6 +25,9 @@ import {
   Quote,
   ArrowRight,
   CheckCircle,
+  ShieldCheck,
+  Database,
+  Bot,
 } from "lucide-react";
 import { BackgroundBeams } from "@/lib/ui/aceternity/background-beams";
 import { Spotlight } from "@/lib/ui/aceternity/spotlight";
@@ -27,7 +36,9 @@ import { FloatingThreatCard } from "@/lib/ui/aceternity/floating-card";
 import { ParticleNetwork } from "@/components/ui/particle-network";
 import { TiltCard } from "@/components/ui/tilt-card";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
-import WaitlistModal from "@/components/ui/WaitlistModal";
+
+// Lazy load Three.js shield for performance
+const HeroShield3D = lazy(() => import("@/components/ui/hero-shield-3d"));
 
 /* ─── Animation variants ──────────────────────────────────── */
 const fadeInUp = {
@@ -37,6 +48,14 @@ const fadeInUp = {
 const stagger = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.1 } },
+};
+const slideInFromLeft = {
+  hidden: { opacity: 0, x: -60 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+};
+const staggerLeft = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.15 } },
 };
 
 /* ─── Animated counter ────────────────────────────────────── */
@@ -212,19 +231,14 @@ function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
 }
 
 /* ─── MAIN PAGE ───────────────────────────────────────────── */
-interface Props { isAuthenticated?: boolean }
-const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
+interface Props {
+  isAuthenticated?: boolean;
+}
+const PhishSlayerLanding: React.FC<Props> = ({
+  isAuthenticated = false,
+}) => {
   const { scrollYProgress } = useScroll();
-
-  // Waitlist state
-  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
-  const [waitlistTier, setWaitlistTier] = useState<{ id: 'soc_pro' | 'command_control', name: string }>({ id: 'soc_pro', name: 'SOC Pro' });
-  const [joinedTiers, setJoinedTiers] = useState<Set<string>>(new Set());
-
-  const openWaitlist = (tier: 'soc_pro' | 'command_control', tierName: string) => {
-    setWaitlistTier({ id: tier, name: tierName });
-    setIsWaitlistOpen(true);
-  };
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <div className="bg-[#0a0f1e] text-white font-sans overflow-x-hidden">
@@ -232,12 +246,12 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
         className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#2dd4bf] via-[#a78bfa] to-[#2dd4bf] origin-left z-[100]"
         style={{ scaleX: scrollYProgress }}
       />
-      <ParticleNetwork />
+      <ParticleNetwork disabled={!!prefersReducedMotion} />
       <div
         className="fixed inset-0 z-0 pointer-events-none opacity-20"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 40 0 L 0 0 0 40' fill='none' stroke='rgba(45,212,191,0.15)' stroke-width='1'/%3E%3C/svg%3E")`,
-          backgroundSize: '40px 40px'
+          backgroundSize: "40px 40px",
         }}
       />
       <Navbar isAuthenticated={isAuthenticated} />
@@ -253,12 +267,12 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
         <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center w-full py-16">
           {/* Left */}
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/20 rounded-full px-4 py-2 mb-6 text-teal-400 text-sm"
@@ -278,22 +292,33 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
               </span>
             </h1>
 
-            <p className="text-slate-400 text-lg mb-8 leading-relaxed max-w-lg">
+            <motion.p
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="text-slate-400 text-lg mb-8 leading-relaxed max-w-lg"
+            >
               AI-powered threat intelligence for SOC teams. Real-time scanning,
               behavioral analysis, and automated incident response in one
               terminal.
-            </p>
+            </motion.p>
 
-            <div className="flex flex-wrap gap-4 mb-8">
+            <motion.div
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="flex flex-wrap gap-4 mb-8"
+            >
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Link
-                  href={isAuthenticated ? '/dashboard' : '/auth/signup'}
+                  href={isAuthenticated ? "/dashboard" : "/auth/signup"}
                   className="flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-white font-semibold px-8 py-3 rounded-lg transition-colors text-sm shadow-xl shadow-teal-500/25"
                 >
-                  {isAuthenticated ? "Go to Dashboard" : "Start Free"} <ArrowRight className="w-4 h-4" />
+                  {isAuthenticated ? "Go to Dashboard" : "Start Free"}{" "}
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </motion.div>
               <motion.div
@@ -309,9 +334,14 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
                   Join Discord
                 </a>
               </motion.div>
-            </div>
+            </motion.div>
 
-            <div className="flex flex-wrap gap-4 text-sm text-slate-400">
+            <motion.div
+              initial={prefersReducedMotion ? {} : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="flex flex-wrap gap-4 text-sm text-slate-400"
+            >
               {[
                 "✓ No credit card required",
                 "✓ Setup in 5 minutes",
@@ -319,22 +349,36 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
               ].map((b) => (
                 <span key={b}>{b}</span>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
 
-          {/* Right */}
+          {/* Right — 3D Shield on desktop, FloatingThreatCard as fallback */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="hidden lg:block"
           >
-            <motion.div
-              animate={{ y: [0, -15, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            >
+            {!prefersReducedMotion ? (
+              <Suspense
+                fallback={
+                  <motion.div
+                    animate={{ y: [0, -15, 0] }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    <FloatingThreatCard />
+                  </motion.div>
+                }
+              >
+                <HeroShield3D />
+              </Suspense>
+            ) : (
               <FloatingThreatCard />
-            </motion.div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -367,7 +411,7 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
             </p>
           </motion.div>
           <motion.div
-            variants={stagger}
+            variants={staggerLeft}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-50px" }}
@@ -375,24 +419,26 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
           >
             {[
               {
-                icon: "🛡️",
+                icon: <ShieldCheck className="w-8 h-8 text-teal-600" />,
                 title: "Gate 1 — Whitelist Check",
                 desc: "Instant domain whitelist lookup — safe domains pass through",
               },
               {
-                icon: "🔍",
+                icon: <Database className="w-8 h-8 text-teal-600" />,
                 title: "Gate 2 — Intel Vault",
                 desc: "Cross-reference proprietary threat intelligence database",
               },
               {
-                icon: "🤖",
+                icon: <Bot className="w-8 h-8 text-teal-600" />,
                 title: "Gate 3 — AI Analysis",
                 desc: "VirusTotal + Gemini AI deep behavioral analysis",
               },
             ].map((g, i) => (
-              <motion.div key={i} variants={fadeInUp}>
-                <TiltCard className="relative bg-white rounded-2xl p-8 text-center border border-slate-200 shadow-sm hover:shadow-lg hover:border-teal-200 transition-all group">
-                  <div className="text-4xl mb-4">{g.icon}</div>
+              <motion.div key={i} variants={slideInFromLeft}>
+                <TiltCard className="gate-card relative bg-white rounded-2xl p-8 text-center border border-slate-200 shadow-sm hover:shadow-lg hover:border-teal-300 transition-all group">
+                  <div className="w-14 h-14 rounded-xl bg-teal-50 flex items-center justify-center mx-auto mb-4">
+                    {g.icon}
+                  </div>
                   <h3 className="text-lg font-black text-slate-900 mb-2">
                     {g.title}
                   </h3>
@@ -400,7 +446,18 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
                     {g.desc}
                   </p>
                   {i < 2 && (
-                    <ChevronRight className="hidden md:block absolute -right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-300 z-10" />
+                    <div className="hidden md:flex absolute -right-6 top-1/2 -translate-y-1/2 z-10 items-center">
+                      <motion.div
+                        animate={{ x: [0, 4, 0] }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <ChevronRight className="w-6 h-6 text-teal-400" />
+                      </motion.div>
+                    </div>
                   )}
                 </TiltCard>
               </motion.div>
@@ -468,8 +525,12 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
               <motion.div
                 key={i}
                 variants={fadeInUp}
-                whileHover={{ y: -4, borderColor: "rgba(13,148,136,0.5)" }}
-                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all h-full cursor-default"
+                whileHover={{
+                  y: -8,
+                  boxShadow: "0 20px 40px rgba(13,148,136,0.15)",
+                  borderColor: "rgba(13,148,136,0.5)",
+                }}
+                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm transition-all duration-300 h-full cursor-default"
               >
                 <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4">
                   {f.icon}
@@ -707,11 +768,11 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-50px" }}
-            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5"
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {[
               {
-                name: "Free",
+                name: "Recon",
                 price: "$0",
                 period: "/month",
                 features: [
@@ -725,57 +786,48 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
                 pop: false,
               },
               {
-                name: "Pro",
-                price: "$29",
+                name: "SOC Pro",
+                price: "$49",
                 period: "/month",
                 features: [
-                  "Unlimited scans",
+                  "500 scans/day",
                   "AI Heuristics",
                   "Port Patrol",
                   "SIEM Integration",
-                  "5 users",
+                  "10 fleet agents",
                   "Discord alerts",
                 ],
-                cta: "Start Pro Trial",
-                href: "/auth/signup?plan=pro",
+                cta: "Start SOC Pro",
+                href: "/pricing",
                 pop: true,
               },
               {
-                name: "Enterprise",
-                price: "$99",
+                name: "Command & Control",
+                price: "$299",
                 period: "/month",
                 features: [
-                  "Everything in Pro",
+                  "Everything in SOC Pro",
                   "Full RBAC",
                   "Audit logging",
                   "Takedown Generator",
-                  "Unlimited users",
+                  "Unlimited agents",
                   "Priority support",
                 ],
-                cta: "Start Enterprise",
-                href: "/auth/signup?plan=enterprise",
-                pop: false,
-              },
-              {
-                name: "Custom",
-                price: "Contact",
-                period: " us",
-                features: [
-                  "Custom scan limits",
-                  "On-premise deploy",
-                  "SLA guarantee",
-                  "Dedicated support",
-                ],
-                cta: "Contact Sales",
-                href: "mailto:sales@phishslayer.tech",
+                cta: "Start C&C",
+                href: "/pricing",
                 pop: false,
               },
             ].map((p, i) => (
               <motion.div
                 key={i}
                 variants={fadeInUp}
-                whileHover={{ scale: p.pop ? 1.02 : 1 }}
-                className={`relative isolate overflow-hidden rounded-2xl p-6 flex flex-col h-full ${
+                whileHover={{
+                  y: -8,
+                  boxShadow: p.pop
+                    ? "0 25px 50px rgba(45,212,191,0.2)"
+                    : "0 20px 40px rgba(255,255,255,0.05)",
+                }}
+                className={`relative isolate overflow-hidden rounded-2xl p-6 flex flex-col h-full transition-all duration-300 ${
                   p.pop
                     ? "bg-gradient-to-b from-teal-900/40 to-[#111827] border-2 border-teal-500 shadow-lg shadow-teal-500/10"
                     : "bg-[#111827] border border-white/10"
@@ -812,35 +864,17 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
                     </li>
                   ))}
                 </ul>
-                
-                {p.name === "Pro" || p.name === "Enterprise" ? (
-                  joinedTiers.has(p.name === "Pro" ? 'soc_pro' : 'command_control') ? (
-                    <button
-                      disabled
-                      className="w-full border border-[#3fb950] text-[#3fb950] font-semibold py-3 rounded-lg text-sm opacity-75 cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      <CheckCircle size={16} /> On the Waitlist
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => openWaitlist(p.name === "Pro" ? 'soc_pro' : 'command_control', p.name === "Pro" ? 'SOC Pro' : 'Command & Control')}
-                      className={`w-full border border-[#2dd4bf] text-[#2dd4bf] hover:bg-[#2dd4bf]/10 font-semibold py-3 rounded-lg transition-all text-sm`}
-                    >
-                      Join Waitlist
-                    </button>
-                  )
-                ) : (
-                  <Link
-                    href={p.href}
-                    className={`block text-center py-3 rounded-lg text-sm font-bold transition-all ${
-                      p.pop
-                        ? "bg-teal-500 hover:bg-teal-400 text-white shadow-lg shadow-teal-500/25"
-                        : "bg-white/10 hover:bg-white/15 text-white border border-white/10"
-                    }`}
-                  >
-                    {p.cta}
-                  </Link>
-                )}
+
+                <Link
+                  href={p.href}
+                  className={`block text-center py-3 rounded-lg text-sm font-bold transition-all ${
+                    p.pop
+                      ? "bg-teal-500 hover:bg-teal-400 text-white shadow-lg shadow-teal-500/25"
+                      : "bg-white/10 hover:bg-white/15 text-white border border-white/10"
+                  }`}
+                >
+                  {p.cta}
+                </Link>
               </motion.div>
             ))}
           </motion.div>
@@ -856,8 +890,16 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
       </section>
 
       {/* ───── SECTION 8: CTA ───── */}
-      <section className="bg-gradient-to-r from-teal-600 to-teal-500 py-20">
-        <div className="max-w-4xl mx-auto text-center px-6">
+      <section className="relative overflow-hidden py-20">
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 cta-gradient-animated" />
+        {/* Subtle particles overlay */}
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          {!prefersReducedMotion && (
+            <div className="cta-particles" />
+          )}
+        </div>
+        <div className="relative z-10 max-w-4xl mx-auto text-center px-6">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -953,12 +995,24 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
                         ) : isTermly ? (
                           <button
                             onClick={() => {
-                              const el = document.querySelector('.termly-display-preferences') as HTMLElement
-                              if (el) { el.click(); return; }
-                              if (typeof (window as any).displayPreferenceModal === 'function') {
-                                ;(window as any).displayPreferenceModal(); return;
+                              const el = document.querySelector(
+                                ".termly-display-preferences"
+                              ) as HTMLElement;
+                              if (el) {
+                                el.click();
+                                return;
                               }
-                              window.open('https://app.termly.io/notify/fa073781-55e5-45b6-a6ef-29405a9723b7', '_blank')
+                              if (
+                                typeof (window as any)
+                                  .displayPreferenceModal === "function"
+                              ) {
+                                (window as any).displayPreferenceModal();
+                                return;
+                              }
+                              window.open(
+                                "https://app.termly.io/notify/fa073781-55e5-45b6-a6ef-29405a9723b7",
+                                "_blank"
+                              );
                             }}
                             className="text-[#8b949e] hover:text-[#2dd4bf] text-sm transition-colors cursor-pointer bg-transparent border-none p-0"
                           >
@@ -967,7 +1021,7 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
                         ) : (
                           <a
                             href={lnk.h}
-                            className={`text-sm hover:text-white transition-colors ${"className" in lnk ? (lnk as any).className : ""}`}
+                            className="text-sm hover:text-white transition-colors"
                           >
                             {lnk.l}
                           </a>
@@ -981,7 +1035,7 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
           </div>
           <div className="mt-12 pt-8 border-t border-white/5 text-center px-6">
             <p className="text-[#8b949e] text-xs">
-              Built with 🛡️ by{' '}
+              Built with 🛡️ by{" "}
               <a
                 href="https://linkedin.com/in/mzain2004"
                 target="_blank"
@@ -989,24 +1043,71 @@ const PhishSlayerLanding: React.FC<Props> = ({ isAuthenticated = false }) => {
                 className="text-[#2dd4bf] hover:underline"
               >
                 mzain2004
-              </a>
-              {' '}· © 2026 Phish-Slayer
+              </a>{" "}
+              · © 2026 Phish-Slayer
             </p>
           </div>
-          
-          <WaitlistModal
-            isOpen={isWaitlistOpen}
-            onClose={() => setIsWaitlistOpen(false)}
-            tier={waitlistTier.id}
-            tierName={waitlistTier.name}
-            onSuccess={(tier) => {
-              setJoinedTiers((prev) => new Set(prev).add(tier));
-            }}
-          />
         </div>
       </footer>
+
+      {/* CSS for CTA gradient animation */}
+      <style jsx>{`
+        .cta-gradient-animated {
+          background: linear-gradient(
+            135deg,
+            #0f766e 0%,
+            #134e4a 25%,
+            #1e1b4b 50%,
+            #134e4a 75%,
+            #0f766e 100%
+          );
+          background-size: 400% 400%;
+          animation: gradientShift 8s ease infinite;
+        }
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .gate-card {
+          position: relative;
+        }
+        .gate-card::before {
+          content: '';
+          position: absolute;
+          inset: -1px;
+          border-radius: 1rem;
+          padding: 1px;
+          background: linear-gradient(135deg, transparent 40%, rgba(45, 212, 191, 0.3) 50%, transparent 60%);
+          background-size: 200% 200%;
+          animation: glowPulse 3s ease-in-out infinite;
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          pointer-events: none;
+        }
+        @keyframes glowPulse {
+          0%, 100% { background-position: 0% 50%; opacity: 0.5; }
+          50% { background-position: 100% 50%; opacity: 1; }
+        }
+        .cta-particles {
+          background-image: radial-gradient(1px 1px at 20% 30%, rgba(45,212,191,0.4) 0%, transparent 100%),
+            radial-gradient(1px 1px at 40% 70%, rgba(167,139,250,0.3) 0%, transparent 100%),
+            radial-gradient(1px 1px at 60% 20%, rgba(45,212,191,0.3) 0%, transparent 100%),
+            radial-gradient(1px 1px at 80% 60%, rgba(167,139,250,0.4) 0%, transparent 100%),
+            radial-gradient(1px 1px at 10% 80%, rgba(45,212,191,0.2) 0%, transparent 100%),
+            radial-gradient(1px 1px at 90% 40%, rgba(167,139,250,0.2) 0%, transparent 100%);
+          width: 100%;
+          height: 100%;
+          animation: particleDrift 12s linear infinite alternate;
+        }
+        @keyframes particleDrift {
+          0% { transform: translateY(0) translateX(0); }
+          100% { transform: translateY(-20px) translateX(10px); }
+        }
+      `}</style>
     </div>
   );
-}
+};
 
 export default PhishSlayerLanding;

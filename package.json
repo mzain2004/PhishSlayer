@@ -13,6 +13,8 @@
     "@paddle/paddle-js": "^1.6.2",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.98.0",
     "@tanstack/react-table": "^8.21.3",
@@ -34,6 +36,7 @@
     "resend": "^6.9.3",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
+    "three": "^0.183.2",
     "ws": "^8.19.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"

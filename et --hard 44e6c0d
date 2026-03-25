@@ -1,0 +1,41 @@
+[33m44e6c0d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m feat: complete landing page rebuild from scratch
+[33m7a0ca9f[m feat: complete landing page modular rebuild and new pages based on JSON spec
+[33m2a1b0ee[m feat: premium 3D animated landing page
+[33m49a3eb3[m feat: Paddle billing integration
+[33m8cec59d[m fix: discord button in support page, fix dead links
+[33m3dcf870[m fix: footer credit, waitlist feedback, discord link, footer nav, cta copy
+[33m98d42ad[m fix: login redirect, consent preferences, legal pages content
+[33maef6ddc[m refactor: remove Stripe, add waitlist system, gateway-neutral DB
+[33med44eeb[m fix: add legal pages privacy and terms
+[33m22d7dfc[m feat: RBAC, tier gating, security hardening
+[33mc4c4cb6[m fix: WebSocket RSV1 root cause - exclusive upgrade listener
+[33mfb5b1e6[m feat: add spec-driven project docs
+[33md9dee14[m feat: GitHub/Vercel premium UI overhaul — slate palette, KPI gradients, sidebar rename, profile fix
+[33m63c70f8[m feat: EDR agent fleet — FIM, process monitor, WebSocket C2, agent dashboard, installer scripts
+[33m5dc66f6[m feat: Recon/SOC Pro/Command & Control tier naming, annual pricing, Stripe fallback
+[33me553415[m UI V2
+[33mf304dad[m fix: dark theme consistency, pricing rebuild, billing page, settings cleanup, support hub
+[33mea51f31[m feat: complete dark enterprise UI overhaul, all dashboard pages terminal aesthetic
+[33me448e1e[m feat: enterprise UI overhaul, shadcn data tables, Aceternity landing page, framer-motion animations
+[33m5f3c1e5[m feat: landing page redesign, pricing page, Stripe checkout, weekly digest cron, plan gating, UI overhaul
+[33m2f90a09[m mail debugging
+[33m9a40641[m feat: V3 AI heuristics engine, port patrol, SIEM bridge, takedown generator
+[33m5dafa79[m security: timing-safe auth, open redirect fix, input sanitization, error boundaries, env validation
+[33m5a605be[m fix: phone field mapping, sidebar refresh after save, audit log empty state
+[33mc8163aa[m fix: avatar storage RLS, audit log table, user management enum error
+[33mf0bd296[m fix: user management service role, fake devices removed, profile insert/update logic
+[33md7da470[m fix: RLS infinite recursion, profile upsert, sidebar loading, real session display
+[33m2926ce0[m feat: audit log, email notifications, API keys, real settings page, sidebar fix
+[33m6a679df[m feat: RBAC system, user management, profile editor, security hardening, V2 finalization
+[33me2d7c05[m feat: Endpoint Monitor Agent — flag-ioc API, threat scoring, geo-IP, agent dashboard
+[33ma41a7ea[m ci: use git reset --hard to prevent merge conflicts
+[33mff7bd25[m feat: V2 deep scan — WHOIS, Ghost Mail, SSL, Typosquat, DOM Tree tabs + scrollbar fix
+[33m9c6e38e[m ci: switch from npm ci to npm install
+[33m4517500[m feat: replace xlsx with exceljs for secure Excel export
+[33m10f1eea[m test: CI/CD pipeline test
+[33m5223b0a[m ci: switch to native SSH instead of appleboy action
+[33mf79b4d2[m ci: remove invalid key_format option
+[33m20817af[m ci: add GitHub Actions auto-deploy workflow
+[33me4bac48[m Update author name in README
+[33mae6d597[m Update maintainer name in README.md
+[33m480f04b[m Phish Slayer V1.0

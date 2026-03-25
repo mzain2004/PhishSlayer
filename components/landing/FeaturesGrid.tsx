@@ -43,13 +43,13 @@ export function FeaturesGrid() {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+    hidden: { opacity: 0, y: 40 },
+    visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 100, damping: 20 } }
   };
 
   return (
-    <section id="features" className="bg-[#0D1117] py-32 border-b border-[#30363D]">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="features" className="bg-[#050505] py-32 border-b border-white/10 overflow-hidden relative">
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -57,7 +57,7 @@ export function FeaturesGrid() {
           variants={itemVariants}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-5xl font-black text-[#E6EDF3] tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
             Everything Your SOC Team Needs.<br />Nothing It Doesn&apos;t.
           </h2>
         </motion.div>
@@ -75,15 +75,15 @@ export function FeaturesGrid() {
               variants={itemVariants}
               whileHover={{ 
                 y: -4, 
-                boxShadow: "0 0 20px rgba(45,212,191,0.15)",
-                borderColor: "rgba(45,212,191,0.5)"
+                boxShadow: "0 0 30px rgba(217,70,239,0.15)",
+                borderColor: "rgba(217,70,239,0.4)"
               }}
-              className="bg-[#161B22] border border-[#30363D] p-8 rounded-[12px] transition-all duration-300 group"
+              className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-2xl transition-all duration-300 group"
             >
-              <div className="w-12 h-12 bg-[#0D1117] border border-[#30363D] rounded-[8px] flex items-center justify-center text-[#2DD4BF] mb-6 group-hover:bg-[#2DD4BF]/10 transition-colors">
+              <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-[8px] flex items-center justify-center text-[#D946EF] mb-6 group-hover:bg-[#D946EF]/20 group-hover:shadow-[inset_0_0_15px_rgba(217,70,239,0.3)] transition-all">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold text-[#E6EDF3] mb-3">{feature.title}</h3>
+              <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
               <p className="text-[#8B949E] leading-relaxed">{feature.desc}</p>
             </motion.div>
           ))}

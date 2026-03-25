@@ -5,105 +5,108 @@ import { Check, X } from "lucide-react";
 
 export function ComparisonTable() {
   const rows = [
-    { feature: "AI Analysis", ps: true, rf: true, tc: true, vt: false },
-    { feature: "EDR Agent", ps: true, rf: false, tc: false, vt: false },
-    { feature: "Fleet Management", ps: true, rf: false, tc: false, vt: false },
-    { feature: "Free Tier", ps: true, rf: false, tc: false, vt: true },
-    { feature: "Adaptive AI", ps: "Q3 '26", rf: false, tc: false, vt: false },
+    { feature: "AI Analysis", ps: "Gemini AI", rf: false, tc: false },
+    { feature: "EDR Agent", ps: "Full WebSocket", rf: false, tc: false },
+    { feature: "Fleet Management", ps: "Live Dashboard", rf: false, tc: false },
+    { feature: "Free Tier", ps: "10 scans/day", rf: false, tc: false },
+    { feature: "Adaptive AI", ps: "In Dev", rf: false, tc: false },
   ];
 
-  return (
-    <section className="bg-[#0D1117] py-32 border-b border-[#30363D] overflow-hidden">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-3xl md:text-5xl font-black text-[#E6EDF3] tracking-tight">
-            No Competitor Offers This at This Price
-          </h2>
-        </motion.div>
+  const springConfig = { type: "spring" as const, stiffness: 100, damping: 20 };
 
+  return (
+    <section className="bg-[#050505] py-32 border-b border-white/10 overflow-hidden">
+      <div className="max-w-6xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
-          className="hidden md:block overflow-x-auto"
+          transition={springConfig}
+          className="text-center mb-16"
         >
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                <th className="p-4 text-left text-[#8B949E] font-bold uppercase tracking-wider border-b border-[#30363D]">Features</th>
-                <th className="p-4 text-center bg-[#2DD4BF]/10 text-[#2DD4BF] font-black border-2 border-[#2DD4BF] rounded-t-[12px] text-lg">Phish-Slayer</th>
-                <th className="p-4 text-center text-[#8B949E] font-bold uppercase tracking-wider border-b border-[#30363D] w-1/4">Recorded Future</th>
-                <th className="p-4 text-center text-[#8B949E] font-bold uppercase tracking-wider border-b border-[#30363D] w-1/4">ThreatConnect</th>
-                <th className="p-4 text-center text-[#8B949E] font-bold uppercase tracking-wider border-b border-[#30363D] w-1/4">VirusTotal Ent.</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, i) => (
-                <tr key={i} className="border-b border-[#30363D]">
-                  <td className="p-4 text-[#E6EDF3] font-bold">{row.feature}</td>
-                  
-                  {/* Phish-Slayer Column */}
-                  <td className="p-4 text-center bg-[#1C2128]/50 border-x-2 border-[#2DD4BF] relative">
-                    {typeof row.ps === "boolean" ? (
-                      <Check className="w-6 h-6 text-[#3FB950] mx-auto" />
-                    ) : (
-                      <span className="text-[#2DD4BF] font-bold text-sm bg-[#2DD4BF]/10 px-2 py-1 rounded">{row.ps}</span>
-                    )}
-                  </td>
-                  
-                  {/* Competitor Columns */}
-                  <td className="p-4 text-center">
-                    {row.rf ? <Check className="w-5 h-5 text-[#8B949E] mx-auto" /> : <X className="w-5 h-5 text-[#F85149]/50 mx-auto" />}
-                  </td>
-                  <td className="p-4 text-center">
-                    {row.tc ? <Check className="w-5 h-5 text-[#8B949E] mx-auto" /> : <X className="w-5 h-5 text-[#F85149]/50 mx-auto" />}
-                  </td>
-                  <td className="p-4 text-center">
-                    {row.vt ? <Check className="w-5 h-5 text-[#8B949E] mx-auto" /> : <X className="w-5 h-5 text-[#F85149]/50 mx-auto" />}
-                  </td>
-                </tr>
-              ))}
-              
-              {/* Pricing Row */}
-              <tr>
-                <td className="p-4 text-[#E6EDF3] font-black text-lg pt-8">Starting Price</td>
-                <td className="p-4 text-center bg-[#1C2128]/50 border-2 border-[#2DD4BF] border-t-0 rounded-b-[12px] pt-8">
-                  <span className="text-2xl font-black text-[#2DD4BF]">$49</span><span className="text-sm text-[#8B949E]">/mo</span>
-                </td>
-                <td className="p-4 text-center text-lg font-bold text-[#8B949E] pt-8">$25,000<span className="text-xs">/yr</span></td>
-                <td className="p-4 text-center text-lg font-bold text-[#8B949E] pt-8">$50,000<span className="text-xs">/yr</span></td>
-                <td className="p-4 text-center text-lg font-bold text-[#8B949E] pt-8">$10,000<span className="text-xs">/yr</span></td>
-              </tr>
-            </tbody>
-          </table>
+          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+            No Competitor Offers This at This Price
+          </h2>
         </motion.div>
 
-        {/* Mobile View: Highlighting Phish-Slayer heavily to avoid complex tables */}
-        <div className="md:hidden space-y-6">
-          <div className="bg-[#1C2128]/50 border-2 border-[#2DD4BF] rounded-[12px] p-6 shadow-[0_0_20px_rgba(45,212,191,0.15)]">
-            <h3 className="text-2xl font-black text-[#2DD4BF] mb-4 text-center">Phish-Slayer ($49/mo)</h3>
-            <ul className="space-y-3">
-              {rows.map(r => (
-                <li key={r.feature} className="flex justify-between border-b border-[#30363D] pb-2 last:border-0 text-sm">
-                  <span className="text-[#E6EDF3] font-bold">{r.feature}</span>
-                  {typeof r.ps === "boolean" ? <Check className="w-5 h-5 text-[#3FB950]" /> : <span className="text-[#2DD4BF] font-bold">{r.ps}</span>}
-                </li>
-              ))}
-            </ul>
+        {/* Grid Based Comparison */}
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={springConfig}
+          className="grid grid-cols-1 md:grid-cols-4 gap-4"
+        >
+          {/* Column 1: Features */}
+          <div className="hidden md:flex flex-col justify-end gap-6 pb-6 pr-4">
+            {rows.map((row, i) => (
+              <div key={i} className="h-10 text-white/50 font-bold uppercase tracking-wider text-sm flex items-center">
+                {row.feature}
+              </div>
+            ))}
+            <div className="h-16 text-white font-black text-lg pt-4 flex items-center">
+              Starting Price
+            </div>
           </div>
-          
-          <div className="bg-[#161B22] border border-[#30363D] rounded-[12px] p-6 text-center text-[#8B949E]">
-            <p className="mb-2">Competitors charge between <span className="text-[#E6EDF3] font-bold">$10k-$50k/year</span> for fewer combined features.</p>
-            <p className="text-xs uppercase tracking-wider">Switch to mobile desktop view for full comparison table.</p>
+
+          {/* Column 2: Phish-Slayer (Glowing Glass Card) */}
+          <div className="flex flex-col gap-6 bg-white/5 backdrop-blur-2xl border border-[#D946EF]/50 shadow-[0_0_30px_rgba(217,70,239,0.2),inset_0_1px_0_rgba(217,70,239,0.5)] rounded-2xl p-6 relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#D946EF] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-[0_0_10px_#D946EF]">
+              Phish-Slayer
+            </div>
+            
+            <div className="md:hidden space-y-2 mb-4 mt-2">
+              <h3 className="text-xl font-bold text-[#D946EF] text-center">Phish-Slayer</h3>
+            </div>
+            
+            {rows.map((row, i) => (
+              <div key={i} className="h-10 flex items-center justify-between md:justify-center border-b border-white/10 md:border-none pb-2 md:pb-0">
+                <span className="md:hidden text-white/50 font-bold uppercase text-xs">{row.feature}</span>
+                <span className="text-[#D946EF] font-bold flex items-center gap-2">
+                  <Check className="w-4 h-4" /> {row.ps}
+                </span>
+              </div>
+            ))}
+            
+            <div className="h-16 flex items-center justify-between md:justify-center pt-4 md:border-t border-white/20">
+              <span className="md:hidden text-white font-bold">Price</span>
+              <div className="text-center">
+                <span className="text-white text-3xl font-black">$49</span>
+                <span className="text-white/50 text-sm">/mo</span>
+              </div>
+            </div>
           </div>
-        </div>
+
+          {/* Column 3: Recorded Future */}
+          <div className="flex flex-col gap-6 bg-white/[0.02] border border-white/5 rounded-2xl p-6 opacity-50 hover:opacity-100 transition-opacity">
+            <div className="text-center text-white/70 font-bold mb-2">Recorded Future</div>
+            {rows.map((row, i) => (
+              <div key={i} className="h-10 flex items-center justify-between md:justify-center border-b border-white/5 md:border-none pb-2 md:pb-0">
+                <span className="md:hidden text-white/50 text-xs">{row.feature}</span>
+                <X className="w-5 h-5 text-red-500/50" />
+              </div>
+            ))}
+            <div className="h-16 flex items-center justify-between md:justify-center pt-4 md:border-t border-white/5">
+              <span className="md:hidden text-white">Price</span>
+              <span className="text-white/80 font-bold">$25,000<span className="text-xs">/yr</span></span>
+            </div>
+          </div>
+
+          {/* Column 4: ThreatConnect */}
+          <div className="flex flex-col gap-6 bg-white/[0.02] border border-white/5 rounded-2xl p-6 opacity-50 hover:opacity-100 transition-opacity">
+            <div className="text-center text-white/70 font-bold mb-2">ThreatConnect</div>
+            {rows.map((row, i) => (
+              <div key={i} className="h-10 flex items-center justify-between md:justify-center border-b border-white/5 md:border-none pb-2 md:pb-0">
+                <span className="md:hidden text-white/50 text-xs">{row.feature}</span>
+                <X className="w-5 h-5 text-red-500/50" />
+              </div>
+            ))}
+            <div className="h-16 flex items-center justify-between md:justify-center pt-4 md:border-t border-white/5">
+              <span className="md:hidden text-white">Price</span>
+              <span className="text-white/80 font-bold">$50,000<span className="text-xs">/yr</span></span>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

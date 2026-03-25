@@ -60,18 +60,28 @@ export function ProductDemo() {
   }, [showResults]);
 
   return (
-    <section className="bg-[#0D1117] py-32 border-b border-[#30363D]" ref={containerRef}>
+    <section className="bg-[#050505] py-32 border-b border-white/10" ref={containerRef}>
       <div className="max-w-5xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-black text-[#E6EDF3] tracking-tight">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }} 
+          whileInView={{ opacity: 1, y: 0 }} 
+          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
             See It In Action
           </h2>
-        </div>
+        </motion.div>
 
         {/* Demo Interface */}
-        <div className="relative group rounded-[12px] bg-[#161B22] border border-[#30363D] overflow-hidden shadow-2xl">
+        <motion.div 
+          initial={{ opacity: 0, y: 60 }} 
+          whileInView={{ opacity: 1, y: 0 }} 
+          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          className="relative group rounded-2xl bg-white/5 backdrop-blur-3xl border border-white/10 overflow-hidden shadow-[inset_0_1px_0_rgba(217,70,239,0.5),0_0_40px_rgba(139,92,246,0.1)]"
+        >
           {/* Top Bar simulating browser window */}
-          <div className="h-10 bg-[#0D1117] border-b border-[#30363D] flex items-center px-4 gap-2">
+          <div className="h-10 bg-white/5 border-b border-white/10 flex items-center px-4 gap-2">
             <div className="w-3 h-3 rounded-full bg-[#F85149]" />
             <div className="w-3 h-3 rounded-full bg-[#E3B341]" />
             <div className="w-3 h-3 rounded-full bg-[#3FB950]" />
@@ -139,13 +149,13 @@ export function ProductDemo() {
           </div>
 
           {/* Play Overlay */}
-          <div className="absolute inset-0 bg-[#0D1117]/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer">
             <div className="flex flex-col items-center gap-3">
-              <PlayCircle className="w-16 h-16 text-[#2DD4BF] bg-[#0D1117] rounded-full drop-shadow-[0_0_20px_rgba(45,212,191,0.5)]" />
-              <span className="text-[#E6EDF3] font-bold tracking-wide">Watch the 60s Demo</span>
+              <PlayCircle className="w-16 h-16 text-[#D946EF] bg-transparent rounded-full shadow-[0_0_20px_#D946EF]" />
+              <span className="text-white font-bold tracking-wide">Watch the 60s Demo</span>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -5,7 +5,6 @@ import { HeroSection } from "./landing/HeroSection";
 import { ThreatTicker } from "./landing/ThreatTicker";
 import { ProblemStatement } from "./landing/ProblemStatement";
 import { GatePipeline } from "./landing/GatePipeline";
-import { ProductDemo } from "./landing/ProductDemo";
 import { EDRSection } from "./landing/EDRSection";
 import { FeaturesGrid } from "./landing/FeaturesGrid";
 import { ComparisonTable } from "./landing/ComparisonTable";
@@ -18,7 +17,7 @@ import { Footer } from "./landing/Footer";
 
 export default function PhishSlayerLanding({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   return (
-    <div className="bg-[#0D1117] text-[#E6EDF3] font-sans overflow-x-hidden selection:bg-[#2DD4BF]/30">
+    <div className="bg-[#050507] text-[#E6EDF3] font-sans overflow-x-hidden selection:bg-teal-400/30 antialiased">
       <Header isAuthenticated={isAuthenticated} />
       
       <main>
@@ -26,7 +25,6 @@ export default function PhishSlayerLanding({ isAuthenticated = false }: { isAuth
         <ThreatTicker />
         <ProblemStatement />
         <GatePipeline />
-        <ProductDemo />
         <EDRSection />
         <FeaturesGrid />
         <ComparisonTable />

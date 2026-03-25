@@ -3,6 +3,8 @@
 import { motion } from "framer-motion";
 import { Shield, Cpu, Monitor, Bell, FileText, Code } from "lucide-react";
 
+const springConfig = { type: "spring" as const, stiffness: 60, damping: 25, bounce: 0.1 };
+
 const features = [
   {
     icon: <Cpu className="w-6 h-6" strokeWidth={1.5} />,
@@ -39,22 +41,22 @@ const features = [
 export function FeaturesGrid() {
   const containerVariants = {
     hidden: {},
-    visible: { transition: { staggerChildren: 0.15 } }
+    visible: { transition: { staggerChildren: 0.25 } }
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { type: "spring" as const, bounce: 0.2, duration: 0.8 } }
+    hidden: { opacity: 0, y: 80 },
+    visible: { opacity: 1, y: 0, transition: springConfig }
   };
 
   return (
     <section id="features" className="bg-[#050507] py-32 border-b border-white/5 overflow-hidden relative antialiased">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 80 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ type: "spring", bounce: 0.2, duration: 0.8 }}
+          viewport={{ once: true, margin: "-120px" }}
+          transition={springConfig}
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight antialiased">
@@ -66,7 +68,7 @@ export function FeaturesGrid() {
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, margin: "-120px" }}
           className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           {features.map((feature, i) => (

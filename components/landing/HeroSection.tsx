@@ -8,9 +8,11 @@ import { ParticleNetwork } from "@/components/ui/particle-network";
 
 const HeroShield3D = lazy(() => import("@/components/ui/hero-shield-3d"));
 
+const springConfig = { type: "spring" as const, stiffness: 60, damping: 25, bounce: 0.1 };
+
 const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring" as const, bounce: 0.2, duration: 0.8 } },
+  hidden: { opacity: 0, y: 80 },
+  visible: { opacity: 1, y: 0, transition: springConfig },
 };
 
 export function HeroSection() {
@@ -28,10 +30,10 @@ export function HeroSection() {
         <motion.div
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, margin: "-120px" }}
           variants={{
             hidden: {},
-            visible: { transition: { staggerChildren: 0.15 } }
+            visible: { transition: { staggerChildren: 0.25 } }
           }}
           className="max-w-2xl"
         >
@@ -81,12 +83,12 @@ export function HeroSection() {
           </motion.div>
         </motion.div>
 
-        {/* Right 3D Visual */}
+        {/* Right 3D Visual — The Shield */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 80 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ type: "spring", bounce: 0.2, duration: 0.8, delay: 0.3 }}
+          viewport={{ once: true, margin: "-120px" }}
+          transition={{ ...springConfig, delay: 0.4 }}
           className="hidden lg:flex justify-center items-center relative"
         >
           <div className="absolute inset-0 bg-[#0D9488]/[0.06] rounded-full blur-[100px] pointer-events-none" />

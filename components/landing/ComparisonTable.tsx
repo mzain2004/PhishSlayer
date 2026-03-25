@@ -3,6 +3,8 @@
 import { motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 
+const springConfig = { type: "spring" as const, stiffness: 60, damping: 25, bounce: 0.1 };
+
 export function ComparisonTable() {
   const rows = [
     { feature: "AI Analysis", ps: "Gemini AI", rf: false, tc: false },
@@ -12,15 +14,13 @@ export function ComparisonTable() {
     { feature: "Adaptive AI", ps: "In Dev", rf: false, tc: false },
   ];
 
-  const springConfig = { type: "spring" as const, bounce: 0.2, duration: 0.8 };
-
   return (
     <section className="bg-[#050507] py-32 border-b border-white/5 overflow-hidden antialiased">
       <div className="max-w-6xl mx-auto px-6">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 80 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, margin: "-120px" }}
           transition={springConfig}
           className="text-center mb-16"
         >
@@ -29,11 +29,10 @@ export function ComparisonTable() {
           </h2>
         </motion.div>
 
-        {/* Grid Based Comparison */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 80 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, margin: "-120px" }}
           transition={springConfig}
           className="grid grid-cols-1 md:grid-cols-4 gap-4"
         >
@@ -49,7 +48,7 @@ export function ComparisonTable() {
             </div>
           </div>
 
-          {/* Column 2: Phish-Slayer (Highlighted) */}
+          {/* Column 2: Phish-Slayer */}
           <div className="flex flex-col gap-6 bg-slate-900/40 backdrop-blur-2xl border border-teal-500/30 rounded-2xl p-6 relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#2DD4BF] text-slate-950 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
               Phish-Slayer

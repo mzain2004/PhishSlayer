@@ -26,7 +26,7 @@ export function HeroSection() {
         <motion.div
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-100px" }}
           variants={{
             visible: { transition: { staggerChildren: 0.15 } }
           }}
@@ -34,8 +34,8 @@ export function HeroSection() {
         >
           {/* Badge */}
           <motion.div variants={fadeInUp} className="mb-6 inline-flex">
-            <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 text-[#D946EF] text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse shadow-[0_0_10px_#8B5CF6]" />
+            <div className="flex items-center gap-2 bg-white/[0.02] backdrop-blur-md border border-white/10 text-[#8B5CF6] text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse" />
               New — Adaptive AI Defense Engine in Development
             </div>
           </motion.div>
@@ -53,7 +53,7 @@ export function HeroSection() {
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 mb-10">
             <Link
               href="/auth/signup"
-              className="inline-flex justify-center items-center gap-2 bg-[#D946EF] hover:bg-[#D946EF]/90 text-white font-bold px-8 py-3.5 rounded-[8px] transition-all shadow-[0_0_20px_rgba(217,70,239,0.3)] hover:shadow-[0_0_30px_rgba(217,70,239,0.5)] border border-[#D946EF]/50"
+              className="inline-flex justify-center items-center gap-2 bg-[#8B5CF6] hover:bg-[#8B5CF6]/90 text-white font-bold px-8 py-3.5 rounded-[8px] transition-all border border-[#8B5CF6]/50"
             >
               Start Free — No Card Required <ArrowRight className="w-4 h-4" />
             </Link>
@@ -69,7 +69,7 @@ export function HeroSection() {
           <motion.div variants={fadeInUp} className="flex items-center gap-3 text-sm font-medium text-[#8B949E]">
             <div className="flex -space-x-2">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="w-8 h-8 rounded-full border-2 border-[#050505] bg-white/10 flex items-center justify-center text-[10px] text-[#D946EF] font-mono backdrop-blur-sm">
+                <div key={i} className="w-8 h-8 rounded-full border-2 border-[#050505] bg-white/10 flex items-center justify-center text-[10px] text-[#8B5CF6] font-mono backdrop-blur-sm">
                   OP
                 </div>
               ))}
@@ -80,16 +80,17 @@ export function HeroSection() {
 
         {/* Right 3D Visual */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
           transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.2 }}
           className="hidden lg:flex justify-center items-center relative"
         >
-          {/* Subtle glow behind the 3D canvas */}
-          <div className="absolute inset-0 bg-radial-gradient from-[#D946EF]/20 to-transparent blur-3xl opacity-50 z-0" />
+          {/* Very soft, low-opacity radial gradient */}
+          <div className="absolute inset-0 bg-radial-gradient from-[#8B5CF6]/10 to-transparent blur-3xl opacity-40 z-0" />
           <div className="relative z-10 w-full h-[500px]">
             {!prefersReducedMotion && (
-              <Suspense fallback={<div className="w-full h-full animate-pulse bg-white/5 rounded-full filter blur-xl opacity-20" />}>
+              <Suspense fallback={<div className="w-full h-full" />}>
                 <HeroShield3D />
               </Suspense>
             )}

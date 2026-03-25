@@ -51,10 +51,10 @@ export function FeaturesGrid() {
     <section id="features" className="bg-[#050505] py-32 border-b border-white/10 overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <motion.div
-          initial="hidden"
-          whileInView="visible"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          variants={itemVariants}
+          transition={{ type: "spring", stiffness: 100, damping: 20 }}
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
@@ -75,12 +75,11 @@ export function FeaturesGrid() {
               variants={itemVariants}
               whileHover={{ 
                 y: -4, 
-                boxShadow: "0 0 30px rgba(217,70,239,0.15)",
-                borderColor: "rgba(217,70,239,0.4)"
+                borderColor: "rgba(255,255,255,0.2)"
               }}
-              className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-2xl transition-all duration-300 group"
+              className="bg-white/[0.02] backdrop-blur-xl border border-white/[0.08] p-8 rounded-2xl transition-all duration-300 group"
             >
-              <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-[8px] flex items-center justify-center text-[#D946EF] mb-6 group-hover:bg-[#D946EF]/20 group-hover:shadow-[inset_0_0_15px_rgba(217,70,239,0.3)] transition-all">
+              <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-[8px] flex items-center justify-center text-[#8B5CF6] mb-6 transition-all">
                 {feature.icon}
               </div>
               <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>

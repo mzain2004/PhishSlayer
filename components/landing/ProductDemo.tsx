@@ -1,63 +1,52 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { PlayCircle, ShieldCheck, TerminalSquare } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { motion, useInView } from "framer-motion";
-import { PlayCircle, ShieldAlert } from "lucide-react";
 
 export function ProductDemo() {
-  const containerRef = useRef(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const [activeTab, setActiveTab] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   
-  const [typedText, setTypedText] = useState("");
-  const targetText = "https://malicious-phishing-example.xyz";
-  const [score, setScore] = useState(0);
+  // Terminal animation simulation
+  const [logs, setLogs] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [aiSummary, setAiSummary] = useState("");
-  const targetAiSummary = "The DOM tree contains obfuscated JavaScript designed to harvest credentials. SSL certificate was registered 2 hours ago. Cross-referencing VirusTotal confirms malicious hosting IP.";
+  const containerRef = useRef<HTMLElement>(null);
+
+  const tabs = [
+    { title: "Dashboard", icon: <Monitor className="w-4 h-4" /> },
+    { title: "Terminal View", icon: <TerminalSquare className="w-4 h-4" /> },
+    { title: "Auto-Remediation", icon: <ShieldCheck className="w-4 h-4" /> }
+  ];
 
   useEffect(() => {
-    if (!isInView) return;
-
-    // Type out URL
-    let textIdx = 0;
-    const typingInterval = setInterval(() => {
-      textIdx++;
-      setTypedText(targetText.slice(0, textIdx));
-      if (textIdx >= targetText.length) {
-        clearInterval(typingInterval);
-        setTimeout(() => setShowResults(true), 600);
-      }
-    }, 50);
-
-    return () => clearInterval(typingInterval);
-  }, [isInView]);
-
-  useEffect(() => {
-    if (!showResults) return;
-
-    // Count up score
-    let startScore = 0;
-    const endScore = 94;
-    const dur = 1000;
-    const startObj = performance.now();
-    
-    const countupFn = (now: number) => {
-      const p = Math.min((now - startObj) / dur, 1);
-      setScore(Math.floor(p * endScore));
-      if (p < 1) requestAnimationFrame(countupFn);
-    };
-    requestAnimationFrame(countupFn);
-
-    // Type out AI summary
-    let summaryIdx = 0;
-    const summaryInterval = setInterval(() => {
-      summaryIdx++;
-      setAiSummary(targetAiSummary.slice(0, summaryIdx));
-      if (summaryIdx >= targetAiSummary.length) clearInterval(summaryInterval);
-    }, 30);
-
-    return () => clearInterval(summaryInterval);
-  }, [showResults]);
+    if (activeTab === 1) {
+      setLogs([]);
+      setShowResults(false);
+      let count = 0;
+      const msgs = [
+        "Initializing Phish-Slayer Engine v3.0.4...",
+        "Connecting to fleet WebSocket [WSS]...",
+        "Receiving endpoint telemetry from 450 nodes.",
+        "ANALYZING: Suspicious powershell execution detected on DESKTOP-499X.",
+        "CORRELATING: Executable hash matched to TA505 toolkit.",
+        "ACTION: Initiating network isolation via EDR agent.",
+        "ISOLATION COMPLETE. Node quarantined.",
+        "Generating incident report and slack notification..."
+      ];
+      const interval = setInterval(() => {
+        if (count < msgs.length) {
+          setLogs(prev => [...prev, msgs[count]]);
+          count++;
+        } else {
+          clearInterval(interval);
+          setTimeout(() => setShowResults(true), 500);
+        }
+      }, 800);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab]);
 
   return (
     <section className="bg-[#050505] py-32 border-b border-white/10" ref={containerRef}>
@@ -65,6 +54,7 @@ export function ProductDemo() {
         <motion.div 
           initial={{ opacity: 0, y: 40 }} 
           whileInView={{ opacity: 1, y: 0 }} 
+          viewport={{ once: true, margin: "-100px" }}
           transition={{ type: "spring", stiffness: 100, damping: 20 }}
           className="text-center mb-16"
         >
@@ -75,83 +65,85 @@ export function ProductDemo() {
 
         {/* Demo Interface */}
         <motion.div 
-          initial={{ opacity: 0, y: 60 }} 
+          initial={{ opacity: 0, y: 40 }} 
           whileInView={{ opacity: 1, y: 0 }} 
+          viewport={{ once: true, margin: "-100px" }}
           transition={{ type: "spring", stiffness: 100, damping: 20 }}
-          className="relative group rounded-2xl bg-white/5 backdrop-blur-3xl border border-white/10 overflow-hidden shadow-[inset_0_1px_0_rgba(217,70,239,0.5),0_0_40px_rgba(139,92,246,0.1)]"
+          className="relative group rounded-2xl bg-white/[0.02] backdrop-blur-xl border border-white/[0.08] overflow-hidden"
         >
           {/* Top Bar simulating browser window */}
           <div className="h-10 bg-white/5 border-b border-white/10 flex items-center px-4 gap-2">
             <div className="w-3 h-3 rounded-full bg-[#F85149]" />
             <div className="w-3 h-3 rounded-full bg-[#E3B341]" />
             <div className="w-3 h-3 rounded-full bg-[#3FB950]" />
-          </div>
-
-          <div className="p-6 md:p-10 grid md:grid-cols-2 gap-8 min-h-[400px]">
-            {/* Left: Input */}
-            <div className="flex flex-col justify-center">
-              <div className="text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-2">Target URL</div>
-              <div className="w-full bg-[#0D1117] border border-[#30363D] rounded-[8px] p-4 text-[#E6EDF3] font-mono text-sm h-14 flex items-center shadow-inner">
-                {typedText}
-                {!showResults && <span className="w-2 h-5 bg-[#2DD4BF] animate-pulse ml-1" />}
-              </div>
-              <div className="mt-6 flex justify-end">
-                <button 
-                  className={`px-6 py-2.5 rounded-[8px] font-bold text-sm transition-all ${
-                    showResults 
-                      ? "bg-[#30363D] text-[#8B949E] cursor-not-allowed" 
-                      : "bg-[#2DD4BF] text-[#0D1117] shadow-[0_0_15px_rgba(45,212,191,0.2)]"
+            
+            {/* Tabs */}
+            <div className="flex ml-6 h-full font-mono text-xs">
+              {tabs.map((tab, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveTab(i)}
+                  className={`flex items-center gap-2 px-4 h-full border-r border-white/10 transition-colors ${
+                    activeTab === i 
+                      ? "bg-transparent text-[#8B5CF6] border-t-2 border-t-[#8B5CF6]" 
+                      : "text-[#8B949E] hover:bg-white/5"
                   }`}
-                  disabled
                 >
-                  {showResults ? "Scan Processing" : "Analyze Target"}
+                  {tab.icon} {tab.title}
                 </button>
-              </div>
-            </div>
-
-            {/* Right: Results Panel */}
-            <div className="border border-[#30363D] rounded-[8px] bg-[#0D1117] p-6 relative">
-              {!showResults ? (
-                <div className="absolute inset-0 flex items-center justify-center text-[#8B949E] font-mono text-sm opacity-50">
-                  Waiting for input...
-                </div>
-              ) : (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-center gap-2 bg-[#F85149]/10 text-[#F85149] px-3 py-1 rounded-sm border border-[#F85149]/30">
-                      <ShieldAlert className="w-5 h-5" />
-                      <span className="font-bold text-sm">MALICIOUS</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[10px] text-[#8B949E] font-bold uppercase tracking-widest mb-1">Risk Score</div>
-                      <div className="text-4xl font-black text-[#F85149] font-mono">{score}</div>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-[10px] text-[#8B949E] font-bold uppercase tracking-widest mb-2 border-b border-[#30363D] pb-1">Gemini AI Analysis</div>
-                    <p className="text-[#E6EDF3] text-sm leading-relaxed font-mono">
-                      {aiSummary}
-                      {aiSummary.length < targetAiSummary.length && <span className="inline-block w-2 h-4 bg-[#2DD4BF] animate-pulse ml-1 align-middle" />}
-                    </p>
-                  </div>
-                </motion.div>
-              )}
+              ))}
             </div>
           </div>
 
-          {/* Visual Tabs */}
-          <div className="border-t border-[#30363D] bg-[#0D1117] px-6 py-3 flex gap-6 overflow-x-auto whitespace-nowrap hide-scrollbar">
-            {["AI Heuristics", "Rendered View", "DOM Tree", "WHOIS", "SSL Profile"].map((tab, i) => (
-              <div key={i} className={`text-xs font-bold uppercase tracking-wider pb-3 border-b-2 cursor-pointer ${i === 0 ? "text-[#2DD4BF] border-[#2DD4BF]" : "text-[#8B949E] border-transparent hover:text-[#E6EDF3]"}`}>
-                {tab}
+          {/* Content Area */}
+          <div className="aspect-video bg-[#050505] relative w-full h-full overflow-hidden flex items-center justify-center p-8">
+            {activeTab === 0 ? (
+              <div className="w-full h-full text-[#8B949E] flex items-center justify-center font-mono relative">
+                {/* Fallback mock UI for Dashboard if no video */}
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5" />
+                <div className="text-center">
+                  <Monitor className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p>Dashboard visualization module loading...</p>
+                  <p className="text-xs mt-2 opacity-50">Video asset pending deployment</p>
+                </div>
               </div>
-            ))}
+            ) : activeTab === 1 ? (
+              <div className="w-full h-full bg-[#050505] text-[#3FB950] font-mono text-sm leading-relaxed text-left flex flex-col justify-end pb-4 border border-white/5 rounded p-4">
+                <div className="space-y-2">
+                  {logs.map((log, i) => (
+                    <div key={i} className="animate-in fade-in slide-in-from-bottom-2">
+                      <span className="text-white/30 mr-2">{">"}</span> {log}
+                    </div>
+                  ))}
+                  {showResults && (
+                    <div className="mt-4 pt-4 border-t border-white/10 text-white font-black animate-in fade-in">
+                      STATUS CODE: 200 SECURE | INCIDENT RESOLVED
+                    </div>
+                  )}
+                  {!showResults && logs.length > 0 && (
+                    <div className="animate-pulse h-4 mt-2">
+                      <span className="text-white/30 mr-2">{">"}</span> _
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-[#8B949E] font-mono">
+                <ShieldCheck className="w-16 h-16 mx-auto mb-4 text-[#8B5CF6] opacity-70" />
+                <p>Auto-Remediation rules engine online.</p>
+                <div className="mt-6 flex gap-2">
+                  <div className="h-2 w-16 bg-[#F85149] rounded" />
+                  <div className="h-2 w-16 bg-[#3FB950] rounded" />
+                  <div className="h-2 w-16 bg-[#E3B341] rounded" />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Play Overlay */}
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer">
             <div className="flex flex-col items-center gap-3">
-              <PlayCircle className="w-16 h-16 text-[#D946EF] bg-transparent rounded-full shadow-[0_0_20px_#D946EF]" />
+              <PlayCircle className="w-16 h-16 text-[#8B5CF6] bg-transparent rounded-full" />
               <span className="text-white font-bold tracking-wide">Watch the 60s Demo</span>
             </div>
           </div>
@@ -160,3 +152,8 @@ export function ProductDemo() {
     </section>
   );
 }
+
+// Minimal stub to prevent undefined icon
+const Monitor = ({ className }: { className?: string }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+);

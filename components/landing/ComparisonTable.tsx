@@ -31,7 +31,7 @@ export function ComparisonTable() {
 
         {/* Grid Based Comparison */}
         <motion.div
-          initial={{ opacity: 0, y: 60 }}
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={springConfig}
@@ -50,25 +50,25 @@ export function ComparisonTable() {
           </div>
 
           {/* Column 2: Phish-Slayer (Glowing Glass Card) */}
-          <div className="flex flex-col gap-6 bg-white/5 backdrop-blur-2xl border border-[#D946EF]/50 shadow-[0_0_30px_rgba(217,70,239,0.2),inset_0_1px_0_rgba(217,70,239,0.5)] rounded-2xl p-6 relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#D946EF] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-[0_0_10px_#D946EF]">
+          <div className="flex flex-col gap-6 bg-white/[0.02] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#8B5CF6] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
               Phish-Slayer
             </div>
             
             <div className="md:hidden space-y-2 mb-4 mt-2">
-              <h3 className="text-xl font-bold text-[#D946EF] text-center">Phish-Slayer</h3>
+              <h3 className="text-xl font-bold text-[#8B5CF6] text-center">Phish-Slayer</h3>
             </div>
             
             {rows.map((row, i) => (
               <div key={i} className="h-10 flex items-center justify-between md:justify-center border-b border-white/10 md:border-none pb-2 md:pb-0">
                 <span className="md:hidden text-white/50 font-bold uppercase text-xs">{row.feature}</span>
-                <span className="text-[#D946EF] font-bold flex items-center gap-2">
+                <span className="text-[#8B5CF6] font-bold flex items-center gap-2">
                   <Check className="w-4 h-4" /> {row.ps}
                 </span>
               </div>
             ))}
             
-            <div className="h-16 flex items-center justify-between md:justify-center pt-4 md:border-t border-white/20">
+            <div className="h-16 flex items-center justify-between md:justify-center pt-4 md:border-t border-white/10">
               <span className="md:hidden text-white font-bold">Price</span>
               <div className="text-center">
                 <span className="text-white text-3xl font-black">$49</span>

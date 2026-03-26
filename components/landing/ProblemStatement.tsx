@@ -54,7 +54,7 @@ export function ProblemStatement() {
             <motion.div
               key={i}
               variants={fadeInUp}
-              className="group relative bg-[#161B22] border border-[#30363D] p-8 rounded-[16px] overflow-hidden hover:border-[#2DD4BF] hover:shadow-[0_0_30px_rgba(45,212,191,0.12)] hover:-translate-y-[2px] transition-all duration-300"
+              className="group relative bg-[#161B22] border border-[#30363D] p-8 rounded-[16px] overflow-hidden hover:border-[#2DD4BF]/50 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)] hover:-translate-y-2 transition-all duration-300 ease-out"
             >
               {/* Top highlight gradient line */}
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#F85149] to-transparent opacity-50 group-hover:via-[#2DD4BF] transition-all" />

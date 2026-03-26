@@ -56,12 +56,12 @@ export function Footer() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter email for updates"
-                className="bg-[#161B22] border border-[#30363D] rounded-[6px] px-3 py-2 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] flex-1 min-w-0 font-mono text-[12px] placeholder:text-[#8B949E]/50 transition-colors"
+                className="bg-[#161B22] border border-[#30363D] rounded-full px-6 py-2.5 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] flex-1 min-w-0 font-mono text-[12px] placeholder:text-[#8B949E]/50 transition-colors"
               />
               <button 
                 onClick={handleSubscribe}
                 disabled={loading}
-                className="bg-[#2DD4BF] text-[#0D1117] font-bold px-4 py-2 rounded-[6px] text-sm hover:bg-[#14B8A6] transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="bg-[#2DD4BF] text-[#0D1117] font-bold px-6 py-2.5 rounded-full text-sm hover:bg-[#14B8A6] transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 Subscribe

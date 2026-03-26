@@ -14,7 +14,7 @@ export function AdaptiveAIVision() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false, margin: "-80px" }}
             transition={springConfig}
-            className="inline-block bg-[#2DD4BF]/10 border border-[#2DD4BF]/30 text-[#2DD4BF] font-mono text-[10px] font-bold px-3 py-1.5 rounded-[4px] uppercase tracking-[0.12em] mb-6"
+            className="inline-block bg-[#2DD4BF]/10 border border-[#2DD4BF]/30 text-[#2DD4BF] font-mono text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-[0.12em] mb-6"
           >
             In Development — Q3 2026
           </motion.div>
@@ -42,7 +42,7 @@ export function AdaptiveAIVision() {
 
           <motion.div
             variants={{ hidden: { opacity: 0, x: -50 }, visible: { opacity: 1, x: 0, transition: springConfig } }}
-            className="bg-[#161B22] border border-[#F85149]/30 rounded-[8px] p-8 relative overflow-hidden"
+            className="bg-[#161B22] border border-[#F85149]/30 rounded-[16px] p-8 relative overflow-hidden transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(248,81,73,0.15)]"
           >
             <span className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#F85149] block mb-4">The Problem</span>
             <h3 className="text-2xl font-bold mb-4 tracking-tight">Adaptive Malware</h3>
@@ -59,7 +59,7 @@ export function AdaptiveAIVision() {
 
           <motion.div
             variants={{ hidden: { opacity: 0, x: 50 }, visible: { opacity: 1, x: 0, transition: springConfig } }}
-            className="bg-[#161B22] border border-[#2DD4BF]/30 rounded-[8px] p-8 relative overflow-hidden"
+            className="bg-[#161B22] border border-[#2DD4BF]/30 rounded-[16px] p-8 relative overflow-hidden transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)]"
           >
             <span className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#2DD4BF] block mb-4">The Solution</span>
             <h3 className="text-2xl font-bold mb-4 tracking-tight">Continuous EDR Synthesis</h3>
@@ -87,10 +87,10 @@ export function AdaptiveAIVision() {
             <input 
               type="email" 
               placeholder="security@acme.com" 
-              className="flex-1 bg-[#161B22] border border-[#30363D] rounded-[6px] px-4 py-3 text-sm font-mono focus:outline-none focus:border-[#2DD4BF] transition-colors"
+              className="flex-1 bg-[#161B22] border border-[#30363D] rounded-full px-6 py-3 text-sm font-mono focus:outline-none focus:border-[#2DD4BF] transition-colors"
               required
             />
-            <button className="bg-[#2DD4BF] text-[#0D1117] font-bold px-6 py-3 rounded-[6px] text-sm hover:bg-[#14B8A6] transition-colors">
+            <button className="bg-[#2DD4BF] text-[#0D1117] font-bold px-8 py-3 rounded-full text-sm hover:bg-[#14B8A6] transition-colors">
               Get Early Access
             </button>
           </form>

@@ -57,10 +57,10 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
 
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
-          {isAuthenticated ? (
+            {isAuthenticated ? (
             <Link
               href="/dashboard"
-              className="bg-[#2DD4BF] text-[#0D1117] hover:bg-[#2DD4BF]/90 font-bold px-5 py-2 rounded-[8px] text-sm transition-colors"
+              className="bg-[#2DD4BF] text-[#0D1117] hover:bg-[#2DD4BF]/90 font-bold px-6 py-2 rounded-full text-sm transition-colors"
             >
               Go to Dashboard
             </Link>
@@ -68,13 +68,13 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
             <>
               <Link
                 href="/auth/login"
-                className="text-[#8B949E] hover:text-[#E6EDF3] text-sm font-medium transition-colors border border-transparent hover:border-[#30363D] px-4 py-2 rounded-[8px]"
+                className="text-[#8B949E] hover:text-[#E6EDF3] text-sm font-medium transition-colors border border-transparent hover:border-[#30363D] px-6 py-2 rounded-full"
               >
                 Sign In
               </Link>
               <Link
                 href="/auth/signup"
-                className="bg-[#2DD4BF] text-[#0D1117] hover:bg-[#2DD4BF]/90 font-bold px-5 py-2 rounded-[8px] text-sm transition-colors shadow-[0_0_20px_rgba(45,212,191,0.15)] hover:shadow-[0_0_20px_rgba(45,212,191,0.3)]"
+                className="bg-[#2DD4BF] text-[#0D1117] hover:bg-[#2DD4BF]/90 font-bold px-6 py-2 rounded-full text-sm transition-colors shadow-[0_0_20px_rgba(45,212,191,0.15)] hover:shadow-[0_0_20px_rgba(45,212,191,0.3)]"
               >
                 Start Free
               </Link>
@@ -110,19 +110,19 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
               <Link
                 href="/dashboard"
                 onClick={() => setMenuOpen(false)}
-                className="block bg-[#2DD4BF] text-[#0D1117] text-center py-2.5 rounded-[8px] font-bold mt-2"
+                className="block bg-[#2DD4BF] text-[#0D1117] text-center py-2.5 rounded-full font-bold mt-2"
               >
                 Go to Dashboard
               </Link>
             ) : (
               <>
-                <Link href="/auth/login" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2 text-center border border-[#30363D] rounded-[8px] mt-2">
+                <Link href="/auth/login" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2 text-center border border-[#30363D] rounded-full mt-2">
                   Sign In
                 </Link>
                 <Link
                   href="/auth/signup"
                   onClick={() => setMenuOpen(false)}
-                  className="block bg-[#2DD4BF] text-[#0D1117] text-center py-2.5 rounded-[8px] font-bold mt-2"
+                  className="block bg-[#2DD4BF] text-[#0D1117] text-center py-2.5 rounded-full font-bold mt-2"
                 >
                   Start Free
                 </Link>

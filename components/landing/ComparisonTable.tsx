@@ -26,7 +26,7 @@ export function ComparisonTable() {
         >
           <span className="font-mono text-[11px] tracking-[0.15em] text-[#2DD4BF] uppercase block mb-4">Comparison</span>
           <h2 className="text-3xl md:text-5xl font-bold text-[#E6EDF3] tracking-[-0.01em]">
-            No Competitor Offers This at This Price
+            Uncompromising Architecture. Unmatched ROI.
           </h2>
         </motion.div>
 

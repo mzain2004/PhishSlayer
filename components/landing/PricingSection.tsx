@@ -82,15 +82,15 @@ export function PricingSection() {
               display: 'inline-flex',
               background: '#161B22',
               border: '1px solid #30363D',
-              borderRadius: '8px',
+              borderRadius: '9999px',
               padding: '4px',
               gap: '4px',
             }}>
               <button 
                 onClick={() => setIsAnnual(false)}
                 style={{
-                  padding: '8px 20px',
-                  borderRadius: '6px',
+                  padding: '8px 24px',
+                  borderRadius: '9999px',
                   border: 'none',
                   background: !isAnnual ? '#2DD4BF' : 'transparent',
                   color: !isAnnual ? '#0D1117' : '#8B949E',
@@ -105,8 +105,8 @@ export function PricingSection() {
               <button 
                 onClick={() => setIsAnnual(true)}
                 style={{
-                  padding: '8px 20px',
-                  borderRadius: '6px',
+                  padding: '8px 24px',
+                  borderRadius: '9999px',
                   border: 'none',
                   background: isAnnual ? '#2DD4BF' : 'transparent',
                   color: isAnnual ? '#0D1117' : '#8B949E',
@@ -146,7 +146,7 @@ export function PricingSection() {
             <motion.div
               key={i}
               variants={{ hidden: { opacity: 0, y: 80 }, visible: { opacity: 1, y: 0, transition: springConfig } }}
-              className={`relative p-8 rounded-[8px] flex flex-col transition-all duration-200 hover:-translate-y-[2px] hover:shadow-[0_0_30px_rgba(45,212,191,0.12)] ${
+              className={`relative p-8 rounded-[16px] flex flex-col transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)] ${
                 tier.popular 
                   ? 'bg-gradient-to-b from-[#2DD4BF]/[0.08] to-[#161B22] border border-[#2DD4BF]/40' 
                   : 'bg-[#161B22] border border-[#30363D] hover:border-[#2DD4BF]'
@@ -201,7 +201,7 @@ export function PricingSection() {
 
               <button 
                 onClick={() => handleAction(tier.name)}
-                className={`w-full py-3.5 rounded-[6px] font-bold text-[15px] transition-all duration-200 focus:outline-none tracking-[0.01em] ${
+                className={`w-full py-3.5 rounded-full font-bold text-[15px] transition-all duration-200 focus:outline-none tracking-[0.01em] ${
                   tier.popular 
                     ? 'bg-[#2DD4BF] text-[#0D1117] hover:bg-[#14B8A6] hover:-translate-y-[1px] hover:shadow-[0_8px_25px_rgba(45,212,191,0.3)]' 
                     : 'bg-transparent text-[#E6EDF3] border border-[#30363D] hover:border-[#2DD4BF] hover:text-[#2DD4BF]'

@@ -45,13 +45,13 @@ export function BottomCTA() {
         >
           <Link
             href="/auth/signup"
-            className="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-[#2DD4BF] hover:bg-[#14B8A6] text-[#0D1117] font-bold px-10 py-4 rounded-[6px] transition-all hover:-translate-y-[1px] hover:shadow-[0_8px_25px_rgba(45,212,191,0.3)] text-lg tracking-[0.01em]"
+            className="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-[#2DD4BF] hover:bg-[#14B8A6] text-[#0D1117] font-bold px-10 py-4 rounded-full transition-all hover:-translate-y-[1px] hover:shadow-[0_8px_25px_rgba(45,212,191,0.3)] text-lg tracking-[0.01em]"
           >
             Start Free Now <ArrowRight className="w-5 h-5" strokeWidth={1.5} />
           </Link>
           <Link
             href="/pricing"
-            className="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-transparent border border-[#30363D] hover:border-[#2DD4BF] hover:text-[#2DD4BF] text-[#E6EDF3] font-bold px-10 py-4 rounded-[6px] transition-all text-lg"
+            className="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-transparent border border-[#30363D] hover:border-[#2DD4BF] hover:text-[#2DD4BF] text-[#E6EDF3] font-bold px-10 py-4 rounded-full transition-all text-lg"
           >
             View Pricing <PlayCircle className="w-5 h-5 ml-1" strokeWidth={1.5} />
           </Link>

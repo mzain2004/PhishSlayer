@@ -42,7 +42,7 @@ export function FeaturesGrid() {
             <motion.div
               key={i}
               variants={{ hidden: { opacity: 0, y: 80 }, visible: { opacity: 1, y: 0, transition: springConfig } }}
-              className="bg-[#161B22] border border-[#30363D] p-6 rounded-[8px] transition-all duration-200 group hover:border-[#2DD4BF] hover:shadow-[0_0_0_1px_rgba(45,212,191,0.1),0_8px_32px_rgba(0,0,0,0.4)] hover:-translate-y-[2px]"
+              className="bg-[#161B22] border border-[#30363D] p-6 rounded-[16px] transition-all duration-300 ease-out group hover:border-[#2DD4BF]/50 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)]"
             >
               <span className="font-mono text-[10px] tracking-[0.12em] text-[#2DD4BF] uppercase block mb-2">{feature.label}</span>
               <div className="w-12 h-12 bg-[#0D1117] border border-[#30363D] rounded-[8px] flex items-center justify-center text-[#2DD4BF] mb-4 group-hover:border-[#2DD4BF]/30 transition-colors">

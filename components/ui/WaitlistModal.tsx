@@ -87,7 +87,7 @@ export default function WaitlistModal({ isOpen, onClose, tier, tierName, onSucce
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
               placeholder="your@email.com"
-              className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-4 py-3 text-[#e6edf3] text-sm placeholder-[#8b949e] focus:outline-none focus:border-[#2dd4bf] transition-colors mb-3"
+              className="w-full bg-[#0d1117] border border-[#30363d] rounded-full px-6 py-3 text-[#e6edf3] text-sm placeholder-[#8b949e] focus:outline-none focus:border-[#2dd4bf] transition-colors mb-3"
             />
 
             {error && <p className="text-[#f85149] text-xs mb-3">{error}</p>}
@@ -95,7 +95,7 @@ export default function WaitlistModal({ isOpen, onClose, tier, tierName, onSucce
             <button
               onClick={handleSubmit}
               disabled={loading || !email}
-              className="w-full bg-[#2dd4bf] text-[#0d1117] font-semibold py-3 rounded-lg hover:bg-[#14b8a6] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="w-full bg-[#2dd4bf] text-[#0d1117] font-semibold py-3 px-6 rounded-full hover:bg-[#14b8a6] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {loading ? 'Joining...' : 'Notify Me When Available'}
             </button>

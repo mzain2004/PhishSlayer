@@ -56,29 +56,26 @@ export function HeroSection() {
               Enterprise Threat Intelligence.
             </span>
             <span className="block text-[40px] lg:text-[72px] font-extrabold text-[#2DD4BF] leading-[1.1] tracking-[-0.02em]">
-              At $49/Month.
-            </span>
-            <span className="block text-[24px] lg:text-[40px] font-extrabold text-[#8B949E] leading-[1.1] tracking-[-0.02em] mt-2">
-              Not $25,000/Year.
+              Scaled for Your Team.
             </span>
           </motion.h1>
 
           {/* Subtext */}
           <motion.p variants={fadeInUp} className="text-[16px] text-[#8B949E] mb-8 leading-[1.7] max-w-2xl mx-auto">
-            AI-powered scanning. Real-time EDR. Under 30 seconds. Free tier available.
+            Deploy military-grade EDR starting at $588/year. Uncompromising security without the legacy enterprise bloat.
           </motion.p>
 
           {/* Buttons */}
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row justify-center gap-4 mb-10">
             <Link
               href="/auth/signup"
-              className="inline-flex justify-center items-center gap-2 bg-[#2DD4BF] hover:bg-[#14B8A6] text-[#0D1117] font-bold text-[15px] px-8 py-3.5 rounded-[6px] tracking-[0.01em] transition-all hover:-translate-y-[1px] hover:shadow-[0_8px_25px_rgba(45,212,191,0.3)]"
+              className="inline-flex justify-center items-center gap-2 bg-[#2DD4BF] hover:bg-[#14B8A6] text-[#0D1117] font-bold text-[15px] px-10 py-4 rounded-full tracking-[0.01em] transition-all hover:-translate-y-[1px] hover:shadow-[0_8px_25px_rgba(45,212,191,0.3)]"
             >
               Start Free — No Card Required <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </Link>
             <Link
               href="/#features"
-              className="inline-flex justify-center items-center gap-2 bg-transparent border border-[#30363D] hover:border-[#2DD4BF] text-[#E6EDF3] hover:text-[#2DD4BF] font-bold text-[15px] px-8 py-3.5 rounded-[6px] transition-all"
+              className="inline-flex justify-center items-center gap-2 bg-transparent border border-[#30363D] hover:border-[#2DD4BF] text-[#E6EDF3] hover:text-[#2DD4BF] font-bold text-[15px] px-10 py-4 rounded-full transition-all"
             >
               See How It Works <PlayCircle className="w-4 h-4" strokeWidth={1.5} />
             </Link>

@@ -55,7 +55,7 @@ export function Testimonials() {
             <motion.div
               key={i}
               variants={{ hidden: { opacity: 0, y: 80 }, visible: { opacity: 1, y: 0, transition: springConfig } }}
-              className="bg-[#161B22] border border-[#30363D] rounded-[8px] p-8 flex flex-col hover:border-[#2DD4BF] hover:shadow-[0_0_0_1px_rgba(45,212,191,0.1),0_8px_32px_rgba(0,0,0,0.4)] hover:-translate-y-[2px] transition-all duration-200"
+              className="bg-[#161B22] border border-[#30363D] rounded-[16px] p-8 flex flex-col hover:border-[#2DD4BF]/50 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)] hover:-translate-y-2 transition-all duration-300 ease-out"
             >
               <div className="flex gap-1 mb-6">
                 {[...Array(5)].map((_, j) => (

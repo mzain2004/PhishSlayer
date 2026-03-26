@@ -66,17 +66,31 @@ export default function BillingPage() {
   const plan = TIER_DISPLAY[activePlan] || TIER_DISPLAY.recon;
   const isPaid = activePlan !== "recon" && activePlan !== "free";
 
-  const handleManageSubscription = () => {
-    // Paddle customer portal — users can manage from their Paddle receipt/email
-    // Or direct them to Paddle's portal if billing_customer_id exists
-    if (billingCustomerId) {
-      toast.info("Opening billing portal...", {
-        description: "Check your email for a link from Paddle to manage your subscription.",
-      });
-    } else {
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
+
+  const handleManageSubscription = async () => {
+    if (!isPaid) {
       toast.info("No active subscription", {
         description: "Visit the pricing page to subscribe to a plan.",
       });
+      return;
+    }
+
+    setIsPortalLoading(true);
+    try {
+      const res = await fetch('/api/billing/portal');
+      const data = await res.json();
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || 'Failed to get portal URL');
+      }
+    } catch (error: any) {
+      console.error('Portal Error:', error);
+      toast.error(error.message || "Failed to open billing portal. Please contact support.");
+    } finally {
+      setIsPortalLoading(false);
     }
   };
 
@@ -120,10 +134,11 @@ export default function BillingPage() {
           <div className="flex items-center gap-3">
             {isPaid ? (
               <button
+                disabled={isPortalLoading}
                 onClick={handleManageSubscription}
-                className="flex items-center gap-2 px-4 py-2 bg-[#1c2128] border border-[#30363d] text-[#e6edf3] hover:bg-[#21262d] text-sm font-medium rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[#1c2128] border border-[#30363d] text-[#e6edf3] hover:bg-[#21262d] text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
               >
-                <CreditCard className="w-4 h-4" />
+                {isPortalLoading ? <Loader2 className="w-4 h-4 animate-spin text-teal-400" /> : <CreditCard className="w-4 h-4" />}
                 Manage Subscription
               </button>
             ) : (

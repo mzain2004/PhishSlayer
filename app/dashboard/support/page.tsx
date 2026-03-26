@@ -95,23 +95,22 @@ export default function SupportPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Client-side quick check (Backend performs strict validation)
     const allowedTypes = [
       "image/png",
       "image/jpeg",
-      "image/gif",
       "application/pdf",
       "text/plain",
-      "text/csv",
     ];
     if (!allowedTypes.includes(file.type)) {
       toast.error("Invalid file type", {
-        description: "Only PNG, JPG, PDF, TXT, CSV allowed",
+        description: "Only PNG, JPG, PDF, and TXT allowed",
       });
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > 5 * 1024 * 1024) {
       toast.error("File too large", {
-        description: "Maximum file size is 10MB",
+        description: "Maximum file size is 5MB",
       });
       return;
     }
@@ -148,48 +147,56 @@ export default function SupportPage() {
     }
 
     startTransition(async () => {
-      const result = await submitSupportTicket({
-        subject,
-        category,
-        priority,
-        message
-      });
-
-      if (result.error) {
-        toast.error(result.error);
-        return;
+      const formData = new FormData();
+      formData.append("subject", subject);
+      formData.append("category", category);
+      formData.append("priority", priority);
+      formData.append("message", message);
+      if (attachedFile) {
+        formData.append("file", attachedFile);
       }
 
-      // Send email via communication API
       try {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        await fetch("/api/communications", {
+        const response = await fetch("/api/support", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: `Support Ticket (${category})`,
-            userEmail: user?.email || "unknown@user.com",
-            name: user?.email || "Authenticated User",
-            message: `Priority: ${priority}\nSubject: ${subject}\n\n${message}${attachedFile ? `\n\n[Attachment: ${attachedFile.name}]` : ""}`,
-          }),
+          body: formData,
         });
-      } catch (err) {
-        console.error("Failed to send notification email:", err);
-      }
 
-      toast.success(
-        `Ticket submitted! We'll respond within 24 hours.${
-          attachedFile ? ` Attachment: ${attachedFile.name}` : ""
-        }`,
-      );
-      setSubject("");
-      setCategory("General Question");
-      setPriority("Low");
-      setMessage("");
-      setAttachedFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to submit ticket");
+        }
+
+        // Send notification email (legacy bridge)
+        try {
+          const supabase = createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          await fetch("/api/communications", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: `Support Ticket (${category})`,
+              userEmail: user?.email || "unknown@user.com",
+              name: user?.email || "Authenticated User",
+              message: `Priority: ${priority}\nSubject: ${subject}\n\n${message}${attachedFile ? `\n\n[Attachment: ${attachedFile.name}]` : ""}`,
+            }),
+          });
+        } catch (err) {
+          console.error("Failed to send notification email:", err);
+        }
+
+        toast.success("Ticket submitted! We'll respond within 24 hours.");
+        setSubject("");
+        setCategory("General Question");
+        setPriority("Low");
+        setMessage("");
+        setAttachedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      } catch (error: any) {
+        toast.error(error.message);
+      }
     });
   };
 
@@ -348,7 +355,7 @@ export default function SupportPage() {
                     ref={fileInputRef}
                     type="file"
                     className="hidden"
-                    accept=".png,.jpg,.jpeg,.gif,.pdf,.txt,.csv"
+                    accept=".png,.jpg,.jpeg,.pdf,.txt"
                     onChange={handleFileChange}
                   />
                   <button
@@ -357,7 +364,7 @@ export default function SupportPage() {
                     className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-700 text-slate-300 text-sm hover:border-slate-500 hover:text-white transition-colors"
                   >
                     <Paperclip className="w-4 h-4" />
-                    {attachedFile ? attachedFile.name : "Attach File"}
+                    {attachedFile ? attachedFile.name : "Attach File (Max 5MB)"}
                   </button>
                   {attachedFile && (
                     <button

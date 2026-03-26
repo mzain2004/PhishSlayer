@@ -71,7 +71,7 @@ export function HeroSection() {
               href="/auth/signup"
               className="inline-flex justify-center items-center gap-2 bg-[#2DD4BF] hover:bg-[#14B8A6] text-[#0D1117] font-bold text-[15px] px-10 py-4 rounded-full tracking-[0.01em] transition-all hover:-translate-y-[1px] hover:shadow-[0_8px_25px_rgba(45,212,191,0.3)]"
             >
-              Start Free — No Card Required <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
+              Deploy Your First Agent Free <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </Link>
             <Link
               href="/#features"

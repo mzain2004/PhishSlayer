@@ -4,23 +4,36 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
+import PaddleCheckoutButton from "@/components/PaddleCheckoutButton";
 
 const springConfig = { type: "spring" as const, stiffness: 60, damping: 25, bounce: 0.1 };
+
+const PADDLE_PRICES = {
+  SOC_PRO_MONTHLY: "pri_01j7q9k2n1e2h8m4j9v5x3", // Placeholder IDs
+  SOC_PRO_ANNUAL: "pri_01j7q9m5r8f3g7k9n2w4y",
+  CC_MONTHLY: "pri_01j7q9p9t2h5k8m1n3v6z",
+  CC_ANNUAL: "pri_01j7q9r1w4f7g9k2n5w8y",
+};
 
 export function PricingSection() {
   const [isAnnual, setIsAnnual] = useState(false);
   const router = useRouter();
 
+  const getPriceId = (planName: string) => {
+    if (planName === "SOC Pro") {
+      return isAnnual ? PADDLE_PRICES.SOC_PRO_ANNUAL : PADDLE_PRICES.SOC_PRO_MONTHLY;
+    }
+    if (planName === "Command & Control") {
+      return isAnnual ? PADDLE_PRICES.CC_ANNUAL : PADDLE_PRICES.CC_MONTHLY;
+    }
+    return "";
+  };
+
   const handleAction = async (planName: string) => {
-    // TODO: Use correct price IDs based on isAnnual
-    // - Monthly SOC Pro: PADDLE_SOC_PRO_PRICE_ID
-    // - Annual SOC Pro: PADDLE_SOC_PRO_ANNUAL_PRICE_ID
-    // - Monthly C&C: PADDLE_CC_PRICE_ID  
-    // - Annual C&C: PADDLE_CC_ANNUAL_PRICE_ID
     if (planName === "Enterprise Edge") {
       router.push("/contact");
-    } else {
-      router.push(`/auth/signup?plan=${planName.toLowerCase()}${isAnnual ? '&interval=year' : ''}`);
+    } else if (planName === "Community") {
+      router.push("/auth/signup");
     }
   };
 
@@ -199,16 +212,26 @@ export function PricingSection() {
                 ))}
               </ul>
 
-              <button 
-                onClick={() => handleAction(tier.name)}
-                className={`w-full py-3.5 rounded-full font-bold text-[15px] transition-all duration-200 focus:outline-none tracking-[0.01em] ${
-                  tier.popular 
-                    ? 'bg-[#2DD4BF] text-[#0D1117] hover:bg-[#14B8A6] hover:-translate-y-[1px] hover:shadow-[0_8px_25px_rgba(45,212,191,0.3)]' 
-                    : 'bg-transparent text-[#E6EDF3] border border-[#30363D] hover:border-[#2DD4BF] hover:text-[#2DD4BF]'
-                }`}
-              >
-                {tier.cta}
-              </button>
+              {tier.name === "Community" || tier.name === "Enterprise Edge" ? (
+                <button 
+                  onClick={() => handleAction(tier.name)}
+                  className={`w-full py-3.5 rounded-full font-bold text-[15px] transition-all duration-200 focus:outline-none tracking-[0.01em] ${
+                    tier.popular 
+                      ? 'bg-[#2DD4BF] text-[#0D1117] hover:bg-[#14B8A6] hover:-translate-y-[1px] hover:shadow-[0_8px_25px_rgba(45,212,191,0.3)]' 
+                      : 'bg-transparent text-[#E6EDF3] border border-[#30363D] hover:border-[#2DD4BF] hover:text-[#2DD4BF]'
+                  }`}
+                >
+                  {tier.cta}
+                </button>
+              ) : (
+                <PaddleCheckoutButton 
+                  priceId={getPriceId(tier.name)}
+                  variant={tier.popular ? "primary" : "outline"}
+                  className="w-full !py-3.5"
+                >
+                  {tier.cta}
+                </PaddleCheckoutButton>
+              )}
             </motion.div>
           ))}
         </motion.div>

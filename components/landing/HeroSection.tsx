@@ -69,7 +69,7 @@ export function HeroSection() {
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row justify-center gap-4 mb-10">
             <Link
               href="/auth/signup"
-              className="inline-flex justify-center items-center gap-2 bg-[#2DD4BF] hover:bg-[#14B8A6] text-[#0D1117] font-bold text-[15px] px-10 py-4 rounded-full tracking-[0.01em] transition-all hover:-translate-y-[1px] hover:shadow-[0_8px_25px_rgba(45,212,191,0.3)]"
+              className="inline-flex justify-center items-center gap-2 bg-[#2DD4BF] hover:bg-[#14B8A6] text-[#0D1117] font-bold text-[15px] px-8 py-3 rounded-full tracking-[0.01em] transition-all hover:-translate-y-[1px] hover:shadow-lg"
             >
               Deploy Your First Agent Free <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </Link>

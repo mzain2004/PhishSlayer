@@ -45,7 +45,7 @@ export function FAQ() {
           {faqs.map((faq, i) => (
             <div 
               key={i} 
-              className={`border rounded-2xl transition-all duration-300 ease-out hover:-translate-y-1 ${openIndex === i ? "bg-slate-900/60 backdrop-blur-md border-[#2DD4BF]/30 shadow-[0_10px_30px_-10px_rgba(45,212,191,0.1)]" : "bg-slate-900/40 backdrop-blur-md border-[#30363D] hover:border-[#2DD4BF]/50"}`}
+              className={`border rounded-2xl transition-all duration-200 ease-out hover:bg-slate-800/50 ${openIndex === i ? "bg-slate-900/60 backdrop-blur-md border-white/10 shadow-[0_10px_30px_-10px_rgba(45,212,191,0.1)]" : "bg-slate-900/40 backdrop-blur-md border-white/5"}`}
             >
               <button
                 className="w-full flex items-center justify-between p-6 text-left"

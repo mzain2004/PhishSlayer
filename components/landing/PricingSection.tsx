@@ -9,10 +9,10 @@ import PaddleCheckoutButton from "@/components/PaddleCheckoutButton";
 const springConfig = { type: "spring" as const, stiffness: 60, damping: 25, bounce: 0.1 };
 
 const PADDLE_PRICES = {
-  SOC_PRO_MONTHLY: process.env.NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID || "pri_01kmnjzc56ry68m7cx8dy1bt8m",
-  SOC_PRO_ANNUAL: process.env.NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID || "pri_01kmnjzc56ry68m7cx8dy1bt8m", // Standardizing to provided prod ID if env missing
-  CC_MONTHLY: process.env.NEXT_PUBLIC_PADDLE_CC_PRICE_ID || "pri_01kmnk1ymy9yktt2ted4539ms2",
-  CC_ANNUAL: process.env.NEXT_PUBLIC_PADDLE_CC_PRICE_ID || "pri_01kmnk1ymy9yktt2ted4539ms2",
+  SOC_PRO_MONTHLY: process.env.NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID || "",
+  SOC_PRO_ANNUAL: process.env.NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID || "",
+  CC_MONTHLY: process.env.NEXT_PUBLIC_PADDLE_CC_PRICE_ID || "",
+  CC_ANNUAL: process.env.NEXT_PUBLIC_PADDLE_CC_PRICE_ID || "",
 };
 
 export function PricingSection() {

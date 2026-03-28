@@ -1,9 +1,9 @@
-'use server';
+"use server";
 
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
-import { headers } from 'next/headers';
-import { logAuditEvent } from '@/lib/audit/auditLogger';
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { logAuditEvent } from "@/lib/audit/auditLogger";
 
 // IMPORTANT: Before this works you must:
 // 1. Go to Supabase Dashboard -> Storage -> Create bucket
@@ -14,7 +14,10 @@ import { logAuditEvent } from '@/lib/audit/auditLogger';
 
 // ─── Email / Password ────────────────────────────────────────────
 
-export async function signInWithEmail(formData: { email: string; password: string }) {
+export async function signInWithEmail(formData: {
+  email: string;
+  password: string;
+}) {
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -26,9 +29,9 @@ export async function signInWithEmail(formData: { email: string; password: strin
     return { error: error.message };
   }
 
-  await logAuditEvent({ action: 'login', details: { method: 'email' } });
+  await logAuditEvent({ action: "login", details: { method: "email" } });
 
-  redirect('/dashboard');
+  redirect("/dashboard");
 }
 
 export async function signUpWithEmail(formData: {
@@ -44,8 +47,8 @@ export async function signUpWithEmail(formData: {
     password: formData.password,
     options: {
       data: {
-        full_name: formData.fullName || '',
-        org_name: formData.orgName || '',
+        full_name: formData.fullName || "",
+        org_name: formData.orgName || "",
       },
     },
   });
@@ -55,14 +58,14 @@ export async function signUpWithEmail(formData: {
   }
 
   // Supabase sends a confirmation email by default.
-  return { success: 'Check your email to confirm your account.' };
+  return { success: "Check your email to confirm your account." };
 }
 
 // ─── Social / OAuth ──────────────────────────────────────────────
 
-export async function signInWithSocial(provider: 'google' | 'github') {
+export async function signInWithSocial(provider: "google" | "github") {
   const supabase = await createClient();
-  const origin = (await headers()).get('origin') || 'http://localhost:3000';
+  const origin = (await headers()).get("origin") || "http://localhost:3000";
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
@@ -79,43 +82,48 @@ export async function signInWithSocial(provider: 'google' | 'github') {
     redirect(data.url);
   }
 
-  return { error: 'Could not initiate OAuth flow.' };
+  return { error: "Could not initiate OAuth flow." };
 }
 
 // ─── Get Current User ────────────────────────────────────────────
 
 export async function getUser() {
   const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error || !user) return null;
 
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, display_name, avatar_url, role, department, phone_number, email, api_key, notify_email, notify_critical, notify_assignments, notify_digest')
-    .eq('id', user.id)
+    .from("profiles")
+    .select(
+      "id, display_name, avatar_url, role, department, phone_number, email, api_key, notify_email, notify_critical, notify_assignments, notify_digest",
+    )
+    .eq("id", user.id)
     .single();
 
   return {
     id: user.id,
-    email: user.email || '',
-    fullName: profile?.display_name || '',
-    phone: profile?.phone_number || '',
-    department: profile?.department || 'Security Operations',
+    email: user.email || "",
+    fullName: profile?.display_name || "",
+    phone: profile?.phone_number || "",
+    department: profile?.department || "Security Operations",
     avatarUrl: profile?.avatar_url || null,
-    role: profile?.role || 'analyst',
+    role: profile?.role || "analyst",
     apiKey: profile?.api_key || null,
     // Notification prefs
     notifyEmail: profile?.notify_email ?? true,
     notifyCritical: profile?.notify_critical ?? true,
     notifyAssignments: profile?.notify_assignments ?? true,
     notifyDigest: profile?.notify_digest ?? false,
-    
+
     // Legacy settings prefs from metadata
-    orgName: (user.user_metadata?.org_name as string) || '',
+    orgName: (user.user_metadata?.org_name as string) || "",
     twoFactor: user.user_metadata?.two_factor !== false,
     sessionTimeout: user.user_metadata?.session_timeout === true,
     ipWhitelisting: user.user_metadata?.ip_whitelisting === true,
-    supportEmail: (user.user_metadata?.support_email as string) || '',
+    supportEmail: (user.user_metadata?.support_email as string) || "",
   };
 }
 
@@ -132,55 +140,65 @@ export async function updateProfile(data: {
   avatarUrl?: string;
 }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'Not authenticated' };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
 
   // Update Profiles table for RBAC/Global use
   const profileUpdate: any = {
     display_name: data.fullName,
     phone_number: data.phone,
     department: data.department,
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   };
 
-  if (data.notifyEmail !== undefined) profileUpdate.notify_email = data.notifyEmail;
-  if (data.notifyCritical !== undefined) profileUpdate.notify_critical = data.notifyCritical;
-  if (data.notifyAssignments !== undefined) profileUpdate.notify_assignments = data.notifyAssignments;
-  if (data.notifyDigest !== undefined) profileUpdate.notify_digest = data.notifyDigest;
+  if (data.notifyEmail !== undefined)
+    profileUpdate.notify_email = data.notifyEmail;
+  if (data.notifyCritical !== undefined)
+    profileUpdate.notify_critical = data.notifyCritical;
+  if (data.notifyAssignments !== undefined)
+    profileUpdate.notify_assignments = data.notifyAssignments;
+  if (data.notifyDigest !== undefined)
+    profileUpdate.notify_digest = data.notifyDigest;
 
   if (data.avatarUrl !== undefined) {
     profileUpdate.avatar_url = data.avatarUrl;
   }
-  
+
   const { data: existing } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('id', user.id)
+    .from("profiles")
+    .select("id")
+    .eq("id", user.id)
     .single();
 
   let dbError;
   if (existing) {
     const { error } = await supabase
-      .from('profiles')
+      .from("profiles")
       .update(profileUpdate)
-      .eq('id', user.id);
+      .eq("id", user.id);
     dbError = error;
   } else {
-    const { error } = await supabase
-      .from('profiles')
-      .insert({
-        id: user.id,
-        email: user.email,
-        ...profileUpdate
-      });
+    const { error } = await supabase.from("profiles").insert({
+      id: user.id,
+      email: user.email,
+      ...profileUpdate,
+    });
     dbError = error;
   }
 
-  if (dbError) return { error: "Failed to sync with profile database: " + dbError.message };
+  if (dbError)
+    return {
+      error: "Failed to sync with profile database: " + dbError.message,
+    };
 
-  await logAuditEvent({ action: 'profile_updated', details: { fields: Object.keys(profileUpdate) } });
+  await logAuditEvent({
+    action: "profile_updated",
+    details: { fields: Object.keys(profileUpdate) },
+  });
 
-  return { success: 'Profile updated successfully.' };
+  return { success: "Profile updated successfully." };
 }
 
 // ─── Update Notifications ────────────────────────────────────────
@@ -192,24 +210,29 @@ export async function updateNotifications(data: {
   notifyDigest: boolean;
 }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'Not authenticated' };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
 
   const { error } = await supabase
-    .from('profiles')
+    .from("profiles")
     .update({
       notify_email: data.notifyEmail,
       notify_critical: data.notifyCritical,
       notify_assignments: data.notifyAssignments,
       notify_digest: data.notifyDigest,
     })
-    .eq('id', user.id);
+    .eq("id", user.id);
 
   if (error) return { error: error.message };
 
-  await logAuditEvent({ action: 'profile_updated', details: { type: 'notifications' } });
+  await logAuditEvent({
+    action: "profile_updated",
+    details: { type: "notifications" },
+  });
 
-  return { success: 'Notification preferences saved.' };
+  return { success: "Notification preferences saved." };
 }
 
 // ─── Update Password ─────────────────────────────────────────────
@@ -219,41 +242,46 @@ export async function updatePassword(password: string) {
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return { error: error.message };
 
-  await logAuditEvent({ action: 'profile_updated', details: { type: 'password_change' } });
+  await logAuditEvent({
+    action: "profile_updated",
+    details: { type: "password_change" },
+  });
 
-  return { success: 'Password updated successfully.' };
+  return { success: "Password updated successfully." };
 }
 
 // ─── Upload Avatar ───────────────────────────────────────────────
 
 export async function uploadAvatar(formData: FormData) {
   const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return { error: 'Not authenticated' };
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) return { error: "Not authenticated" };
 
-  const file = formData.get('avatar') as File | null;
-  if (!file) return { error: 'No file provided' };
+  const file = formData.get("avatar") as File | null;
+  if (!file) return { error: "No file provided" };
 
-  const fileNameParts = file.name.split('.');
-  const fileExtension = fileNameParts.length > 1 ? fileNameParts.pop()!.toLowerCase() : 'png';
+  const fileNameParts = file.name.split(".");
+  const fileExtension =
+    fileNameParts.length > 1 ? fileNameParts.pop()!.toLowerCase() : "png";
   const path = `avatars/${user.id}/avatar.${fileExtension}`;
 
   const { error: uploadError } = await supabase.storage
-    .from('avatars')
+    .from("avatars")
     .upload(path, file, { upsert: true });
 
   if (uploadError) return { error: uploadError.message };
 
-  const { data: urlData } = supabase.storage
-    .from('avatars')
-    .getPublicUrl(path);
+  const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
 
   const avatarUrl = urlData.publicUrl;
 
   const { error: profileUpdateError } = await supabase
-    .from('profiles')
+    .from("profiles")
     .update({ avatar_url: avatarUrl })
-    .eq('id', user.id);
+    .eq("id", user.id);
 
   if (profileUpdateError) return { error: profileUpdateError.message };
 
@@ -263,7 +291,7 @@ export async function uploadAvatar(formData: FormData) {
 
   if (updateError) return { error: updateError.message };
 
-  return { success: 'Avatar uploaded.', avatarUrl };
+  return { success: "Avatar uploaded.", avatarUrl };
 }
 
 // ─── Update Settings ─────────────────────────────────────────────
@@ -288,34 +316,52 @@ export async function updateSettings(data: {
   });
 
   if (error) return { error: error.message };
-  return { success: 'Settings saved successfully.' };
+  return { success: "Settings saved successfully." };
 }
 
 // ─── API Keys ──────────────────────────────────────────────
 
 export async function generateApiKey() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'Not authenticated' };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
 
-  const newKey = 'pk_live_' + crypto.randomUUID().replace(/-/g, '');
-  const { error } = await supabase.from('profiles').update({ api_key: newKey }).eq('id', user.id);
-  
+  const newKey = "pk_live_" + crypto.randomUUID().replace(/-/g, "");
+  const { error } = await supabase
+    .from("profiles")
+    .update({ api_key: newKey })
+    .eq("id", user.id);
+
   if (error) return { error: error.message };
-  
-  await logAuditEvent({ action: 'api_key_generated', resource_type: 'apiKey', resource_id: user.id });
+
+  await logAuditEvent({
+    action: "api_key_generated",
+    resource_type: "apiKey",
+    resource_id: user.id,
+  });
   return { success: true, key: newKey };
 }
 
 export async function revokeApiKey() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'Not authenticated' };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
 
-  const { error } = await supabase.from('profiles').update({ api_key: null }).eq('id', user.id);
-  
+  const { error } = await supabase
+    .from("profiles")
+    .update({ api_key: null })
+    .eq("id", user.id);
+
   if (error) return { error: error.message };
-  
-  await logAuditEvent({ action: 'api_key_revoked', resource_type: 'apiKey', resource_id: user.id });
+
+  await logAuditEvent({
+    action: "api_key_revoked",
+    resource_type: "apiKey",
+    resource_id: user.id,
+  });
   return { success: true };
 }

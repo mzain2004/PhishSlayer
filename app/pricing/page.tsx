@@ -74,22 +74,40 @@ const faqs = [
 ];
 
 export default function PricingPage() {
+  const [mounted, setMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [userTier, setUserTier] = useState<string>("recon");
   const [userEmail, setUserEmail] = useState<string>("");
   const [paddle, setPaddle] = useState<Paddle | null>(null);
+  const [paddleInitError, setPaddleInitError] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [showDowngradeModal, setShowDowngradeModal] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Initialize Paddle client
   useEffect(() => {
+    if (!mounted) return;
+    if (typeof window === "undefined") return;
+
     const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
-    if (!token) return;
+    console.log("Initializing Paddle...");
+    console.log("Token:", token ? "present" : "MISSING");
+
+    if (!token) {
+      setPaddleInitError(true);
+      return;
+    }
 
     initializePaddle({
       token,
-      environment: "production",
+      environment:
+        process.env.NEXT_PUBLIC_PADDLE_ENV === "production"
+          ? "production"
+          : "sandbox",
       eventCallback: (event) => {
         if (event.name === "checkout.completed") {
           toast.success("Payment successful! Redirecting to dashboard...");
@@ -101,10 +119,17 @@ export default function PricingPage() {
           setCheckoutLoading(null);
         }
       },
-    }).then((paddleInstance) => {
-      if (paddleInstance) setPaddle(paddleInstance);
-    });
-  }, []);
+    })
+      .then((paddleInstance) => {
+        console.log("Paddle ready:", !!paddleInstance);
+        setPaddle(paddleInstance || null);
+        setPaddleInitError(!paddleInstance);
+      })
+      .catch((err) => {
+        console.error("Paddle init failed:", err);
+        setPaddleInitError(true);
+      });
+  }, [mounted]);
 
   // Load user state
   useEffect(() => {
@@ -132,6 +157,11 @@ export default function PricingPage() {
 
   const openCheckout = useCallback(
     (tierId: string, priceId: string) => {
+      if (paddleInitError) {
+        toast.error("Payment unavailable");
+        return;
+      }
+
       if (!paddle) {
         toast.error("Payment system loading. Please try again.");
         return;
@@ -154,19 +184,21 @@ export default function PricingPage() {
         },
       });
     },
-    [paddle, userEmail]
+    [paddle, userEmail],
   );
 
   const getButtonConfig = (t: (typeof tiers)[0]) => {
     const normalizedTier = (userTier || "recon").toLowerCase();
-    const isReconOrFree = normalizedTier === "recon" || normalizedTier === "free";
+    const isReconOrFree =
+      normalizedTier === "recon" || normalizedTier === "free";
 
     if (!isLoggedIn || isReconOrFree) {
       if (t.id === "recon") {
         return {
           text: "Get Started Free",
           action: () => {
-            if (!isLoggedIn) window.location.href = "/auth/signup";
+            if (!isLoggedIn)
+              window.location.href = "/auth/signup?redirect=/pricing";
           },
           disabled: false,
           kind: "outline" as const,
@@ -178,7 +210,7 @@ export default function PricingPage() {
           text: "Upgrade to SOC Pro",
           action: () => {
             if (!isLoggedIn) {
-              window.location.href = "/auth/signup";
+              window.location.href = "/auth/signup?redirect=/pricing";
               return;
             }
             openCheckout(t.id, t.priceIdEnv || "");
@@ -192,7 +224,7 @@ export default function PricingPage() {
         text: "Upgrade to Command & Control",
         action: () => {
           if (!isLoggedIn) {
-            window.location.href = "/auth/signup";
+            window.location.href = "/auth/signup?redirect=/pricing";
             return;
           }
           openCheckout(t.id, t.priceIdEnv || "");
@@ -250,7 +282,8 @@ export default function PricingPage() {
     return {
       text: "Get Started Free",
       action: () => {
-        if (!isLoggedIn) window.location.href = "/auth/signup";
+        if (!isLoggedIn)
+          window.location.href = "/auth/signup?redirect=/pricing";
       },
       disabled: false,
       kind: "outline" as const,
@@ -262,36 +295,56 @@ export default function PricingPage() {
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-[#0d1117]/80 backdrop-blur-md border-b border-[#30363d]">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-8 py-4">
-          <Link href="/" className="flex items-center gap-2 text-[#e6edf3] font-bold text-xl tracking-tight">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-[#e6edf3] font-bold text-xl tracking-tight"
+          >
             <Shield className="w-6 h-6 text-teal-400" /> Phish-Slayer
           </Link>
           <div className="flex items-center gap-6">
-            {!loadingConfig && (
-              isLoggedIn ? (
-                <Link href="/dashboard" className="bg-teal-500 hover:bg-teal-400 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors">
+            {!loadingConfig &&
+              (isLoggedIn ? (
+                <Link
+                  href="/dashboard"
+                  className="bg-teal-500 hover:bg-teal-400 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors"
+                >
                   Command Center →
                 </Link>
               ) : (
                 <>
-                  <Link href="/auth/login" className="text-[#8b949e] hover:text-[#e6edf3] text-sm font-medium transition-colors">Login</Link>
-                  <Link href="/auth/signup" className="bg-teal-500 hover:bg-teal-400 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors">Start Free</Link>
+                  <Link
+                    href="/auth/login"
+                    className="text-[#8b949e] hover:text-[#e6edf3] text-sm font-medium transition-colors"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    className="bg-teal-500 hover:bg-teal-400 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors"
+                  >
+                    Start Free
+                  </Link>
                 </>
-              )
-            )}
+              ))}
           </div>
         </div>
       </nav>
 
       {/* Hero Header */}
       <header className="max-w-7xl mx-auto px-8 pt-20 pb-16 text-center">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-[#8b949e] hover:text-teal-400 font-semibold mb-8 transition-colors group">
-          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" /> BACK TO BASE
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-xs text-[#8b949e] hover:text-teal-400 font-semibold mb-8 transition-colors group"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />{" "}
+          BACK TO BASE
         </Link>
         <h1 className="text-4xl md:text-5xl font-black text-[#e6edf3] tracking-tight mb-4">
           Scalable Threat Intelligence
         </h1>
         <p className="text-[#8b949e] max-w-xl mx-auto text-lg mb-10">
-          From independent researchers to global SOC teams, choose the tier that matches your security perimeter.
+          From independent researchers to global SOC teams, choose the tier that
+          matches your security perimeter.
         </p>
       </header>
 
@@ -306,44 +359,59 @@ export default function PricingPage() {
 
             return (
               <div
-                key={i} 
-                style={isCC ? {
-                  border: '2px solid transparent',
-                  background: 'linear-gradient(#161B22, #161B22) padding-box, linear-gradient(135deg, #2DD4BF, #A78BFA) border-box',
-                  borderRadius: '16px',
-                  transform: 'scale(1.03)',
-                  boxShadow: '0 0 40px rgba(45, 212, 191, 0.15)',
-                } : {
-                  border: '1px solid #30363D',
-                  borderRadius: '16px',
-                }}
+                key={i}
+                style={
+                  isCC
+                    ? {
+                        border: "2px solid transparent",
+                        background:
+                          "linear-gradient(#161B22, #161B22) padding-box, linear-gradient(135deg, #2DD4BF, #A78BFA) border-box",
+                        borderRadius: "16px",
+                        transform: "scale(1.03)",
+                        boxShadow: "0 0 40px rgba(45, 212, 191, 0.15)",
+                      }
+                    : {
+                        border: "1px solid #30363D",
+                        borderRadius: "16px",
+                      }
+                }
                 className={`relative p-8 flex flex-col transition-all duration-300 bg-[#161B22] ${
-                  isCC ? 'z-20' : isFree ? 'opacity-90' : ''
+                  isCC ? "z-20" : isFree ? "opacity-90" : ""
                 }`}
               >
                 {isCC && (
                   <div className="mb-3">
-                    <div style={{
-                      background: 'linear-gradient(135deg, #2DD4BF, #A78BFA)',
-                      color: 'white',
-                      fontSize: '10px',
-                      fontWeight: 'bold',
-                      letterSpacing: '2px',
-                      textTransform: 'uppercase',
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                      display: 'inline-block',
-                      marginBottom: '12px'
-                    }}>MOST POWERFUL</div>
+                    <div
+                      style={{
+                        background: "linear-gradient(135deg, #2DD4BF, #A78BFA)",
+                        color: "white",
+                        fontSize: "10px",
+                        fontWeight: "bold",
+                        letterSpacing: "2px",
+                        textTransform: "uppercase",
+                        padding: "4px 12px",
+                        borderRadius: "20px",
+                        display: "inline-block",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      MOST POWERFUL
+                    </div>
                   </div>
                 )}
 
-                <h3 className="text-xl font-bold text-[#e6edf3] mb-2">{t.name}</h3>
-                <p className="text-[#8b949e] text-sm leading-relaxed mb-8">{t.desc}</p>
+                <h3 className="text-xl font-bold text-[#e6edf3] mb-2">
+                  {t.name}
+                </h3>
+                <p className="text-[#8b949e] text-sm leading-relaxed mb-8">
+                  {t.desc}
+                </p>
 
                 <div className="mb-8">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-black text-[#e6edf3]">${t.monthlyPrice}</span>
+                    <span className="text-4xl font-black text-[#e6edf3]">
+                      ${t.monthlyPrice}
+                    </span>
                     <span className="text-[#8b949e] text-sm">/month</span>
                   </div>
                 </div>
@@ -352,60 +420,81 @@ export default function PricingPage() {
                   {t.features.map((f, idx) => (
                     <li key={idx} className="flex items-start gap-3">
                       {f.ok ? (
-                        <Check className={`w-4 h-4 mt-0.5 shrink-0 ${isCC ? 'text-[#A78BFA]' : 'text-teal-400'}`} />
+                        <Check
+                          className={`w-4 h-4 mt-0.5 shrink-0 ${isCC ? "text-[#A78BFA]" : "text-teal-400"}`}
+                        />
                       ) : (
                         <X className="w-4 h-4 text-[#30363d] mt-0.5 shrink-0" />
                       )}
-                      <span className={`text-sm ${f.ok ? 'text-[#e6edf3]' : 'text-[#6e7681]'}`}>{f.text}</span>
+                      <span
+                        className={`text-sm ${f.ok ? "text-[#e6edf3]" : "text-[#6e7681]"}`}
+                      >
+                        {f.text}
+                      </span>
                     </li>
                   ))}
                 </ul>
 
                 <button
                   onClick={btn.action}
-                  disabled={btn.disabled || loadingConfig || checkoutLoading === t.id}
+                  disabled={
+                    btn.disabled ||
+                    loadingConfig ||
+                    checkoutLoading === t.id ||
+                    (!paddle && (btn.kind === "gradient" || btn.kind === "teal")) ||
+                    paddleInitError
+                  }
                   style={
                     btn.kind === "disabled"
                       ? {
-                          background: '#21262D',
-                          color: '#8B949E',
-                          border: '1px solid #30363D',
-                          borderRadius: '6px',
-                          width: '100%',
-                          padding: '12px',
+                          background: "#21262D",
+                          color: "#8B949E",
+                          border: "1px solid #30363D",
+                          borderRadius: "6px",
+                          width: "100%",
+                          padding: "12px",
                         }
                       : btn.kind === "gradient"
                         ? {
-                            background: 'linear-gradient(135deg, #2DD4BF, #A78BFA)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            width: '100%',
-                            padding: '12px',
+                            background:
+                              "linear-gradient(135deg, #2DD4BF, #A78BFA)",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            width: "100%",
+                            padding: "12px",
                           }
                         : btn.kind === "teal"
                           ? {
-                              background: '#2DD4BF',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              width: '100%',
-                              padding: '12px',
+                              background: "#2DD4BF",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "6px",
+                              width: "100%",
+                              padding: "12px",
                             }
                           : {
-                              background: 'transparent',
-                              color: '#8B949E',
-                              border: '1px solid #8B949E',
-                              borderRadius: '6px',
-                              width: '100%',
-                              padding: '12px',
+                              background: "transparent",
+                              color: "#8B949E",
+                              border: "1px solid #8B949E",
+                              borderRadius: "6px",
+                              width: "100%",
+                              padding: "12px",
                             }
                   }
-                  className={`text-sm font-bold transition-all ${btn.disabled ? 'cursor-not-allowed' : 'hover:opacity-90'}`}
+                  className={`text-sm font-bold transition-all ${btn.disabled ? "cursor-not-allowed" : "hover:opacity-90"}`}
                 >
                   {loadingConfig || checkoutLoading === t.id ? (
                     <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                  ) : isCC && btn.text !== "Current Plan" ? "Start Global Fleet →" : btn.text}
+                  ) : paddleInitError && (btn.kind === "gradient" || btn.kind === "teal") ? (
+                    "Payment unavailable"
+                  ) : !paddle && (btn.kind === "gradient" || btn.kind === "teal") ? (
+                    "Loading..."
+                  ) : isCC && btn.text !== "Current Plan" ? (
+                    "Start Global Fleet →"
+                  ) : (
+                    btn.text
+                  )}
                 </button>
               </div>
             );
@@ -416,19 +505,23 @@ export default function PricingPage() {
       {showDowngradeModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md bg-[#161B22] border border-[#30363D] rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-[#E6EDF3] mb-3">Downgrade Request</h3>
+            <h3 className="text-lg font-bold text-[#E6EDF3] mb-3">
+              Downgrade Request
+            </h3>
             <p className="text-[#8B949E] text-sm leading-relaxed mb-6">
               To downgrade your plan, please contact support@phishslayer.tech
             </p>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => (window.location.href = "mailto:support@phishslayer.tech")}
+                onClick={() =>
+                  (window.location.href = "mailto:support@phishslayer.tech")
+                }
                 style={{
-                  background: '#2DD4BF',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '10px 14px',
+                  background: "#2DD4BF",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  padding: "10px 14px",
                 }}
                 className="text-sm font-semibold"
               >
@@ -437,11 +530,11 @@ export default function PricingPage() {
               <button
                 onClick={() => setShowDowngradeModal(false)}
                 style={{
-                  background: 'transparent',
-                  color: '#8B949E',
-                  border: '1px solid #30363D',
-                  borderRadius: '6px',
-                  padding: '10px 14px',
+                  background: "transparent",
+                  color: "#8B949E",
+                  border: "1px solid #30363D",
+                  borderRadius: "6px",
+                  padding: "10px 14px",
                 }}
                 className="text-sm font-semibold"
               >
@@ -455,10 +548,15 @@ export default function PricingPage() {
       {/* FAQ */}
       <section className="bg-[#161b22]/50 border-t border-[#30363d] py-24">
         <div className="max-w-3xl mx-auto px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">Deployment Intelligence</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">
+            Deployment Intelligence
+          </h2>
           <div className="space-y-4">
             {faqs.map((f, i) => (
-              <div key={i} className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+              <div
+                key={i}
+                className="bg-[#161b22] border border-[#30363d] rounded-xl p-6"
+              >
                 <h4 className="text-[#e6edf3] font-semibold mb-2">{f.q}</h4>
                 <p className="text-[#8b949e] text-sm leading-relaxed">{f.a}</p>
               </div>

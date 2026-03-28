@@ -1,10 +1,56 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 
 const springConfig = { type: "spring" as const, stiffness: 60, damping: 25, bounce: 0.1 };
 
 export function AdaptiveAIVision() {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const normalized = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalized)) {
+      setError("Please enter a valid email address.");
+      setFeedback(null);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setFeedback(null);
+
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: normalized,
+          tier: "adaptive_defense",
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("waitlist_request_failed");
+      }
+
+      setFeedback(
+        "You're on the list! We'll notify you when Adaptive Defense launches.",
+      );
+      setEmail("");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section className="bg-[#0A0E13] py-24 border-b border-[#1C2128] overflow-hidden text-[#E6EDF3]">
       <div className="max-w-6xl mx-auto px-6">
@@ -83,17 +129,29 @@ export function AdaptiveAIVision() {
           className="max-w-xl mx-auto text-center"
         >
           <h3 className="text-lg font-bold mb-4">Be the first to know when Adaptive Defense drops.</h3>
-          <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
+          <form className="flex gap-2" onSubmit={handleSubmit}>
             <input 
               type="email" 
               placeholder="security@acme.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="flex-1 bg-[#161B22] border border-[#30363D] rounded-full px-6 py-3 text-sm font-mono focus:outline-none focus:border-[#2DD4BF] transition-colors"
               required
             />
-            <button className="bg-[#2DD4BF] text-[#0D1117] font-bold px-8 py-3 rounded-full text-sm hover:bg-[#14B8A6] transition-colors">
-              Get Early Access
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-[#2DD4BF] text-[#0D1117] font-bold px-8 py-3 rounded-full text-sm hover:bg-[#14B8A6] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? "Submitting..." : "Get Early Access"}
             </button>
           </form>
+          {feedback && (
+            <p className="mt-3 text-sm text-[#2DD4BF]">{feedback}</p>
+          )}
+          {error && (
+            <p className="mt-3 text-sm text-[#F85149]">{error}</p>
+          )}
         </motion.div>
       </div>
     </section>

@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 async function getBillingPortal() {
   try {
@@ -27,10 +27,7 @@ async function getBillingPortal() {
 
     if (profileError || !profile?.billing_customer_id) {
       return NextResponse.json(
-        {
-          error:
-            "No active subscription found. Please subscribe to a plan first.",
-        },
+        { error: "No active subscription found.", redirect: "/pricing" },
         { status: 400 },
       );
     }

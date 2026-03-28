@@ -5,13 +5,13 @@ import { toast } from "sonner";
 import {
   CreditCard,
   FileText,
-  Download,
   Loader2,
   ExternalLink,
   Shield,
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 const TIER_DISPLAY: Record<string, { name: string; tagline: string; amount: string }> = {
   recon: {
@@ -37,6 +37,7 @@ const TIER_DISPLAY: Record<string, { name: string; tagline: string; amount: stri
 };
 
 export default function BillingPage() {
+  const router = useRouter();
   const [activePlan, setActivePlan] = useState("recon");
   const [billingCustomerId, setBillingCustomerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,6 +81,11 @@ export default function BillingPage() {
     try {
       const res = await fetch('/api/billing/portal');
       const data = await res.json();
+
+      if (res.status === 400 && data?.redirect) {
+        router.push(data.redirect);
+        return;
+      }
       
       if (res.status === 404) {
         toast.error("No active billing profile found", {
@@ -177,6 +183,21 @@ export default function BillingPage() {
           </div>
         </div>
       </div>
+
+      {!billingCustomerId && (
+        <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-6">
+          <h3 className="text-[#E6EDF3] text-lg font-semibold">No Active Subscription</h3>
+          <p className="text-[#8B949E] text-sm mt-2 mb-4">
+            You are currently on the free Recon plan.
+          </p>
+          <button
+            onClick={() => router.push('/pricing')}
+            className="bg-[#2DD4BF] text-white border-none rounded-md px-4 py-2 text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Upgrade Your Plan
+          </button>
+        </div>
+      )}
 
       {/* Usage Section */}
       <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">

@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { 
-  Shield, 
-  LayoutDashboard as ShieldIcon, 
-  Search, 
-  AlertTriangle, 
-  Globe, 
-  Database, 
-  Monitor, 
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Shield,
+  LayoutDashboard as ShieldIcon,
+  Search,
+  AlertTriangle,
+  Globe,
+  Database,
+  Monitor,
   Settings2,
-  Settings, 
-  CreditCard, 
-  Users, 
-  Key, 
-  FileText, 
+  Settings,
+  CreditCard,
+  Users,
+  Key,
+  FileText,
   LifeBuoy,
   ChevronDown,
-} from 'lucide-react';
-import { type UserRole } from '@/lib/rbac/roles';
+} from "lucide-react";
+import { type UserRole } from "@/lib/rbac/roles";
 
 type SidebarNavProps = {
   profile: {
@@ -38,19 +38,33 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
 
   const isCurrentPath = (path: string) => pathname === path;
 
-  const NavItem = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
+  const NavItem = ({
+    href,
+    icon: Icon,
+    label,
+  }: {
+    href: string;
+    icon: any;
+    label: string;
+  }) => {
     const isActive = isCurrentPath(href);
     return (
       <Link
         href={href}
         className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer text-sm ${
-          isActive ? 'font-semibold' : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#1C2128]'
+          isActive
+            ? "font-semibold"
+            : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#1C2128]"
         }`}
-        style={isActive ? {
-          background: 'rgba(45, 212, 191, 0.1)',
-          borderLeft: '2px solid #2DD4BF',
-          color: '#2DD4BF'
-        } : undefined}
+        style={
+          isActive
+            ? {
+                background: "rgba(45, 212, 191, 0.1)",
+                borderLeft: "2px solid #2DD4BF",
+                color: "#2DD4BF",
+              }
+            : undefined
+        }
       >
         <Icon className="w-6 h-6 flex-shrink-0" />
         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100 whitespace-nowrap overflow-hidden">
@@ -61,16 +75,17 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
   };
 
   const roleBadgeStyles: Record<UserRole, string> = {
-    super_admin: 'bg-red-500/10 text-red-400 border border-red-500/20',
-    manager: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-    analyst: 'bg-teal-500/10 text-teal-400 border border-teal-500/20',
-    viewer: 'bg-slate-500/10 text-slate-400 border border-slate-500/20',
+    super_admin: "bg-red-500/10 text-red-400 border border-red-500/20",
+    manager: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+    analyst: "bg-teal-500/10 text-teal-400 border border-teal-500/20",
+    viewer: "bg-slate-500/10 text-slate-400 border border-slate-500/20",
   };
 
   const getInitials = () => {
-    if (profile?.display_name) return profile.display_name.charAt(0).toUpperCase();
+    if (profile?.display_name)
+      return profile.display_name.charAt(0).toUpperCase();
     if (profile?.email) return profile.email.charAt(0).toUpperCase();
-    return '?';
+    return "?";
   };
 
   return (
@@ -94,10 +109,26 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
         </div>
         <div>
           <>
-            <NavItem href="/dashboard" icon={ShieldIcon} label="Command Center" />
-            <NavItem href="/dashboard/scans" icon={Search} label="Threat Scanner" />
-            <NavItem href="/dashboard/threats" icon={Globe} label="Threat Intel" />
-            <NavItem href="/dashboard/intel" icon={Database} label="Intel Vault" />
+            <NavItem
+              href="/dashboard"
+              icon={ShieldIcon}
+              label="Command Center"
+            />
+            <NavItem
+              href="/dashboard/scans"
+              icon={Search}
+              label="Threat Scanner"
+            />
+            <NavItem
+              href="/dashboard/threats"
+              icon={Globe}
+              label="Threat Intel"
+            />
+            <NavItem
+              href="/dashboard/intel"
+              icon={Database}
+              label="Intel Vault"
+            />
           </>
         </div>
 
@@ -109,12 +140,23 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
           <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 whitespace-nowrap overflow-hidden">
             INFRASTRUCTURE
           </span>
-          <ChevronDown className={`transition-transform duration-200 ${!infraOpen ? 'rotate-180' : ''} opacity-0 group-hover:opacity-100`} size={16} />
+          <ChevronDown
+            className={`transition-transform duration-200 ${!infraOpen ? "rotate-180" : ""} opacity-0 group-hover:opacity-100`}
+            size={16}
+          />
         </button>
         {infraOpen && (
           <>
-            <NavItem href="/dashboard/agent" icon={Monitor} label="Endpoint Monitor" />
-            <NavItem href="/dashboard/agents" icon={Settings2} label="Agent Fleet" />
+            <NavItem
+              href="/dashboard/agent"
+              icon={Monitor}
+              label="Endpoint Monitor"
+            />
+            <NavItem
+              href="/dashboard/agents"
+              icon={Settings2}
+              label="Agent Fleet"
+            />
           </>
         )}
 
@@ -126,15 +168,30 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
           <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 whitespace-nowrap overflow-hidden">
             PLATFORM
           </span>
-          <ChevronDown className={`transition-transform duration-200 ${!platformOpen ? 'rotate-180' : ''} opacity-0 group-hover:opacity-100`} size={16} />
+          <ChevronDown
+            className={`transition-transform duration-200 ${!platformOpen ? "rotate-180" : ""} opacity-0 group-hover:opacity-100`}
+            size={16}
+          />
         </button>
         {platformOpen && (
           <>
-            <NavItem href="/dashboard/settings" icon={Settings} label="Settings" />
-            <NavItem href="/dashboard/billing" icon={CreditCard} label="Billing" />
+            <NavItem
+              href="/dashboard/settings"
+              icon={Settings}
+              label="Settings"
+            />
+            <NavItem
+              href="/dashboard/billing"
+              icon={CreditCard}
+              label="Billing"
+            />
             <NavItem href="/dashboard/admin" icon={Users} label="Team" />
             <NavItem href="/dashboard/apikeys" icon={Key} label="API Keys" />
-            <NavItem href="/dashboard/audit" icon={FileText} label="Audit Log" />
+            <NavItem
+              href="/dashboard/audit"
+              icon={FileText}
+              label="Audit Log"
+            />
           </>
         )}
 
@@ -143,7 +200,11 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
             RESPONSE
           </span>
         </div>
-        <NavItem href="/dashboard/incidents" icon={AlertTriangle} label="Incidents" />
+        <NavItem
+          href="/dashboard/incidents"
+          icon={AlertTriangle}
+          label="Incidents"
+        />
 
         <div className="mt-8 border-t border-[#30363d]/50 pt-2">
           <NavItem href="/dashboard/support" icon={LifeBuoy} label="Support" />
@@ -152,24 +213,32 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
 
       {/* User Profile Area */}
       <div className="bg-[#1c2128] border-t border-[#30363d] px-3 py-3 overflow-hidden">
-        <Link 
+        <Link
           href="/dashboard/profile"
           className="flex items-center gap-3 p-2 rounded-full hover:bg-teal-500/10 transition-colors group/profile"
         >
           <div className="w-8 h-8 rounded-full bg-[#30363d] flex items-center justify-center overflow-hidden border border-[#30363d] flex-shrink-0">
             {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+              <img
+                src={profile.avatar_url}
+                alt="Avatar"
+                className="w-full h-full object-cover"
+              />
             ) : (
-              <span className="text-xs font-bold text-teal-400">{getInitials()}</span>
+              <span className="text-xs font-bold text-teal-400">
+                {getInitials()}
+              </span>
             )}
           </div>
           <div className="flex-1 min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
             <p className="text-sm font-medium text-[#e6edf3] truncate">
-              {profile?.display_name || profile?.email.split('@')[0] || 'User'}
+              {profile?.display_name || profile?.email.split("@")[0] || "User"}
             </p>
             {profile?.role && (
-              <span className={`text-[10px] font-medium tracking-wide uppercase px-1.5 py-0.5 rounded-full ${roleBadgeStyles[profile.role]}`}>
-                {profile.role.replace('_', ' ')}
+              <span
+                className={`text-[10px] font-medium tracking-wide uppercase px-1.5 py-0.5 rounded-full ${roleBadgeStyles[profile.role]}`}
+              >
+                {profile.role.replace("_", " ")}
               </span>
             )}
           </div>

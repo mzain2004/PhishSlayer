@@ -19,17 +19,17 @@ export function Footer() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: "Newsletter Subscription",
-          userEmail: email,
-          message: "User subscribed to the newsletter from the footer.",
+          email,
         }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        toast.success("Subscribed successfully!");
+        toast.success(data?.message || "Subscribed successfully!");
         setEmail("");
       } else {
-        toast.error("Failed to subscribe. Please try again.");
+        toast.error(data?.error || "Failed to subscribe. Please try again.");
       }
     } catch (err) {
       console.error("Newsletter error:", err);

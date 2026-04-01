@@ -24,15 +24,13 @@ export default function RootLayout({
       suppressHydrationWarning
       className="dark selection:bg-teal-500/30"
     >
-      <head>
+      <body className="bg-[#0D1117] text-[#E6EDF3] antialiased min-h-screen">
+        {children}
         <Script
           id="termly-blocker"
           src="https://app.termly.io/resource-blocker/fa073781-55e5-45b6-a6ef-29405a9723b7?autoBlock=on"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
         />
-      </head>
-      <body className="bg-[#0D1117] text-[#E6EDF3] antialiased min-h-screen">
-        {children}
         <Toaster richColors position="top-right" />
         <ConsentBanner />
       </body>

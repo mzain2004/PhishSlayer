@@ -63,6 +63,15 @@ export default function AgentDashboardPage() {
   const [page, setPage] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [blockingIp, setBlockingIp] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   const fetchData = async () => {
     try {

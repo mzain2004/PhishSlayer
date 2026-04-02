@@ -82,7 +82,6 @@ export default function PricingPage() {
   const [paddle, setPaddle] = useState<Paddle | null>(null);
   const [paddleInitError, setPaddleInitError] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
-  const [showDowngradeModal, setShowDowngradeModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -192,56 +191,63 @@ export default function PricingPage() {
     const isReconOrFree =
       normalizedTier === "recon" || normalizedTier === "free";
 
-    if (!isLoggedIn || isReconOrFree) {
+    if (!isLoggedIn) {
       if (t.id === "recon") {
         return {
           text: "Get Started Free",
           action: () => {
-            if (!isLoggedIn)
-              window.location.href = "/auth/signup?redirect=/pricing";
+            window.location.href = "/auth/signup";
           },
           disabled: false,
           kind: "outline" as const,
+          requiresCheckout: false,
+        };
+      }
+
+      return {
+        text: "Get Started",
+        action: () => {
+          window.location.href = "/auth/signup";
+        },
+        disabled: false,
+        kind: t.id === "soc_pro" ? ("teal" as const) : ("gradient" as const),
+        requiresCheckout: false,
+      };
+    }
+
+    if (isReconOrFree) {
+      if (t.id === "recon") {
+        return {
+          text: "Current Plan",
+          action: () => {},
+          disabled: true,
+          kind: "disabled" as const,
+          requiresCheckout: false,
         };
       }
 
       if (t.id === "soc_pro") {
         return {
           text: "Upgrade to SOC Pro",
-          action: () => {
-            if (!isLoggedIn) {
-              window.location.href = "/auth/signup?redirect=/pricing";
-              return;
-            }
-            openCheckout(t.id, t.priceIdEnv || "");
-          },
+          action: () => openCheckout(t.id, t.priceIdEnv || ""),
           disabled: false,
           kind: "teal" as const,
+          requiresCheckout: true,
         };
       }
 
       return {
         text: "Upgrade to Command & Control",
-        action: () => {
-          if (!isLoggedIn) {
-            window.location.href = "/auth/signup?redirect=/pricing";
-            return;
-          }
-          openCheckout(t.id, t.priceIdEnv || "");
-        },
+        action: () => openCheckout(t.id, t.priceIdEnv || ""),
         disabled: false,
         kind: "gradient" as const,
+        requiresCheckout: true,
       };
     }
 
     if (normalizedTier === "soc_pro") {
       if (t.id === "recon") {
-        return {
-          text: "Downgrade",
-          action: () => setShowDowngradeModal(true),
-          disabled: false,
-          kind: "outline" as const,
-        };
+        return null;
       }
 
       if (t.id === "soc_pro") {
@@ -250,6 +256,7 @@ export default function PricingPage() {
           action: () => {},
           disabled: true,
           kind: "disabled" as const,
+          requiresCheckout: false,
         };
       }
 
@@ -258,6 +265,7 @@ export default function PricingPage() {
         action: () => openCheckout(t.id, t.priceIdEnv || ""),
         disabled: false,
         kind: "gradient" as const,
+        requiresCheckout: true,
       };
     }
 
@@ -268,26 +276,14 @@ export default function PricingPage() {
           action: () => {},
           disabled: true,
           kind: "disabled" as const,
+          requiresCheckout: false,
         };
       }
 
-      return {
-        text: "Downgrade",
-        action: () => setShowDowngradeModal(true),
-        disabled: false,
-        kind: "outline" as const,
-      };
+      return null;
     }
 
-    return {
-      text: "Get Started Free",
-      action: () => {
-        if (!isLoggedIn)
-          window.location.href = "/auth/signup?redirect=/pricing";
-      },
-      disabled: false,
-      kind: "outline" as const,
-    };
+    return null;
   };
 
   return (
@@ -354,8 +350,13 @@ export default function PricingPage() {
           {tiers.map((t, i) => {
             const btn = getButtonConfig(t);
             const isCC = t.id === "command_control";
-            const isSocPro = t.id === "soc_pro";
             const isFree = t.id === "recon";
+            const normalizedTier = (userTier || "recon").toLowerCase();
+            const showCancelSubscription =
+              !loadingConfig &&
+              isLoggedIn &&
+              normalizedTier === "command_control" &&
+              isCC;
 
             return (
               <div
@@ -435,119 +436,82 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <button
-                  onClick={btn.action}
-                  disabled={
-                    btn.disabled ||
-                    loadingConfig ||
-                    checkoutLoading === t.id ||
-                    (!paddle &&
-                      (btn.kind === "gradient" || btn.kind === "teal")) ||
-                    paddleInitError
-                  }
-                  style={
-                    btn.kind === "disabled"
-                      ? {
-                          background: "#21262D",
-                          color: "#8B949E",
-                          border: "1px solid #30363D",
-                          borderRadius: "6px",
-                          width: "100%",
-                          padding: "12px",
-                        }
-                      : btn.kind === "gradient"
+                {btn ? (
+                  <button
+                    onClick={btn.action}
+                    disabled={
+                      btn.disabled ||
+                      loadingConfig ||
+                      (btn.requiresCheckout && checkoutLoading === t.id) ||
+                      (btn.requiresCheckout && !paddle) ||
+                      (btn.requiresCheckout && paddleInitError)
+                    }
+                    style={
+                      btn.kind === "disabled"
                         ? {
-                            background:
-                              "linear-gradient(135deg, #2DD4BF, #A78BFA)",
-                            color: "white",
-                            border: "none",
+                            background: "#21262D",
+                            color: "#8B949E",
+                            border: "1px solid #30363D",
                             borderRadius: "6px",
                             width: "100%",
                             padding: "12px",
                           }
-                        : btn.kind === "teal"
+                        : btn.kind === "gradient"
                           ? {
-                              background: "#2DD4BF",
+                              background:
+                                "linear-gradient(135deg, #2DD4BF, #A78BFA)",
                               color: "white",
                               border: "none",
                               borderRadius: "6px",
                               width: "100%",
                               padding: "12px",
                             }
-                          : {
-                              background: "transparent",
-                              color: "#8B949E",
-                              border: "1px solid #8B949E",
-                              borderRadius: "6px",
-                              width: "100%",
-                              padding: "12px",
-                            }
-                  }
-                  className={`text-sm font-bold transition-all ${btn.disabled ? "cursor-not-allowed" : "hover:opacity-90"}`}
-                >
-                  {loadingConfig || checkoutLoading === t.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                  ) : paddleInitError &&
-                    (btn.kind === "gradient" || btn.kind === "teal") ? (
-                    "Payment unavailable"
-                  ) : !paddle &&
-                    (btn.kind === "gradient" || btn.kind === "teal") ? (
-                    "Loading..."
-                  ) : isCC && btn.text !== "Current Plan" ? (
-                    "Start Global Fleet →"
-                  ) : (
-                    btn.text
-                  )}
-                </button>
+                          : btn.kind === "teal"
+                            ? {
+                                background: "#2DD4BF",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                width: "100%",
+                                padding: "12px",
+                              }
+                            : {
+                                background: "transparent",
+                                color: "#8B949E",
+                                border: "1px solid #8B949E",
+                                borderRadius: "6px",
+                                width: "100%",
+                                padding: "12px",
+                              }
+                    }
+                    className={`text-sm font-bold transition-all ${btn.disabled ? "cursor-not-allowed" : "hover:opacity-90"}`}
+                  >
+                    {loadingConfig ||
+                    (btn.requiresCheckout && checkoutLoading === t.id) ? (
+                      <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                    ) : btn.requiresCheckout && paddleInitError ? (
+                      "Payment unavailable"
+                    ) : btn.requiresCheckout && !paddle ? (
+                      "Loading..."
+                    ) : (
+                      btn.text
+                    )}
+                  </button>
+                ) : null}
+
+                {showCancelSubscription ? (
+                  <a
+                    href="mailto:support@phishslayer.tech"
+                    className="mt-3 block text-center text-sm text-[#2DD4BF] hover:underline"
+                  >
+                    Cancel Subscription
+                  </a>
+                ) : null}
               </div>
             );
           })}
         </div>
       </section>
-
-      {showDowngradeModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div
-            style={{
-              background: "#161B22",
-              border: "1px solid #30363D",
-              borderRadius: "12px",
-              padding: "32px",
-              maxWidth: "400px",
-              width: "90%",
-              textAlign: "center",
-            }}
-          >
-            <h3 style={{ color: "#E6EDF3", marginBottom: "12px" }}>
-              Downgrade Plan
-            </h3>
-            <p style={{ color: "#8B949E", marginBottom: "24px" }}>
-              To downgrade your plan, email us at:
-            </p>
-            <a
-              href="mailto:support@phishslayer.tech"
-              style={{ color: "#2DD4BF" }}
-            >
-              support@phishslayer.tech
-            </a>
-            <button
-              onClick={() => setShowDowngradeModal(false)}
-              style={{
-                display: "block",
-                margin: "24px auto 0",
-                padding: "8px 24px",
-                background: "transparent",
-                border: "1px solid #30363D",
-                borderRadius: "6px",
-                color: "#8B949E",
-                cursor: "pointer",
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* FAQ */}
       <section className="bg-[#161b22]/50 border-t border-[#30363d] py-24">

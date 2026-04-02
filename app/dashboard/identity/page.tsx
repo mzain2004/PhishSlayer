@@ -112,7 +112,11 @@ export default function IdentityDashboardPage() {
           }}
         >
           {[
-            { label: "Total Chains", value: summary.totalChains, color: "#2DD4BF" },
+            {
+              label: "Total Chains",
+              value: summary.totalChains,
+              color: "#2DD4BF",
+            },
             { label: "High Risk", value: summary.highRisk, color: "#F85149" },
             {
               label: "Partial Graphs",
@@ -231,7 +235,9 @@ export default function IdentityDashboardPage() {
                     gap: "8px",
                   }}
                 >
-                  <span style={{ color: "#8B949E", fontSize: "12px" }}>Confidence:</span>
+                  <span style={{ color: "#8B949E", fontSize: "12px" }}>
+                    Confidence:
+                  </span>
                   <span
                     style={{
                       color: getConfidenceColor(chain.overallConfidence),
@@ -304,7 +310,8 @@ export default function IdentityDashboardPage() {
                   color: "#8B949E",
                 }}
               >
-                Actor: {chain.actorId} | Type: {chain.actorType} | Links: {chain.links.length}
+                Actor: {chain.actorId} | Type: {chain.actorType} | Links:{" "}
+                {chain.links.length}
                 {chain.startTime
                   ? ` | From: ${new Date(chain.startTime).toLocaleTimeString()}`
                   : ""}

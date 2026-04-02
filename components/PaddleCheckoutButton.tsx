@@ -100,6 +100,7 @@ export default function PaddleCheckoutButton({
   const openCheckout = (p: Paddle) => {
     setLoading(true);
     try {
+      console.log('Opening Paddle checkout with priceId:', priceId)
       p.Checkout.open({
         items: [
           {
@@ -107,11 +108,13 @@ export default function PaddleCheckoutButton({
             quantity: 1,
           },
         ],
-        ...(userEmail ? { customer: { email: userEmail } } : {}),
+        customer: userEmail ? {
+          email: userEmail
+        } : undefined,
         settings: {
-          displayMode: "overlay",
-          theme: "dark",
-          locale: "en",
+          displayMode: 'overlay',
+          theme: 'dark',
+          locale: 'en'
         },
       });
     } catch (err) {

@@ -61,9 +61,8 @@ export function buildIdentityChain(
     const overallConfidence =
       links.length > 0 ? Math.round(totalConfidence / links.length) : 0;
 
-    const sortedLinks = links.sort(
-      (a, b) =>
-        extractTimestamp(a.data).localeCompare(extractTimestamp(b.data)),
+    const sortedLinks = links.sort((a, b) =>
+      extractTimestamp(a.data).localeCompare(extractTimestamp(b.data)),
     );
 
     chains.push({

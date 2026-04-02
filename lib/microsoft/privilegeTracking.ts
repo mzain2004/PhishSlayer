@@ -53,7 +53,9 @@ export async function fetchPrivilegeEvents(
 
       const timestamp = event.activityDateTime || new Date().toISOString();
       const validTo = isPimEvent
-        ? new Date(new Date(timestamp).getTime() + 4 * 60 * 60 * 1000).toISOString()
+        ? new Date(
+            new Date(timestamp).getTime() + 4 * 60 * 60 * 1000,
+          ).toISOString()
         : undefined;
 
       const privilegeState: PrivilegeEvent["privilegeState"] =

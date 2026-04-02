@@ -10,7 +10,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@azure/identity": "^4.13.1",
     "@google/genai": "^1.43.0",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
     "@paddle/paddle-js": "^1.6.2",
     "@paddle/paddle-node-sdk": "^3.6.0",
     "@radix-ui/react-separator": "^1.1.8",

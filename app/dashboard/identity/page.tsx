@@ -25,8 +25,47 @@ type AnomalyCounts = {
   total: number;
 };
 
+type LifecycleEvent = {
+  identityId: string;
+  identityName: string;
+  identityType: "service_principal" | "managed_identity" | "app_registration";
+  eventType:
+    | "created"
+    | "consent_granted"
+    | "token_issued"
+    | "permission_changed"
+    | "credential_added"
+    | "usage_detected";
+  timestamp: string;
+  details: string;
+  riskScore: number;
+  riskReasons: string[];
+};
+
+type LifecycleSummary = {
+  identityId: string;
+  identityName: string;
+  type: string;
+  createdAt?: string;
+  lastActivity?: string;
+  consentEvents: number;
+  tokenEvents: number;
+  permissionChanges: number;
+  overallRisk: "low" | "medium" | "high" | "critical";
+  riskScore: number;
+  lifecycleEvents: LifecycleEvent[];
+};
+
+type LifecycleCounts = {
+  critical: number;
+  high: number;
+  total: number;
+};
+
 export default function IdentityDashboardPage() {
-  const [activeTab, setActiveTab] = useState<"chains" | "anomalies">("chains");
+  const [activeTab, setActiveTab] = useState<
+    "chains" | "anomalies" | "lifecycle"
+  >("chains");
   const [chains, setChains] = useState<IdentityChain[]>([]);
   const [summary, setSummary] = useState<ChainSummary | null>(null);
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
@@ -36,6 +75,17 @@ export default function IdentityDashboardPage() {
     medium: 0,
     total: 0,
   });
+  const [lifecycleSummaries, setLifecycleSummaries] = useState<
+    LifecycleSummary[]
+  >([]);
+  const [lifecycleCounts, setLifecycleCounts] = useState<LifecycleCounts>({
+    critical: 0,
+    high: 0,
+    total: 0,
+  });
+  const [expandedIdentities, setExpandedIdentities] = useState<
+    Record<string, boolean>
+  >({});
   const [loading, setLoading] = useState(true);
   const [hours, setHours] = useState(24);
   const [downloading, setDownloading] = useState(false);
@@ -45,7 +95,13 @@ export default function IdentityDashboardPage() {
       void fetchChains();
       return;
     }
-    void fetchAnomalies();
+
+    if (activeTab === "anomalies") {
+      void fetchAnomalies();
+      return;
+    }
+
+    void fetchLifecycle();
   }, [hours, activeTab]);
 
   async function fetchChains() {
@@ -91,6 +147,31 @@ export default function IdentityDashboardPage() {
     }
   }
 
+  async function fetchLifecycle() {
+    setLoading(true);
+    try {
+      // Fixed 72h lifecycle window for service identity behavior analysis.
+      const response = await fetch(`/api/v2/identity/lifecycle?hours=72`);
+      const data = (await response.json()) as {
+        summaries?: LifecycleSummary[];
+        counts?: LifecycleCounts;
+      };
+
+      setLifecycleSummaries(data.summaries || []);
+      setLifecycleCounts(
+        data.counts || {
+          critical: 0,
+          high: 0,
+          total: 0,
+        },
+      );
+    } catch (error) {
+      console.error("Failed to fetch lifecycle:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const sortedAnomalies = useMemo(() => {
     const order = { critical: 0, high: 1, medium: 2, low: 3 };
     return [...anomalies].sort((a, b) => order[a.severity] - order[b.severity]);
@@ -116,11 +197,34 @@ export default function IdentityDashboardPage() {
     return "#8B949E";
   }
 
+  function getLifecycleRiskColor(
+    risk: LifecycleSummary["overallRisk"],
+  ): string {
+    if (risk === "critical") return "#F85149";
+    if (risk === "high") return "#E3B341";
+    if (risk === "medium") return "#C8A94A";
+    return "#3FB950";
+  }
+
   function formatAnomalyType(type: string): string {
     return type
       .split("_")
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(" ");
+  }
+
+  function formatIdentityType(type: string): string {
+    return type
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  }
+
+  function toggleIdentityExpansion(identityId: string) {
+    setExpandedIdentities((current) => ({
+      ...current,
+      [identityId]: !current[identityId],
+    }));
   }
 
   async function downloadReport() {
@@ -243,6 +347,21 @@ export default function IdentityDashboardPage() {
         >
           Anomalies
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("lifecycle")}
+          style={{
+            border: "1px solid #30363D",
+            borderRadius: "6px",
+            padding: "8px 12px",
+            cursor: "pointer",
+            background: activeTab === "lifecycle" ? "#2DD4BF" : "#161B22",
+            color: activeTab === "lifecycle" ? "#0D1117" : "#E6EDF3",
+            fontWeight: 700,
+          }}
+        >
+          Service Identities
+        </button>
       </div>
 
       {activeTab === "chains" && summary ? (
@@ -358,11 +477,73 @@ export default function IdentityDashboardPage() {
         </div>
       ) : null}
 
+      {activeTab === "lifecycle" ? (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "16px",
+            marginBottom: "24px",
+          }}
+        >
+          {[
+            {
+              label: "Critical",
+              value: lifecycleCounts.critical,
+              color: "#F85149",
+            },
+            {
+              label: "High",
+              value: lifecycleCounts.high,
+              color: "#E3B341",
+            },
+            {
+              label: "Total Identities",
+              value: lifecycleCounts.total,
+              color: "#2DD4BF",
+            },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              style={{
+                background: "#161B22",
+                border: `1px solid ${stat.color}`,
+                borderRadius: "8px",
+                padding: "16px",
+              }}
+            >
+              <p
+                style={{
+                  color: "#8B949E",
+                  fontSize: "12px",
+                  margin: "0 0 8px",
+                  textTransform: "uppercase",
+                }}
+              >
+                {stat.label}
+              </p>
+              <p
+                style={{
+                  color: stat.color,
+                  fontSize: "28px",
+                  fontWeight: "bold",
+                  margin: 0,
+                }}
+              >
+                {stat.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       {loading ? (
         <div style={{ textAlign: "center", color: "#8B949E", padding: "48px" }}>
           {activeTab === "chains"
             ? "Building identity chains..."
-            : "Detecting anomalies..."}
+            : activeTab === "anomalies"
+              ? "Detecting anomalies..."
+              : "Modeling non-human identity lifecycle..."}
         </div>
       ) : activeTab === "chains" ? (
         chains.length === 0 ? (
@@ -446,6 +627,19 @@ export default function IdentityDashboardPage() {
                     >
                       {chain.overallConfidence}%
                     </span>
+                    {chain.staleLinks && chain.staleLinks > 0 ? (
+                      <span
+                        style={{
+                          color: "#E3B341",
+                          fontSize: "11px",
+                          border: "1px solid #E3B34155",
+                          borderRadius: "4px",
+                          padding: "2px 6px",
+                        }}
+                      >
+                        {chain.staleLinks} stale links
+                      </span>
+                    ) : null}
                   </div>
                 </div>
 
@@ -512,6 +706,9 @@ export default function IdentityDashboardPage() {
                 >
                   Actor: {chain.actorId} | Type: {chain.actorType} | Links:{" "}
                   {chain.links.length}
+                  {chain.decayImpact && chain.decayImpact > 0
+                    ? ` | Decay impact: -${chain.decayImpact}%`
+                    : ""}
                   {chain.startTime
                     ? ` | From: ${new Date(chain.startTime).toLocaleTimeString()}`
                     : ""}
@@ -520,7 +717,80 @@ export default function IdentityDashboardPage() {
             ))}
           </div>
         )
-      ) : sortedAnomalies.length === 0 ? (
+      ) : activeTab === "anomalies" ? (
+        sortedAnomalies.length === 0 ? (
+          <div
+            style={{
+              background: "#161B22",
+              border: "1px solid #30363D",
+              borderRadius: "8px",
+              padding: "48px",
+              textAlign: "center",
+              color: "#8B949E",
+            }}
+          >
+            No anomalies detected
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {sortedAnomalies.map((anomaly, index) => (
+              <div
+                key={`${anomaly.type}-${anomaly.timestamp}-${index}`}
+                style={{
+                  background: "#161B22",
+                  border: "1px solid #30363D",
+                  borderLeft: `4px solid ${getSeverityColor(anomaly.severity)}`,
+                  borderRadius: "8px",
+                  padding: "16px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "8px",
+                    gap: "12px",
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                  >
+                    <span
+                      style={{
+                        background: getSeverityColor(anomaly.severity),
+                        color: "#fff",
+                        fontSize: "11px",
+                        borderRadius: "4px",
+                        padding: "2px 8px",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {anomaly.severity}
+                    </span>
+                    <span
+                      style={{
+                        color: "#E6EDF3",
+                        fontSize: "13px",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {formatAnomalyType(anomaly.type)}
+                    </span>
+                  </div>
+                  <span style={{ color: "#8B949E", fontSize: "12px" }}>
+                    {new Date(anomaly.timestamp).toLocaleString()}
+                  </span>
+                </div>
+                <div style={{ color: "#E6EDF3", fontSize: "13px" }}>
+                  {anomaly.description}
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      ) : lifecycleSummaries.length === 0 ? (
         <div
           style={{
             background: "#161B22",
@@ -531,65 +801,173 @@ export default function IdentityDashboardPage() {
             color: "#8B949E",
           }}
         >
-          No anomalies detected
+          No non-human identity lifecycle anomalies in selected window.
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {sortedAnomalies.map((anomaly, index) => (
-            <div
-              key={`${anomaly.type}-${anomaly.timestamp}-${index}`}
-              style={{
-                background: "#161B22",
-                border: "1px solid #30363D",
-                borderLeft: `4px solid ${getSeverityColor(anomaly.severity)}`,
-                borderRadius: "8px",
-                padding: "16px",
-              }}
-            >
+          {lifecycleSummaries.map((summaryItem) => {
+            const isExpanded = Boolean(expandedIdentities[summaryItem.identityId]);
+
+            return (
               <div
+                key={summaryItem.identityId}
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "8px",
-                  gap: "12px",
+                  background: "#161B22",
+                  border: `1px solid ${getLifecycleRiskColor(summaryItem.overallRisk)}55`,
+                  borderRadius: "8px",
+                  padding: "16px",
                 }}
               >
                 <div
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "12px",
+                    marginBottom: "12px",
+                  }}
                 >
-                  <span
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span
+                      style={{
+                        color: "#E6EDF3",
+                        fontSize: "14px",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {summaryItem.identityName}
+                    </span>
+                    <span
+                      style={{
+                        border: "1px solid #30363D",
+                        color: "#8B949E",
+                        fontSize: "10px",
+                        borderRadius: "4px",
+                        padding: "2px 6px",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {formatIdentityType(summaryItem.type)}
+                    </span>
+                    <span
+                      style={{
+                        background: getLifecycleRiskColor(summaryItem.overallRisk),
+                        color: "#fff",
+                        fontSize: "10px",
+                        borderRadius: "4px",
+                        padding: "2px 8px",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {summaryItem.overallRisk}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => toggleIdentityExpansion(summaryItem.identityId)}
                     style={{
-                      background: getSeverityColor(anomaly.severity),
-                      color: "#fff",
-                      fontSize: "11px",
-                      borderRadius: "4px",
-                      padding: "2px 8px",
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {anomaly.severity}
-                  </span>
-                  <span
-                    style={{
+                      border: "1px solid #30363D",
+                      background: "#0D1117",
                       color: "#E6EDF3",
-                      fontSize: "13px",
-                      fontWeight: 700,
+                      borderRadius: "6px",
+                      padding: "6px 10px",
+                      cursor: "pointer",
+                      fontSize: "12px",
                     }}
                   >
-                    {formatAnomalyType(anomaly.type)}
-                  </span>
+                    {isExpanded ? "Hide Events" : "View Events"}
+                  </button>
                 </div>
-                <span style={{ color: "#8B949E", fontSize: "12px" }}>
-                  {new Date(anomaly.timestamp).toLocaleString()}
-                </span>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(5, 1fr)",
+                    gap: "8px",
+                    marginBottom: isExpanded ? "12px" : 0,
+                  }}
+                >
+                  <div style={{ color: "#8B949E", fontSize: "12px" }}>
+                    Risk Score: <span style={{ color: "#E6EDF3" }}>{summaryItem.riskScore}</span>
+                  </div>
+                  <div style={{ color: "#8B949E", fontSize: "12px" }}>
+                    Consent: <span style={{ color: "#E6EDF3" }}>{summaryItem.consentEvents}</span>
+                  </div>
+                  <div style={{ color: "#8B949E", fontSize: "12px" }}>
+                    Permissions: <span style={{ color: "#E6EDF3" }}>{summaryItem.permissionChanges}</span>
+                  </div>
+                  <div style={{ color: "#8B949E", fontSize: "12px" }}>
+                    Tokens: <span style={{ color: "#E6EDF3" }}>{summaryItem.tokenEvents}</span>
+                  </div>
+                  <div style={{ color: "#8B949E", fontSize: "12px" }}>
+                    Last Activity:{" "}
+                    <span style={{ color: "#E6EDF3" }}>
+                      {summaryItem.lastActivity
+                        ? new Date(summaryItem.lastActivity).toLocaleString()
+                        : "Unknown"}
+                    </span>
+                  </div>
+                </div>
+
+                {isExpanded ? (
+                  <div
+                    style={{
+                      borderTop: "1px solid #30363D",
+                      paddingTop: "12px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                    }}
+                  >
+                    {summaryItem.lifecycleEvents.map((eventItem, eventIndex) => (
+                      <div
+                        key={`${summaryItem.identityId}-${eventItem.timestamp}-${eventIndex}`}
+                        style={{
+                          background: "#0D1117",
+                          border: "1px solid #30363D",
+                          borderRadius: "6px",
+                          padding: "10px 12px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "6px",
+                            gap: "12px",
+                          }}
+                        >
+                          <span style={{ color: "#E6EDF3", fontSize: "12px", fontWeight: 700 }}>
+                            {formatAnomalyType(eventItem.eventType)}
+                          </span>
+                          <span style={{ color: "#8B949E", fontSize: "11px" }}>
+                            {new Date(eventItem.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        <div style={{ color: "#8B949E", fontSize: "12px" }}>
+                          {eventItem.details}
+                        </div>
+                        {eventItem.riskReasons.length > 0 ? (
+                          <div
+                            style={{
+                              color: "#E3B341",
+                              fontSize: "11px",
+                              marginTop: "6px",
+                            }}
+                          >
+                            {eventItem.riskReasons.join(" | ")}
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
-              <div style={{ color: "#E6EDF3", fontSize: "13px" }}>
-                {anomaly.description}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

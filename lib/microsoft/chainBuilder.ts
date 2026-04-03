@@ -4,6 +4,8 @@ import type {
   PrivilegeEvent,
   SignInEvent,
 } from "./types";
+import { calculateDecayAdjustedChainScore } from "./confidenceDecay";
+import { calculateWeightedConfidence, extractSignals } from "./edgeWeights";
 
 export function buildIdentityChain(
   signIns: SignInEvent[],
@@ -21,18 +23,24 @@ export function buildIdentityChain(
 
   for (const [actorId, actorSignIns] of actorGroups) {
     const links: IdentityChainLink[] = [];
-    let totalConfidence = 0;
 
     // Add sign-in links
     for (const signIn of actorSignIns) {
-      const confidence = calculateLinkConfidence(signIn);
+      const signals = extractSignals(signIn);
+      const weighted = calculateWeightedConfidence(signals);
+
+      // Penalize missing strong signals to avoid inflated confidence.
+      const confidence = Math.max(
+        0,
+        weighted.weightedScore - Math.min(10, weighted.missingSignals.length * 2),
+      );
+
       links.push({
         type: "signin",
         data: signIn,
         confidenceScore: confidence,
         linkedToCompositeKey: signIn.compositeKey,
       });
-      totalConfidence += confidence;
     }
 
     // Match privilege events to sign-ins
@@ -55,15 +63,21 @@ export function buildIdentityChain(
         confidenceScore: confidence,
         linkedToCompositeKey: matchingSignIn?.compositeKey,
       });
-      totalConfidence += confidence;
     }
-
-    const overallConfidence =
-      links.length > 0 ? Math.round(totalConfidence / links.length) : 0;
 
     const sortedLinks = links.sort((a, b) =>
       extractTimestamp(a.data).localeCompare(extractTimestamp(b.data)),
     );
+
+    const decayResult = calculateDecayAdjustedChainScore(
+      sortedLinks.map((link) => ({
+        confidenceScore: link.confidenceScore,
+        timestamp: extractTimestamp(link.data),
+        type: link.type,
+      })),
+    );
+
+    const overallConfidence = decayResult.adjustedScore;
 
     chains.push({
       chainId: `chain-${actorId}-${Date.now()}`,
@@ -75,6 +89,8 @@ export function buildIdentityChain(
         : "",
       links: sortedLinks,
       overallConfidence,
+      staleLinks: decayResult.staleLinks,
+      decayImpact: decayResult.decayImpact,
       // Scott's insight: design for partial graphs
       isPartialGraph: overallConfidence < 70,
       verdict: generateVerdict(overallConfidence, links),
@@ -82,19 +98,6 @@ export function buildIdentityChain(
   }
 
   return chains.sort((a, b) => b.overallConfidence - a.overallConfidence);
-}
-
-function calculateLinkConfidence(signIn: SignInEvent): number {
-  let score = 50;
-
-  score += signIn.deviceComplianceScore * 0.3;
-  if (signIn.mfaMethod) score += 15;
-  if (signIn.riskLevel === "none") score += 10;
-  if (signIn.riskLevel === "high") score -= 30;
-  if (signIn.conditionalAccessStatus === "success") score += 10;
-  if (signIn.compositeKey.startsWith("unknown")) score -= 20;
-
-  return Math.max(0, Math.min(100, Math.round(score)));
 }
 
 function extractTimestamp(data: IdentityChainLink["data"]): string {

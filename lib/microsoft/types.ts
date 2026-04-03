@@ -60,6 +60,8 @@ export interface IdentityChain {
   endTime: string;
   links: IdentityChainLink[];
   overallConfidence: number;
+  staleLinks?: number;
+  decayImpact?: number;
   isPartialGraph: boolean;
   verdict: string;
 }

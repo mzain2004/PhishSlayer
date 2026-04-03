@@ -109,6 +109,22 @@ export default function MTTRDashboardPage() {
     }
   }
 
+  function getDecayState(timestamp: string): {
+    label: string;
+    color: string;
+  } {
+    const elapsedMinutes =
+      (Date.now() - new Date(timestamp).getTime()) / (1000 * 60);
+
+    if (elapsedMinutes > 60) {
+      return { label: "STALE", color: "#F85149" };
+    }
+    if (elapsedMinutes > 30) {
+      return { label: "WARMING", color: "#E3B341" };
+    }
+    return { label: "FRESH", color: "#3FB950" };
+  }
+
   return (
     <div
       style={{
@@ -412,14 +428,34 @@ export default function MTTRDashboardPage() {
                         gap: "12px",
                       }}
                     >
-                      <span
-                        style={{
-                          color: "#8B949E",
-                          fontSize: "11px",
-                        }}
-                      >
-                        Confidence: {event.confidenceScore}%
-                      </span>
+                      {(() => {
+                        const decay = getDecayState(event.timestamp);
+
+                        return (
+                          <>
+                            <span
+                              style={{
+                                color: "#8B949E",
+                                fontSize: "11px",
+                              }}
+                            >
+                              Confidence: {event.confidenceScore}%
+                            </span>
+                            <span
+                              style={{
+                                border: `1px solid ${decay.color}55`,
+                                color: decay.color,
+                                fontSize: "10px",
+                                borderRadius: "4px",
+                                padding: "1px 6px",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              {decay.label}
+                            </span>
+                          </>
+                        );
+                      })()}
                       <span
                         style={{
                           color: "#8B949E",
@@ -446,6 +482,35 @@ export default function MTTRDashboardPage() {
             ))}
           </div>
         )}
+      </div>
+
+      <div
+        style={{
+          marginTop: "16px",
+          background: "#161B22",
+          border: "1px solid #30363D",
+          borderRadius: "8px",
+          padding: "16px",
+        }}
+      >
+        <h3
+          style={{
+            color: "#E6EDF3",
+            margin: "0 0 10px",
+            fontSize: "13px",
+            fontWeight: 700,
+          }}
+        >
+          Confidence Model
+        </h3>
+        <div style={{ color: "#8B949E", fontSize: "12px" }}>
+          Base confidence uses asymmetric signal weights where device binding and
+          MFA contribute more than IP or geolocation.
+        </div>
+        <div style={{ color: "#8B949E", fontSize: "12px", marginTop: "4px" }}>
+          Exponential decay applies with a 30-minute half-life; stale links are
+          down-weighted until revalidation refreshes confidence.
+        </div>
       </div>
     </div>
   );

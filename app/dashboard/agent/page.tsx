@@ -69,10 +69,6 @@ export default function AgentDashboardPage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
-
   const fetchData = async () => {
     try {
       const [ev, st] = await Promise.all([
@@ -179,6 +175,22 @@ export default function AgentDashboardPage() {
       ),
     [events],
   );
+
+  if (!mounted) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: "#0D1117",
+        }}
+      >
+        <div style={{ color: "#8B949E" }}>Loading...</div>
+      </div>
+    );
+  }
 
   if (!loaded) {
     return (

@@ -41,9 +41,14 @@ export function generateIdentityReport(params: {
   // Report metadata
   doc.setTextColor(139, 148, 158);
   doc.setFontSize(9);
-  doc.text(`Generated: ${new Date(params.generatedAt).toLocaleString()}`, pageWidth - margin, 20, {
-    align: "right",
-  });
+  doc.text(
+    `Generated: ${new Date(params.generatedAt).toLocaleString()}`,
+    pageWidth - margin,
+    20,
+    {
+      align: "right",
+    },
+  );
   doc.text(
     `Analysis Period: Last ${params.hoursAnalyzed} hours`,
     pageWidth - margin,
@@ -86,12 +91,14 @@ export function generateIdentityReport(params: {
     doc.text("DETECTED ANOMALIES", margin, yPos);
     yPos += 8;
 
-    const anomalyRows = params.anomalies.slice(0, 10).map((a) => [
-      a.severity.toUpperCase(),
-      a.type.replace(/_/g, " "),
-      a.description.slice(0, 60) + (a.description.length > 60 ? "..." : ""),
-      new Date(a.timestamp).toLocaleTimeString(),
-    ]);
+    const anomalyRows = params.anomalies
+      .slice(0, 10)
+      .map((a) => [
+        a.severity.toUpperCase(),
+        a.type.replace(/_/g, " "),
+        a.description.slice(0, 60) + (a.description.length > 60 ? "..." : ""),
+        new Date(a.timestamp).toLocaleTimeString(),
+      ]);
 
     autoTable(doc, {
       startY: yPos,
@@ -117,8 +124,9 @@ export function generateIdentityReport(params: {
       margin: { left: margin, right: margin },
     });
 
-    yPos = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable
-      .finalY + 15;
+    yPos =
+      (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable
+        .finalY + 15;
   }
 
   // Timeline section
@@ -128,15 +136,17 @@ export function generateIdentityReport(params: {
   doc.text("EXECUTION TIMELINE", margin, yPos);
   yPos += 8;
 
-  const timelineRows = params.timeline.slice(0, 30).map((event) => [
-    new Date(event.timestamp).toLocaleTimeString(),
-    event.type.toUpperCase(),
-    event.title.slice(0, 35) + (event.title.length > 35 ? "..." : ""),
-    event.description.slice(0, 40) +
-      (event.description.length > 40 ? "..." : ""),
-    `${event.confidenceScore}%`,
-    event.severity.toUpperCase(),
-  ]);
+  const timelineRows = params.timeline
+    .slice(0, 30)
+    .map((event) => [
+      new Date(event.timestamp).toLocaleTimeString(),
+      event.type.toUpperCase(),
+      event.title.slice(0, 35) + (event.title.length > 35 ? "..." : ""),
+      event.description.slice(0, 40) +
+        (event.description.length > 40 ? "..." : ""),
+      `${event.confidenceScore}%`,
+      event.severity.toUpperCase(),
+    ]);
 
   autoTable(doc, {
     startY: yPos,

@@ -6,6 +6,7 @@ import type {
 } from "./types";
 import { calculateDecayAdjustedChainScore } from "./confidenceDecay";
 import { calculateWeightedConfidence, extractSignals } from "./edgeWeights";
+import { explainChainConfidence } from "./explainability";
 
 export function buildIdentityChain(
   signIns: SignInEvent[],
@@ -23,6 +24,13 @@ export function buildIdentityChain(
 
   for (const [actorId, actorSignIns] of actorGroups) {
     const links: IdentityChainLink[] = [];
+    let strongestWeightedScore = 0;
+    let strongestMissingSignals: string[] = [];
+    let strongestBreakdown: Record<string, number> = {};
+    let strongestRiskLevel = "none";
+    let strongestMfaMethod: string | undefined;
+    let strongestDeviceComplianceScore: number | undefined;
+    let strongestConditionalAccessStatus: string | undefined;
 
     // Add sign-in links
     for (const signIn of actorSignIns) {
@@ -32,8 +40,19 @@ export function buildIdentityChain(
       // Penalize missing strong signals to avoid inflated confidence.
       const confidence = Math.max(
         0,
-        weighted.weightedScore - Math.min(10, weighted.missingSignals.length * 2),
+        weighted.weightedScore -
+          Math.min(10, weighted.missingSignals.length * 2),
       );
+
+      if (confidence >= strongestWeightedScore) {
+        strongestWeightedScore = weighted.weightedScore;
+        strongestMissingSignals = weighted.missingSignals;
+        strongestBreakdown = weighted.breakdown;
+        strongestRiskLevel = signIn.riskLevel;
+        strongestMfaMethod = signIn.mfaMethod;
+        strongestDeviceComplianceScore = signIn.deviceComplianceScore;
+        strongestConditionalAccessStatus = signIn.conditionalAccessStatus;
+      }
 
       links.push({
         type: "signin",
@@ -78,6 +97,18 @@ export function buildIdentityChain(
     );
 
     const overallConfidence = decayResult.adjustedScore;
+    const explanation = explainChainConfidence({
+      weightedScore: strongestWeightedScore,
+      decayedScore: overallConfidence,
+      decayImpact: decayResult.decayImpact,
+      staleLinks: decayResult.staleLinks,
+      missingSignals: strongestMissingSignals,
+      breakdown: strongestBreakdown,
+      riskLevel: strongestRiskLevel,
+      mfaMethod: strongestMfaMethod,
+      deviceComplianceScore: strongestDeviceComplianceScore,
+      conditionalAccessStatus: strongestConditionalAccessStatus,
+    });
 
     chains.push({
       chainId: `chain-${actorId}-${Date.now()}`,
@@ -94,6 +125,7 @@ export function buildIdentityChain(
       // Scott's insight: design for partial graphs
       isPartialGraph: overallConfidence < 70,
       verdict: generateVerdict(overallConfidence, links),
+      explanation,
     });
   }
 

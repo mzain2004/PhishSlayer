@@ -366,6 +366,7 @@ export default function MTTRDashboardPage() {
                 />
 
                 <div
+                  title={event.explanation?.summary || ""}
                   style={{
                     background: "#0D1117",
                     border: `1px solid ${getSeverityColor(event.severity)}33`,
@@ -504,8 +505,8 @@ export default function MTTRDashboardPage() {
           Confidence Model
         </h3>
         <div style={{ color: "#8B949E", fontSize: "12px" }}>
-          Base confidence uses asymmetric signal weights where device binding and
-          MFA contribute more than IP or geolocation.
+          Base confidence uses asymmetric signal weights where device binding
+          and MFA contribute more than IP or geolocation.
         </div>
         <div style={{ color: "#8B949E", fontSize: "12px", marginTop: "4px" }}>
           Exponential decay applies with a 30-minute half-life; stale links are

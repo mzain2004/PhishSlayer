@@ -607,6 +607,16 @@ export default function IdentityDashboardPage() {
                         Partial Graph
                       </span>
                     ) : null}
+                    <p
+                      style={{
+                        color: "#8B949E",
+                        fontSize: "11px",
+                        margin: "8px 0 0",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      {chain.explanation?.recommendation}
+                    </p>
                   </div>
 
                   <div
@@ -732,7 +742,9 @@ export default function IdentityDashboardPage() {
             No anomalies detected
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+          >
             {sortedAnomalies.map((anomaly, index) => (
               <div
                 key={`${anomaly.type}-${anomaly.timestamp}-${index}`}
@@ -754,7 +766,11 @@ export default function IdentityDashboardPage() {
                   }}
                 >
                   <div
-                    style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
                   >
                     <span
                       style={{
@@ -806,7 +822,9 @@ export default function IdentityDashboardPage() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {lifecycleSummaries.map((summaryItem) => {
-            const isExpanded = Boolean(expandedIdentities[summaryItem.identityId]);
+            const isExpanded = Boolean(
+              expandedIdentities[summaryItem.identityId],
+            );
 
             return (
               <div
@@ -827,7 +845,13 @@ export default function IdentityDashboardPage() {
                     marginBottom: "12px",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
                     <span
                       style={{
                         color: "#E6EDF3",
@@ -851,7 +875,9 @@ export default function IdentityDashboardPage() {
                     </span>
                     <span
                       style={{
-                        background: getLifecycleRiskColor(summaryItem.overallRisk),
+                        background: getLifecycleRiskColor(
+                          summaryItem.overallRisk,
+                        ),
                         color: "#fff",
                         fontSize: "10px",
                         borderRadius: "4px",
@@ -866,7 +892,9 @@ export default function IdentityDashboardPage() {
 
                   <button
                     type="button"
-                    onClick={() => toggleIdentityExpansion(summaryItem.identityId)}
+                    onClick={() =>
+                      toggleIdentityExpansion(summaryItem.identityId)
+                    }
                     style={{
                       border: "1px solid #30363D",
                       background: "#0D1117",
@@ -890,16 +918,28 @@ export default function IdentityDashboardPage() {
                   }}
                 >
                   <div style={{ color: "#8B949E", fontSize: "12px" }}>
-                    Risk Score: <span style={{ color: "#E6EDF3" }}>{summaryItem.riskScore}</span>
+                    Risk Score:{" "}
+                    <span style={{ color: "#E6EDF3" }}>
+                      {summaryItem.riskScore}
+                    </span>
                   </div>
                   <div style={{ color: "#8B949E", fontSize: "12px" }}>
-                    Consent: <span style={{ color: "#E6EDF3" }}>{summaryItem.consentEvents}</span>
+                    Consent:{" "}
+                    <span style={{ color: "#E6EDF3" }}>
+                      {summaryItem.consentEvents}
+                    </span>
                   </div>
                   <div style={{ color: "#8B949E", fontSize: "12px" }}>
-                    Permissions: <span style={{ color: "#E6EDF3" }}>{summaryItem.permissionChanges}</span>
+                    Permissions:{" "}
+                    <span style={{ color: "#E6EDF3" }}>
+                      {summaryItem.permissionChanges}
+                    </span>
                   </div>
                   <div style={{ color: "#8B949E", fontSize: "12px" }}>
-                    Tokens: <span style={{ color: "#E6EDF3" }}>{summaryItem.tokenEvents}</span>
+                    Tokens:{" "}
+                    <span style={{ color: "#E6EDF3" }}>
+                      {summaryItem.tokenEvents}
+                    </span>
                   </div>
                   <div style={{ color: "#8B949E", fontSize: "12px" }}>
                     Last Activity:{" "}
@@ -921,48 +961,58 @@ export default function IdentityDashboardPage() {
                       gap: "8px",
                     }}
                   >
-                    {summaryItem.lifecycleEvents.map((eventItem, eventIndex) => (
-                      <div
-                        key={`${summaryItem.identityId}-${eventItem.timestamp}-${eventIndex}`}
-                        style={{
-                          background: "#0D1117",
-                          border: "1px solid #30363D",
-                          borderRadius: "6px",
-                          padding: "10px 12px",
-                        }}
-                      >
+                    {summaryItem.lifecycleEvents.map(
+                      (eventItem, eventIndex) => (
                         <div
+                          key={`${summaryItem.identityId}-${eventItem.timestamp}-${eventIndex}`}
                           style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "6px",
-                            gap: "12px",
+                            background: "#0D1117",
+                            border: "1px solid #30363D",
+                            borderRadius: "6px",
+                            padding: "10px 12px",
                           }}
                         >
-                          <span style={{ color: "#E6EDF3", fontSize: "12px", fontWeight: 700 }}>
-                            {formatAnomalyType(eventItem.eventType)}
-                          </span>
-                          <span style={{ color: "#8B949E", fontSize: "11px" }}>
-                            {new Date(eventItem.timestamp).toLocaleString()}
-                          </span>
-                        </div>
-                        <div style={{ color: "#8B949E", fontSize: "12px" }}>
-                          {eventItem.details}
-                        </div>
-                        {eventItem.riskReasons.length > 0 ? (
                           <div
                             style={{
-                              color: "#E3B341",
-                              fontSize: "11px",
-                              marginTop: "6px",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              marginBottom: "6px",
+                              gap: "12px",
                             }}
                           >
-                            {eventItem.riskReasons.join(" | ")}
+                            <span
+                              style={{
+                                color: "#E6EDF3",
+                                fontSize: "12px",
+                                fontWeight: 700,
+                              }}
+                            >
+                              {formatAnomalyType(eventItem.eventType)}
+                            </span>
+                            <span
+                              style={{ color: "#8B949E", fontSize: "11px" }}
+                            >
+                              {new Date(eventItem.timestamp).toLocaleString()}
+                            </span>
                           </div>
-                        ) : null}
-                      </div>
-                    ))}
+                          <div style={{ color: "#8B949E", fontSize: "12px" }}>
+                            {eventItem.details}
+                          </div>
+                          {eventItem.riskReasons.length > 0 ? (
+                            <div
+                              style={{
+                                color: "#E3B341",
+                                fontSize: "11px",
+                                marginTop: "6px",
+                              }}
+                            >
+                              {eventItem.riskReasons.join(" | ")}
+                            </div>
+                          ) : null}
+                        </div>
+                      ),
+                    )}
                   </div>
                 ) : null}
               </div>

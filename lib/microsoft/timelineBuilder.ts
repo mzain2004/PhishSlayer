@@ -18,6 +18,7 @@ export interface TimelineEvent {
   privilegeRole?: string;
   isPartOfPartialGraph: boolean;
   chainId: string;
+  explanation?: IdentityChain["explanation"];
 }
 
 type TimelineSource = {
@@ -91,6 +92,7 @@ export function buildTimeline(chains: IdentityChain[]): TimelineEvent[] {
         privilegeRole: data.role,
         isPartOfPartialGraph: chain.isPartialGraph,
         chainId: chain.chainId,
+        explanation: chain.explanation,
       });
     }
   }

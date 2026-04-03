@@ -1,3 +1,5 @@
+import type { VerdictExplanation } from "./explainability";
+
 export interface IdentityActor {
   id: string;
   type: "user" | "managed_identity" | "app_registration" | "service_principal";
@@ -64,4 +66,5 @@ export interface IdentityChain {
   decayImpact?: number;
   isPartialGraph: boolean;
   verdict: string;
+  explanation?: VerdictExplanation;
 }

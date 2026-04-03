@@ -20,6 +20,7 @@ import {
   LifeBuoy,
   ChevronDown,
   Link as LinkIcon,
+  Activity,
 } from "lucide-react";
 import { type UserRole } from "@/lib/rbac/roles";
 
@@ -162,6 +163,11 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
               href="/dashboard/identity"
               icon={LinkIcon}
               label="Identity Chain"
+            />
+            <NavItem
+              href="/dashboard/mttr"
+              icon={Activity}
+              label="MTTR Timeline"
             />
           </>
         )}

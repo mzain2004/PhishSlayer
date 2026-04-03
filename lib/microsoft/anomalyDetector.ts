@@ -11,7 +11,9 @@ export function detectAnomalies(chains: any[]): Anomaly[] {
 
   for (const chain of chains) {
     // Impossible travel detection
-    const signInLinks = chain.links.filter((link: any) => link.type === "signin");
+    const signInLinks = chain.links.filter(
+      (link: any) => link.type === "signin",
+    );
 
     for (let i = 1; i < signInLinks.length; i++) {
       const prev = signInLinks[i - 1].data;
@@ -25,7 +27,10 @@ export function detectAnomalies(chains: any[]): Anomaly[] {
           ) /
           (1000 * 60 * 60);
 
-        if (prev.location.country !== curr.location.country && timeDiffHours < 2) {
+        if (
+          prev.location.country !== curr.location.country &&
+          timeDiffHours < 2
+        ) {
           anomalies.push({
             type: "impossible_travel",
             severity: "critical",
@@ -40,7 +45,10 @@ export function detectAnomalies(chains: any[]): Anomaly[] {
       }
 
       // IP change with same session
-      if (prev.ipAddress !== curr.ipAddress && prev.compositeKey === curr.compositeKey) {
+      if (
+        prev.ipAddress !== curr.ipAddress &&
+        prev.compositeKey === curr.compositeKey
+      ) {
         anomalies.push({
           type: "ip_change_same_session",
           severity: "high",

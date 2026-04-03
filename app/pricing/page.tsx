@@ -313,7 +313,9 @@ export default function PricingPage() {
       }, 2000);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to cancel subscription",
+        error instanceof Error
+          ? error.message
+          : "Failed to cancel subscription",
       );
     } finally {
       setCancelLoading(false);

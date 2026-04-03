@@ -104,7 +104,8 @@ export default function PaddleCheckoutButton({
       console.log("Paddle checkout debug:", {
         priceId,
         paddleEnv: process.env.NEXT_PUBLIC_PADDLE_ENV,
-        token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN?.slice(0, 10) + "...",
+        token:
+          process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN?.slice(0, 10) + "...",
         paddleReady: !!p,
       });
       p.Checkout.open({

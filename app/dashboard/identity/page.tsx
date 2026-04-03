@@ -38,6 +38,7 @@ export default function IdentityDashboardPage() {
   });
   const [loading, setLoading] = useState(true);
   const [hours, setHours] = useState(24);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (activeTab === "chains") {
@@ -122,6 +123,26 @@ export default function IdentityDashboardPage() {
       .join(" ");
   }
 
+  async function downloadReport() {
+    setDownloading(true);
+    try {
+      const response = await fetch(`/api/v2/identity/report?hours=${hours}`);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `identity-report-${new Date().toISOString().split("T")[0]}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Report download error:", error);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   return (
     <div
       style={{
@@ -155,22 +176,40 @@ export default function IdentityDashboardPage() {
           </p>
         </div>
 
-        <select
-          value={hours}
-          onChange={(event) => setHours(Number(event.target.value))}
-          style={{
-            background: "#161B22",
-            border: "1px solid #30363D",
-            color: "#E6EDF3",
-            padding: "8px 16px",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          <option value={6}>Last 6 hours</option>
-          <option value={24}>Last 24 hours</option>
-          <option value={72}>Last 72 hours</option>
-        </select>
+        <div style={{ display: "flex", gap: "12px" }}>
+          <select
+            value={hours}
+            onChange={(event) => setHours(Number(event.target.value))}
+            style={{
+              background: "#161B22",
+              border: "1px solid #30363D",
+              color: "#E6EDF3",
+              padding: "8px 16px",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            <option value={6}>Last 6 hours</option>
+            <option value={24}>Last 24 hours</option>
+            <option value={72}>Last 72 hours</option>
+          </select>
+          <button
+            onClick={downloadReport}
+            disabled={downloading}
+            style={{
+              background: "linear-gradient(135deg, #2DD4BF, #A78BFA)",
+              color: "white",
+              border: "none",
+              padding: "8px 16px",
+              borderRadius: "6px",
+              cursor: downloading ? "not-allowed" : "pointer",
+              fontWeight: "bold",
+              opacity: downloading ? 0.7 : 1,
+            }}
+          >
+            {downloading ? "Exporting..." : "Export PDF"}
+          </button>
+        </div>
       </div>
 
       <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
@@ -277,7 +316,11 @@ export default function IdentityDashboardPage() {
           }}
         >
           {[
-            { label: "Critical", value: anomalyCounts.critical, color: "#F85149" },
+            {
+              label: "Critical",
+              value: anomalyCounts.critical,
+              color: "#F85149",
+            },
             { label: "High", value: anomalyCounts.high, color: "#E3B341" },
             { label: "Medium", value: anomalyCounts.medium, color: "#C8A94A" },
           ].map((stat) => (
@@ -317,7 +360,9 @@ export default function IdentityDashboardPage() {
 
       {loading ? (
         <div style={{ textAlign: "center", color: "#8B949E", padding: "48px" }}>
-          {activeTab === "chains" ? "Building identity chains..." : "Detecting anomalies..."}
+          {activeTab === "chains"
+            ? "Building identity chains..."
+            : "Detecting anomalies..."}
         </div>
       ) : activeTab === "chains" ? (
         chains.length === 0 ? (
@@ -331,12 +376,14 @@ export default function IdentityDashboardPage() {
             }}
           >
             <p style={{ color: "#8B949E" }}>
-              No identity chains found. Connect Microsoft Entra to start ingesting
-              sign-in telemetry.
+              No identity chains found. Connect Microsoft Entra to start
+              ingesting sign-in telemetry.
             </p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+          >
             {chains.map((chain) => (
               <div
                 key={chain.chainId}
@@ -508,7 +555,9 @@ export default function IdentityDashboardPage() {
                   gap: "12px",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
                   <span
                     style={{
                       background: getSeverityColor(anomaly.severity),

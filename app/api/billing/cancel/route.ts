@@ -64,7 +64,9 @@ export async function POST() {
       cache: "no-store",
     });
 
-    const listPayload = (await listResponse.json().catch(() => ({}))) as PaddleListResponse;
+    const listPayload = (await listResponse
+      .json()
+      .catch(() => ({}))) as PaddleListResponse;
 
     if (!listResponse.ok) {
       console.error("Paddle list subscriptions error:", listPayload);

@@ -1,67 +1,215 @@
 # PRD.md — Product Requirements Document
-# Phish-Slayer V3
+
+# Phish-Slayer v2
 
 ---
 
 ## 1. Product Vision
 
-Phish-Slayer is an enterprise-grade, Blue Team AI SaaS cybersecurity platform. It provides Security Operations Center (SOC) analysts and security teams with a real-time command center to monitor endpoints, scan threat indicators, manage incidents, and neutralize cyber threats autonomously.
+Phish-Slayer v2 is an enterprise AI threat intelligence platform for SOC and IR teams operating under high-pressure incident timelines.
 
-The platform combines proprietary threat intelligence, external scanning engines (VirusTotal), and AI-powered analysis (Google Gemini) into a single, data-dense dashboard — wrapped in a premium cyber-themed UI.
+The v2 mission is to turn fragmented telemetry into trustworthy incident continuity by reconstructing identity-linked attack sequences end to end.
+
+Core product promise:
+
+- Reduce analyst uncertainty during triage and containment
+- Cut MTTR by improving investigative context, not increasing alert volume
+- Provide a single command surface for identity, endpoint, auth, privilege, action, and impact correlation
 
 ---
 
-## 2. Target Users
+## 2. Strategic Pivot (v1 -> v2)
 
-- **Primary:** SOC analysts at small-to-mid-sized enterprises
-- **Secondary:** Security engineers and IT administrators
-- **Tertiary:** CISOs and executives consuming threat reports
+### v1 Framing (Deprecated)
+
+"Faster alerts" as the primary value proposition.
+
+### v2 Framing (Required)
+
+"Identity continuity over alert volume" as the primary value proposition.
+
+The platform now competes on sequence integrity and response confidence.
 
 ---
 
 ## 3. Core Problem Statement
 
-Security teams are overwhelmed by alert fatigue, fragmented tooling, and slow manual triage. Phish-Slayer consolidates threat detection, endpoint monitoring, and incident response into one platform — reducing time-to-verdict from hours to seconds.
+SOC teams do not fail because they lack alerts; they fail because telemetry is fragmented across identity logs, endpoint events, and privilege/audit trails.
+
+This fragmentation increases:
+
+- Triage latency
+- False investigative branches
+- Containment hesitation
+- Recovery time
+
+Phish-Slayer v2 solves this by stitching cross-source events into a single incident lineage.
 
 ---
 
-## 4. Product Pillars
+## 4. Canonical Sequence Contract (Non-Negotiable)
 
-1. **Threat Intelligence** — Automated scanning against whitelist, proprietary intel vault, and VirusTotal
-2. **AI Analysis** — Gemini AI scores threats, categorizes them, and generates remediation steps
-3. **Endpoint Defense (EDR)** — Lightweight agents monitor endpoints for suspicious processes, file changes, and network connections
-4. **Incident Management** — Full CRUD lifecycle for security incidents with block/resolve actions
-5. **Real-time Alerting** — Discord webhooks fire on malicious findings; WebSocket streams agent telemetry live
+Every detected threat must map to this exact ordered sequence:
 
----
+Who -> Device -> Auth Context -> Privilege -> Action -> Impact
 
-## 5. Business Model
+Requirements:
 
-Three-tier SaaS subscription:
-
-| Tier | Key | Price |
-|------|-----|-------|
-| Recon | `free` | $0/month |
-| SOC Pro | `pro` | $99/month ($79 annual) |
-| Command & Control | `enterprise` | $299/month ($239 annual) |
-
-Payments processed via Stripe. Subscription tier stored in Supabase `profiles.subscription_tier`.
+1. Sequence order is immutable.
+2. Missing links must be explicit as unknown, never dropped.
+3. All incident views, APIs, and automations must preserve this lineage.
 
 ---
 
-## 6. Success Metrics
+## 5. Product Pillars (v2)
 
-- Time from IOC submission to verdict: < 5 seconds
-- Agent WebSocket reconnection time: < 3 seconds
-- Dashboard load time: < 2 seconds
-- Zero false-positive whitelist bypasses
-- 99.9% uptime on Azure VM
+1. **Identity-Stitching Engine**
+   Correlates Entra ID, Microsoft Graph, Defender, and endpoint telemetry into canonical sequence graphs.
+2. **Time Integrity (UTC)**
+   Enforces UTC normalization at ingestion, storage, processing, and ordering boundaries.
+3. **MTTR-First Operations**
+   Prioritizes fast, reliable incident reconstruction and replay after partial outages.
+4. **Cost-Aware Continuous Monitoring**
+   Controls API and compute spend via checkpointed fetches, batching, dedupe, and bounded concurrency.
+5. **Operator-Grade SPA Command Center**
+   Presents incident continuity in a graph/timeline workflow with high-clarity interactions.
 
 ---
 
-## 7. Out of Scope (V3)
+## 6. Target Users
 
-- Mobile native app
-- Multi-tenant organization management
-- Custom threat feed integrations beyond URLhaus
-- SOAR playbook automation
+- **Primary:** Incident Response leads and SOC analysts
+- **Secondary:** Security engineers and platform/SRE teams
+- **Tertiary:** Security leadership consuming blast-radius and impact context
+
+---
+
+## 7. Functional Requirements
+
+### 7.1 Identity-Stitching Engine
+
+- Ingest telemetry from Microsoft Graph, Entra ID, Defender, and endpoint agents.
+- Normalize events to canonical schema with provenance.
+- Build and persist session lineage per canonical sequence.
+- Score sequence confidence and source completeness.
+
+### 7.2 Time Normalization
+
+- Store all telemetry timestamps as UTC ISO-8601 with trailing Z.
+- Use observed time as primary ordering key and ingested time as fallback.
+- Reject or quarantine records with invalid/unresolvable time fields.
+
+### 7.3 Detection and Incidenting
+
+- Run detection logic against stitched sequences, not isolated records.
+- Attach confidence and completeness metadata to all incidents.
+- Preserve deterministic incident identifiers for replay consistency.
+
+### 7.4 Dashboard Experience (SPA)
+
+- Single connected workflow from incident list -> sequence timeline -> response action.
+- Interactive graph-first incident detail views.
+- Live update patterns that maintain context continuity.
+
+### 7.5 Integrations and Response
+
+- Support webhook and downstream response triggers with full lineage context.
+- Ensure idempotent response actions under retries and partial failures.
+
+---
+
+## 8. Non-Functional Requirements
+
+### 8.1 Reliability and Recovery
+
+- Durable ingestion queues and idempotent processing.
+- Reconciliation/replay jobs for delayed and out-of-order events.
+- Degraded mode with explicit confidence labeling.
+
+### 8.2 Cost Controls
+
+- Incremental fetches with checkpoint cursors.
+- Connector-level concurrency limits and backoff.
+- Batched enrichment and deduplication before expensive calls.
+- Upper worker ceilings to prevent runaway autoscaling costs.
+
+### 8.3 Security and Auditability
+
+- Least-privilege access for all connectors.
+- Immutable audit trail for stitch and scoring decisions.
+- Sensitive field handling with clear data classification.
+
+---
+
+## 9. UI/UX System Requirements (Motionsites Protocol)
+
+Visual and interaction standards are mandatory and must match DESIGN_SYSTEM.md.
+
+Required:
+
+- Pure black atmospheric background (#000000)
+- Deep Purple (#A78BFA) and Neon Teal (#2DD4BF) blurred cosmic lighting
+- Liquid glass surfaces (bg-white/5, backdrop-blur-3xl)
+- Aeonik or Space Grotesk for headings/metrics; Inter for body/logs
+- Framer Motion transitions across SPA flows
+
+Forbidden:
+
+- Flat single-color or gray-heavy backgrounds
+- Opaque, boxy panel systems replacing glass material
+- Serif, gothic, script, or novelty typography
+- Disconnected static pages that break flow continuity
+
+---
+
+## 10. Business Model and Packaging
+
+Three-tier SaaS packaging:
+
+| Tier              | Internal Key    | Price (Monthly) |
+| ----------------- | --------------- | --------------- |
+| Recon             | recon           | $0              |
+| SOC Pro           | soc_pro         | $99             |
+| Command & Control | command_control | $299            |
+
+Subscription source of truth:
+
+- Supabase profiles.subscription_tier
+- Paid checkout via Paddle billing flow
+
+---
+
+## 11. Success Metrics (v2)
+
+Primary outcomes:
+
+- MTTR reduction versus v1 incident baseline
+- Time to complete incident context (full sequence render)
+- Reduction in analyst re-triage loops per incident
+- Sequence completeness rate for production incidents
+
+Operational outcomes:
+
+- Ingestion-to-stitch latency within SLO
+- Replay success rate after partial outage
+- Cost per processed event within budget envelope
+
+---
+
+## 12. Out of Scope (Current v2)
+
+- Mobile native applications
+- Full multi-tenant organization management layer
+- Broad custom threat feed marketplace integrations
+- SOAR playbook authoring suite
+
+---
+
+## 13. Dependencies and Source of Truth Mapping
+
+- Architecture requirements: ARCHITECTURE_v2.md
+- UI/UX constraints: DESIGN_SYSTEM.md
+- Delivery sequencing: ROADMAP.md
+- Executive overview: README.md
+
+If any implementation conflicts with this PRD, the docs must be updated before release.

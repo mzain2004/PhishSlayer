@@ -82,6 +82,8 @@ export default function PricingPage() {
   const [paddle, setPaddle] = useState<Paddle | null>(null);
   const [paddleInitError, setPaddleInitError] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -286,6 +288,38 @@ export default function PricingPage() {
     return null;
   };
 
+  const handleCancelSubscription = async () => {
+    setCancelLoading(true);
+    try {
+      const response = await fetch("/api/billing/cancel", {
+        method: "POST",
+      });
+      const payload = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(payload.error || "Failed to cancel subscription");
+      }
+
+      setUserTier("recon");
+      setShowCancelModal(false);
+      toast.success(
+        "Subscription cancelled. You've been moved to the free Recon plan.",
+      );
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to cancel subscription",
+      );
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0d1117] text-[#e6edf3] font-sans selection:bg-teal-500/30">
       {/* Navigation */}
@@ -355,8 +389,9 @@ export default function PricingPage() {
             const showCancelSubscription =
               !loadingConfig &&
               isLoggedIn &&
-              normalizedTier === "command_control" &&
-              isCC;
+              normalizedTier !== "recon" &&
+              normalizedTier !== "free" &&
+              normalizedTier === t.id;
 
             return (
               <div
@@ -500,18 +535,58 @@ export default function PricingPage() {
                 ) : null}
 
                 {showCancelSubscription ? (
-                  <a
-                    href="mailto:support@phishslayer.tech"
-                    className="mt-3 block text-center text-sm text-[#2DD4BF] hover:underline"
+                  <button
+                    type="button"
+                    onClick={() => setShowCancelModal(true)}
+                    disabled={cancelLoading}
+                    className="mt-3 block w-full text-center text-sm text-[#2DD4BF] hover:underline disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    Cancel Subscription
-                  </a>
+                    {cancelLoading ? "Cancelling..." : "Cancel Subscription"}
+                  </button>
                 ) : null}
               </div>
             );
           })}
         </div>
       </section>
+
+      {showCancelModal ? (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => (cancelLoading ? null : setShowCancelModal(false))}
+          />
+
+          <div className="relative w-full max-w-md rounded-xl border border-[#30363D] bg-[#161B22] p-6 shadow-2xl">
+            <h3 className="text-lg font-bold text-[#E6EDF3] mb-3">
+              Cancel Subscription
+            </h3>
+            <p className="text-sm text-[#8B949E] leading-relaxed">
+              Are you sure you want to cancel? You'll lose access to paid
+              features at the end of your billing period.
+            </p>
+
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowCancelModal(false)}
+                disabled={cancelLoading}
+                className="px-4 py-2 rounded-md border border-[#30363D] bg-transparent text-[#E6EDF3] text-sm font-semibold hover:bg-[#21262D] disabled:opacity-60"
+              >
+                Keep Plan
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelSubscription}
+                disabled={cancelLoading}
+                className="px-4 py-2 rounded-md bg-[#F85149] text-white text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+              >
+                {cancelLoading ? "Cancelling..." : "Cancel Subscription"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* FAQ */}
       <section className="bg-[#161b22]/50 border-t border-[#30363d] py-24">

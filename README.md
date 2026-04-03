@@ -1,305 +1,55 @@
-<div align="center">
+# Phish-Slayer v2
 
-# 🛡️ PHISH-SLAYER
+Phish-Slayer v2 is an enterprise AI security platform for Blue Team operations focused on one core outcome: restoring identity continuity across fragmented telemetry.
 
-### Next-Gen Threat Intelligence Platform
+## Executive Summary
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-000?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-06B6D4?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-0D9488?style=for-the-badge)](LICENSE)
+Most SOC stacks optimize for alert volume and alert speed. That approach still leaves analysts with disconnected evidence and slow incident resolution.
 
-**Autonomous Blue Team AI SaaS — Monitor. Analyze. Neutralize.**
+Phish-Slayer v2 shifts the operating model from "more alerts" to "coherent incident lineage." Every high-signal incident must resolve into a strict session sequence:
 
-_Built and maintained by [@mzain2004](https://github.com/mzain2004) (Muhammad Zain)_
+Who -> Device -> Auth Context -> Privilege -> Action -> Impact
 
----
+If that chain is incomplete, the incident is incomplete.
 
-</div>
+## v2 Philosophy: Identity Continuity Over Alert Volume
 
-## 🔍 Overview
+1. We prioritize sequence integrity over raw event count.
+2. We stitch endpoint telemetry and cloud identity telemetry into a single investigative graph.
+3. We normalize all timestamps to UTC to prevent timeline drift and broken correlations.
+4. We reduce MTTR by giving responders one timeline, one actor trail, and one blast-radius view.
+5. We design for reliability and cost discipline under continuous scanning workloads.
 
-**Phish-Slayer** is an enterprise-grade cybersecurity command center that provides real-time threat intelligence, automated vulnerability scanning, AI-powered incident response, and endpoint detection & response (EDR). Designed for SOC analysts and security teams, it combines a proprietary threat intelligence vault with external scanning engines to deliver instantaneous threat verdicts — all wrapped in a premium, cyber-themed dashboard.
+## Target Audience
 
-```
-┌─────────────────────────────────────────────────────┐
-│               PHISH-SLAYER PIPELINE                 │
-│                                                     │
-│  Target ──▶ Whitelist ──▶ Intel Vault ──▶ VirusTotal│
-│              Gate 1         Gate 2         Gate 3   │
-│                │               │              │     │
-│              SAFE          CRITICAL     GEMINI AI   │
-│                               │              │     │
-│                          ┌────▼──────────────▼──┐  │
-│                          │   🚨 DISCORD ALERT   │  │
-│                          │   📄 PDF REPORT      │  │
-│                          │   📊 DASHBOARD       │  │
-│                          └──────────────────────┘  │
-└─────────────────────────────────────────────────────┘
+- Primary: Incident Response analysts and SOC engineers handling live containment and triage.
+- Secondary: Detection engineers and SREs responsible for telemetry reliability and response tooling.
+- Tertiary: Security leadership monitoring exposure, containment speed, and operational risk.
 
-EDR Endpoints ──▶ WebSocket (server.js) ──▶ Agent Fleet Dashboard
-```
+## What v2 Delivers
 
----
+- Identity-Stitching Engine that correlates Microsoft Graph, Entra ID, Defender, and endpoint events.
+- Deterministic sequence validation for each threat path.
+- Unified timeline with strict UTC normalization.
+- Incident context cards that show actor lineage, privilege transitions, and impact surface.
+- Cost-aware ingestion and query architecture to avoid runaway API and cloud compute spend.
 
-## ⚡ Key Features
+## Documentation Index (Single Source of Truth)
 
-### 🔐 Identity & Access Management
+- [ARCHITECTURE_v2.md](ARCHITECTURE_v2.md): v2 engine internals, data flow, normalization, and infrastructure constraints.
+- [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md): unbreakable UI rules under the Motionsites protocol.
+- [ROADMAP.md](ROADMAP.md): execution plan for engineering delivery.
 
-- Supabase SSR authentication with email/password + Google/GitHub OAuth
-- Middleware-enforced route protection on all dashboard routes
-- Row Level Security (RLS) policies — authenticated users only
-- 4-tier RBAC: `super_admin`, `admin`, `analyst`, `viewer`
+## Product Boundaries
 
-### 🏴 Proprietary Intel Vault
+In scope for v2:
 
-- Private threat intelligence database with custom indicators (IPs, domains)
-- Manual administrative blocking from the incident dashboard
-- Instant local lookups before any external API call
-- Automated URLhaus feed ingestion every 12 hours
+- Identity stitching and sequence enforcement.
+- Interactive SPA investigation dashboard.
+- MTTR-focused workflows and reliability instrumentation.
 
-### 🤖 Automated Threat Harvester
+Out of scope for v2:
 
-- URLhaus malware feed auto-sync via Vercel Cron Jobs (every 12h)
-- VirusTotal API integration with rate limiting and smart caching
-- Google Gemini AI-powered threat analysis and risk scoring
-
-### 🖥️ EDR — Endpoint Detection & Response
-
-- Lightweight agent (`lib/agent/endpointMonitor.ts`) deployable on any Linux/macOS endpoint
-- File Integrity Monitoring (FIM) via chokidar
-- Process and network connection monitoring via osquery (with fallback)
-- Real-time WebSocket C2 channel (`server.js`)
-- Agent Fleet dashboard at `/dashboard/agents`
-
-### 🚨 Discord Siren Webhooks
-
-- Real-time red embed alerts on malicious scan detections
-- Fires on both dashboard scans and API-initiated scans
-- Admin block notifications pushed to your security channel
-
-### 📄 Executive PDF Reporting
-
-- CEO-ready branded PDF reports with scan verdicts and AI summaries
-- jsPDF + AutoTable engine with teal/slate branding
-- One-click download from the threat analysis dashboard
-
-### 📊 God's Eye Dashboard
-
-- Real-time KPI cards: Total Scans, Malicious %, Active Incidents, Intel Vault size
-- Recharts-powered threat category visualization
-- Activity feed with verdict badges and trend indicators
-
-### 🔌 Public REST API (v1)
-
-- `GET/POST /api/v1/scan?target=example.com`
-- API key authentication via `x-api-key` header
-- Full 3-gate pipeline with JSON response
-
-### 📥 Incident Management
-
-- Full CRUD incident lifecycle with resolve/delete/block actions
-- Excel export (`.xlsx`) of incident reports
-- Severity badges, risk score bars, and assignee tracking
-
----
-
-## 🛠️ Tech Stack
-
-| Layer           | Technology                             |
-| --------------- | -------------------------------------- |
-| **Framework**   | Next.js 15 (App Router)                |
-| **Language**    | TypeScript                             |
-| **Auth & DB**   | Supabase (PostgreSQL + SSR Auth + RLS) |
-| **Styling**     | Tailwind CSS v3.4 + shadcn/ui          |
-| **AI Engine**   | Google Gemini 2.5 Flash                |
-| **CTI Scanner** | VirusTotal API                         |
-| **Alerts**      | Discord Webhooks                       |
-| **Payments**    | Stripe SDK v14                         |
-| **PDF**         | jsPDF + jsPDF-AutoTable                |
-| **Charts**      | Recharts                               |
-| **Excel**       | SheetJS (xlsx)                         |
-| **EDR**         | ws (WebSocket) + chokidar + osquery    |
-| **Email**       | Resend                                 |
-| **Deployment**  | Azure VM (Ubuntu 24.04) + PM2 + Nginx  |
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 20+ and npm
-- A [Supabase](https://supabase.com) project
-- A [VirusTotal](https://virustotal.com) API key
-- A [Google AI Studio](https://aistudio.google.com) API key (Gemini)
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/mzain2004/phish-slayer.git
-cd phish-slayer
-
-# Install dependencies
-npm install
-
-# Create your environment file
-cp .env.example .env.local
-```
-
-### Environment Variables
-
-Create a `.env.local` file in the root directory:
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-
-# Scanning & AI
-VIRUS_TOTAL_API_KEY=your_virustotal_key
-GEMINI_API_KEY=your_gemini_key
-
-# Alerts
-DISCORD_WEBHOOK_URL=your_discord_webhook_url
-
-# Public API
-PHISH_SLAYER_API_KEY=your_api_key
-
-# Intel Harvester CRON
-URLHAUS_AUTH_KEY=your_urlhaus_key
-CRON_SECRET=your_cron_secret
-
-# EDR Agent (use double quotes if value contains #)
-AGENT_SECRET="your_agent_secret"
-
-# Stripe (optional)
-STRIPE_SECRET_KEY=your_stripe_secret
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable
-STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
-
-# Email
-RESEND_API_KEY=your_resend_key
-RESEND_FROM_EMAIL=onboarding@resend.dev
-
-# Site
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
-
-### Run Locally
-
-```bash
-# Development (uses Next.js dev server)
-npm run dev
-
-# Production (required for WebSocket/EDR support)
-node server.js
-```
-
-> ⚠️ The EDR WebSocket server only runs via `node server.js`. `npm run dev` does not start the WebSocket server.
-
----
-
-## 📂 Project Structure
-
-```
-phish-slayer/
-├── server.js               # Custom Next.js + WebSocket server (EDR C2)
-├── ecosystem.config.js     # PM2 process manager config
-├── project-docs/           # Spec-driven documentation for AI-assisted development
-│   ├── PRD.md
-│   ├── Features.md
-│   ├── UIUX.md
-│   ├── TechStack.md
-│   ├── Database.md
-│   ├── API.md
-│   ├── Architecture.md
-│   ├── Security.md
-│   ├── Deployment.md
-│   └── AI_Instructions.md
-├── app/
-│   ├── auth/               # Login, signup, OAuth callback
-│   ├── api/
-│   │   ├── v1/scan/        # Public REST API
-│   │   ├── intel/sync/     # URLhaus CRON harvester
-│   │   ├── flag-ioc/       # Agent IOC reporting
-│   │   └── stripe/webhook/ # Stripe payment webhooks
-│   └── dashboard/
-│       ├── page.tsx         # God's Eye Command Center
-│       ├── agents/          # EDR Agent Fleet dashboard
-│       ├── incidents/       # Incident management + Excel export
-│       ├── scans/           # Scan launcher & history
-│       ├── threats/         # Threat deep-dive + PDF export
-│       ├── intel/           # Intel Vault + API docs
-│       └── settings/        # User/org configuration
-├── lib/
-│   ├── ai/analyzer.ts       # Gemini AI threat analysis
-│   ├── scanners/            # VirusTotal integration
-│   ├── agent/               # EDR agent (endpointMonitor.ts)
-│   └── supabase/            # Auth, actions, middleware, queries
-└── middleware.ts            # Route protection guard
-```
-
----
-
-## 🖥️ Production Deployment (Azure VM)
-
-The app runs on an Azure VM (Ubuntu 24.04) via PM2 and Nginx.
-
-### Start the App
-
-```bash
-# Initial start
-NODE_ENV=production pm2 start server.js --name phish-slayer --node-args="--max-old-space-size=768"
-pm2 save
-
-# After code changes
-npm run build && pm2 restart phish-slayer --update-env
-
-# After .env.production changes (full cycle required)
-pm2 stop phish-slayer && pm2 delete phish-slayer
-NODE_ENV=production pm2 start server.js --name phish-slayer --node-args="--max-old-space-size=768"
-pm2 save
-```
-
-> ⚠️ A full `pm2 delete` + restart is **required** when environment variables change. `pm2 restart --update-env` alone does not reliably reload all variables.
-
-### EDR Agent Test Run
-
-```bash
-AGENT_SECRET='your_secret' \
-NEXT_PUBLIC_SITE_URL=https://phishslayer.tech \
-npx ts-node --skipProject \
-  --compiler-options '{"module":"commonjs"}' \
-  lib/agent/endpointMonitor.ts
-```
-
----
-
-## 🔒 Security
-
-- **Zero Trust Auth:** All dashboard routes protected by Supabase SSR middleware
-- **RLS Enforced:** Database operations restricted to authenticated users only
-- **API Key Auth:** Public API secured with `x-api-key` header validation
-- **CRON Security:** Intel harvester secured with bearer token verification
-- **WebSocket Auth:** EDR agents authenticated via `x-agent-secret` header; invalid secret → immediate `1008` close
-- **Input Validation:** Zod schemas on all server action payloads
-- **No Secrets in Git:** Comprehensive `.gitignore` covering all environment files
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-
-**Built with 🛡️ by [mzain2004](https://github.com/mzain2004) (Muhammad Zain)**
-
-_Protecting the internet, one scan at a time._
-
-</div>
+- Feature work that increases alert volume without improving identity continuity.
+- Unbounded background scans that increase cloud/API cost without measurable MTTR reduction.
+- Detached static pages that are not integrated into the investigation flow.

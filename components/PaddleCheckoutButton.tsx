@@ -100,7 +100,13 @@ export default function PaddleCheckoutButton({
   const openCheckout = (p: Paddle) => {
     setLoading(true);
     try {
-      console.log('Opening Paddle checkout with priceId:', priceId)
+      console.log("Opening Paddle checkout with priceId:", priceId);
+      console.log("Paddle checkout debug:", {
+        priceId,
+        paddleEnv: process.env.NEXT_PUBLIC_PADDLE_ENV,
+        token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN?.slice(0, 10) + "...",
+        paddleReady: !!p,
+      });
       p.Checkout.open({
         items: [
           {
@@ -108,13 +114,15 @@ export default function PaddleCheckoutButton({
             quantity: 1,
           },
         ],
-        customer: userEmail ? {
-          email: userEmail
-        } : undefined,
+        customer: userEmail
+          ? {
+              email: userEmail,
+            }
+          : undefined,
         settings: {
-          displayMode: 'overlay',
-          theme: 'dark',
-          locale: 'en'
+          displayMode: "overlay",
+          theme: "dark",
+          locale: "en",
         },
       });
     } catch (err) {

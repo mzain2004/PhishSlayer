@@ -115,102 +115,11 @@ export default function PhishSlayerLanding({
   const [authIntent, setAuthIntent] = useState<"login" | "signup">("login");
 
   return (
-    <main className="relative min-h-screen overflow-hidden flex flex-col items-center bg-black text-white">
-      <div className="fixed inset-0 z-[-1] pointer-events-none">
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.6, 0.8, 0.6],
-            x: [0, 20, 0],
-            y: [0, -20, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#A78BFA] opacity-20 blur-[150px]"
-        ></motion.div>
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.6, 0.8, 0.6],
-            x: [0, -20, 0],
-            y: [0, 20, 0],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-          className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#2DD4BF] opacity-20 blur-[150px]"
-        ></motion.div>
-      </div>
-
-      <nav
-        className={`w-full max-w-7xl mx-auto px-6 py-4 mt-6 flex items-center justify-between ${glassCard} rounded-full`}
+    <main className="relative min-h-screen overflow-hidden flex flex-col items-center text-white">
+      <motion.section
+        whileHover={{ filter: "drop-shadow(0 0 60px rgba(167, 139, 250, 0.15))" }}
+        className="w-full max-w-5xl mx-auto px-6 pt-32 pb-24 flex flex-col items-center text-center transition-all duration-700"
       >
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#A78BFA] to-[#2DD4BF] flex items-center justify-center">
-            <Shield className="w-4 h-4 text-black" />
-          </div>
-          <span className="font-bold text-xl tracking-tight">Phish-Slayer</span>
-        </div>
-
-        <div className="hidden md:flex items-center gap-8">
-          <a
-            href="#features"
-            className="text-sm font-medium text-white/70 hover:text-white transition-colors"
-          >
-            Features
-          </a>
-          <a
-            href="#pricing"
-            className="text-sm font-medium text-white/70 hover:text-white transition-colors"
-          >
-            Pricing
-          </a>
-          <a
-            href="#company"
-            className="text-sm font-medium text-white/70 hover:text-white transition-colors"
-          >
-            Company
-          </a>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {isAuthenticated ? (
-            <Link
-              href="/dashboard"
-              className="text-sm font-medium bg-[#2DD4BF] text-black px-5 py-2 rounded-full transition-colors hover:bg-[#14B8A6]"
-            >
-              Open Dashboard
-            </Link>
-          ) : (
-            <>
-              <button
-                onClick={() => {
-                  setAuthIntent("login");
-                  setIsAuthOpen(true);
-                }}
-                className="text-sm font-medium border border-white/20 text-white bg-transparent rounded-full px-5 py-2 transition-all hover:bg-[#2DD4BF] hover:text-black hidden md:block"
-              >
-                Log In
-              </button>
-              <motion.button
-                whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  setAuthIntent("signup");
-                  setIsAuthOpen(true);
-                }}
-                className="text-sm font-medium bg-[#2DD4BF] text-black px-5 py-2 rounded-full transition-all"
-              >
-                Sign Up
-              </motion.button>
-            </>
-          )}
-        </div>
-      </nav>
-
-      <motion.section className="w-full max-w-5xl mx-auto px-6 pt-32 pb-24 flex flex-col items-center text-center">
         <div
           className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 ${glassCard}`}
         >
@@ -224,7 +133,7 @@ export default function PhishSlayerLanding({
           initial={{ filter: "blur(10px)", opacity: 0, y: 20 }}
           animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-5xl md:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight uppercase"
+          className="font-space-grotesk text-5xl md:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight uppercase"
         >
           Neutralize threats instantly.
           <br />
@@ -237,17 +146,27 @@ export default function PhishSlayerLanding({
         </p>
 
         <div className="flex flex-col sm:flex-row items-center gap-4">
-          <motion.button
-            {...tactileProps}
-            onClick={() => {
-              setAuthIntent("signup");
-              setIsAuthOpen(true);
-            }}
-            className="bg-[#2DD4BF] text-black font-semibold px-8 py-4 rounded-full transition-all duration-300 flex items-center gap-2"
-          >
-            ACTIVATE FREE TRIAL NOW
-            <ArrowRight className="w-4 h-4" />
-          </motion.button>
+          {isAuthenticated ? (
+            <Link
+              href="/dashboard"
+              className="bg-[#2DD4BF] text-black font-semibold px-8 py-4 rounded-full transition-all duration-300 flex items-center gap-2"
+            >
+              OPEN DASHBOARD
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          ) : (
+            <motion.button
+              {...tactileProps}
+              onClick={() => {
+                setAuthIntent("signup");
+                setIsAuthOpen(true);
+              }}
+              className="bg-[#2DD4BF] text-black font-semibold px-8 py-4 rounded-full transition-all duration-300 flex items-center gap-2 group"
+            >
+              ACTIVATE FREE TRIAL NOW
+              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </motion.button>
+          )}
           <motion.button
             {...tactileProps}
             className={`px-8 py-4 rounded-full font-medium hover:bg-white/10 transition-all flex items-center gap-2 ${glassCard}`}

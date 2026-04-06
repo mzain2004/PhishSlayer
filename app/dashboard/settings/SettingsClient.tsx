@@ -10,6 +10,7 @@ type Props = {
   userEmail: string;
   initialFullName: string;
   initialApiKey: string | null;
+  initialAvatarUrl: string | null;
 };
 
 function generateApiKey() {
@@ -27,27 +28,60 @@ export default function SettingsClient({
   userEmail,
   initialFullName,
   initialApiKey,
+  initialAvatarUrl,
 }: Props) {
   const supabase = createClient();
   const [profileName, setProfileName] = useState(initialFullName);
   const [apiKey, setApiKey] = useState(initialApiKey);
+  const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const saveProfile = () => {
     startTransition(async () => {
-      const { error } = await supabase.from("profiles").upsert({
-        id: userId,
-        full_name: profileName,
-        updated_at: new Date().toISOString(),
-      });
+      const { error } = await supabase
+        .from("profiles")
+        .update({ full_name: profileName })
+        .eq("id", userId);
 
       if (error) {
         toast.error(error.message);
         return;
       }
       toast.success("Profile saved");
+    });
+  };
+
+  const handleAvatarUpload = (file: File | null) => {
+    if (!file) return;
+
+    startTransition(async () => {
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(`${userId}/avatar`, file, { upsert: true });
+
+      if (uploadError) {
+        toast.error(uploadError.message);
+        return;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(`${userId}/avatar`);
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", userId);
+
+      if (updateError) {
+        toast.error(updateError.message);
+        return;
+      }
+
+      setAvatarUrl(publicUrl);
+      toast.success("Avatar updated");
     });
   };
 
@@ -105,6 +139,28 @@ export default function SettingsClient({
       <section className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-3xl">
         <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
           <User className="h-5 w-5 text-[#2DD4BF]" /> Profile
+        </div>
+        <div className="mb-6 flex items-center gap-4">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Profile avatar"
+              className="h-16 w-16 rounded-full border border-white/20 object-cover"
+            />
+          ) : (
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/10 text-xl font-bold text-[#E6EDF3]">
+              {(profileName.trim() || userEmail || "U").charAt(0).toUpperCase()}
+            </div>
+          )}
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20">
+            Upload Avatar
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleAvatarUpload(e.target.files?.[0] ?? null)}
+            />
+          </label>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-1">

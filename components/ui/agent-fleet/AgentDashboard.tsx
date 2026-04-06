@@ -56,7 +56,10 @@ export default function AgentDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {agents.map((agent) => (
-          <div key={agent.agentId} className="liquid-glass rounded-xl hover:bg-[#1c2128] transition-all duration-200 overflow-hidden group">
+          <div
+            key={agent.agentId}
+            className="group overflow-hidden rounded-xl border border-[rgba(255,255,255,0.15)] [background:rgba(255,255,255,0.08)] backdrop-blur-[6px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.12)]"
+          >
             <div className="p-5">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-start gap-3">
@@ -65,7 +68,7 @@ export default function AgentDashboard() {
                   </div>
                   <div>
                     <h4 className="text-[#e6edf3] text-sm font-semibold truncate max-w-[140px]">{agent.hostname}</h4>
-                    <p className="text-[#6e7681] text-[10px] font-mono mt-0.5">ID: {agent.agentId.slice(0, 12)}...</p>
+                    <p className="mt-0.5 text-[10px] font-mono text-[#8B949E]">ID: {agent.agentId.slice(0, 12)}...</p>
                   </div>
                 </div>
                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${agent.status === 'online' ? 'bg-[#3fb950]/10 text-[#3fb950] border border-[#3fb950]/20' : 'bg-[#6e7681]/10 text-[#6e7681] border border-[#6e7681]/20'}`}>
@@ -111,7 +114,7 @@ export default function AgentDashboard() {
 
         {agents.length === 0 && (
           <div className="col-span-full border border-white/10 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 liquid-glass rounded-2xl flex items-center justify-center mb-6">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-[rgba(255,255,255,0.15)] [background:rgba(255,255,255,0.08)] backdrop-blur-[6px]">
               <Monitor className="w-8 h-8 text-[#8b949e]" />
             </div>
             <h3 className="text-[#e6edf3] text-lg font-semibold mb-2">Deploy Your First Agent</h3>
@@ -121,7 +124,7 @@ export default function AgentDashboard() {
 
             <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
               {/* macOS / Linux */}
-              <div className="liquid-glass rounded-xl p-5 text-left">
+              <div className="rounded-xl border border-[rgba(255,255,255,0.15)] [background:rgba(255,255,255,0.08)] p-5 text-left backdrop-blur-[6px]">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-6 h-6 rounded bg-[#0d1117] border border-white/10 flex items-center justify-center">
                     <Terminal className="w-3.5 h-3.5 text-teal-400" />
@@ -134,7 +137,7 @@ export default function AgentDashboard() {
               </div>
 
               {/* Windows */}
-              <div className="liquid-glass rounded-xl p-5 text-left">
+              <div className="rounded-xl border border-[rgba(255,255,255,0.15)] [background:rgba(255,255,255,0.08)] p-5 text-left backdrop-blur-[6px]">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-6 h-6 rounded bg-[#0d1117] border border-white/10 flex items-center justify-center">
                     <Terminal className="w-3.5 h-3.5 text-indigo-400" />
@@ -164,7 +167,7 @@ export default function AgentDashboard() {
       </div>
 
       {/* Mitigation Log */}
-      <div className="mt-8 liquid-glass rounded-xl overflow-hidden">
+      <div className="mt-8 overflow-hidden rounded-xl border border-[rgba(255,255,255,0.15)] [background:rgba(255,255,255,0.08)] backdrop-blur-[6px]">
         <div className="px-6 py-4 border-b border-white/10 flex items-center gap-2">
           <Terminal className="w-4 h-4 text-teal-400" />
           <h3 className="text-[#e6edf3] font-semibold text-sm">Mitigation Log</h3>
@@ -198,7 +201,7 @@ export default function AgentDashboard() {
       {/* Command Modal */}
       {modalType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="liquid-glass rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
+          <div className="relative w-full max-w-sm rounded-xl border border-[rgba(255,255,255,0.15)] [background:rgba(255,255,255,0.08)] p-6 shadow-2xl backdrop-blur-[6px]">
             <h3 className="text-[#e6edf3] text-lg font-semibold mb-2">
               {modalType === 'kill_process' ? 'Kill Process' : 'Block IP Address'}
             </h3>

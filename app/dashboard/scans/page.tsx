@@ -11,6 +11,7 @@ import {
   Crosshair,
   Loader2,
   ShieldCheck,
+  FlaskConical,
   AlertTriangle,
   CheckCircle2,
   Clock,
@@ -64,6 +65,9 @@ function ScanManagerContent() {
     "all",
   );
   const [viewScope, setViewScope] = useState<"all" | "my">("all");
+  const [activeTab, setActiveTab] = useState<"scanner" | "sandbox">(
+    "scanner",
+  );
   const [page, setPage] = useState(0);
 
   const refreshScans = () => {
@@ -149,10 +153,38 @@ function ScanManagerContent() {
 
   const isViewer = role === "viewer";
   const isManagerOrAdmin = role && canViewAllScans(role);
+  const latestScan = allScans[0] ?? null;
 
   return (
     <div className="bg-black font-sans text-slate-100 antialiased min-h-screen flex flex-col w-full">
       <main className="flex-1 px-4 sm:px-8 py-8 w-full max-w-5xl mx-auto flex flex-col gap-10">
+        <section className="rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-2 backdrop-blur-[8px]">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setActiveTab("scanner")}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                activeTab === "scanner"
+                  ? "bg-[#2DD4BF]/20 text-[#2DD4BF] border border-[#2DD4BF]/40"
+                  : "text-white hover:bg-white/10"
+              }`}
+            >
+              Threat Scanner
+            </button>
+            <button
+              onClick={() => setActiveTab("sandbox")}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                activeTab === "sandbox"
+                  ? "bg-[#2DD4BF]/20 text-[#2DD4BF] border border-[#2DD4BF]/40"
+                  : "text-white hover:bg-white/10"
+              }`}
+            >
+              Sandbox Analysis
+            </button>
+          </div>
+        </section>
+
+        {activeTab === "scanner" ? (
+          <>
         {/* Hero Scanner Section */}
         <section className="relative bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -448,6 +480,60 @@ function ScanManagerContent() {
             </div>
           )}
         </section>
+          </>
+        ) : (
+          <section className="rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2DD4BF]/20 text-[#2DD4BF]">
+                <FlaskConical className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-[#E6EDF3]">
+                  Sandbox Analysis
+                </h2>
+                <p className="text-sm text-[#8B949E]">
+                  Deep detonation view for scanned targets with behavioral
+                  context and visual preview.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-5 backdrop-blur-[8px]">
+                <h3 className="mb-2 text-lg font-semibold text-[#E6EDF3]">
+                  Current Target
+                </h3>
+                <p className="font-mono text-sm text-[#2DD4BF]">
+                  {latestScan?.target ?? "No completed scan available"}
+                </p>
+                <p className="mt-2 text-sm text-[#8B949E]">
+                  Open the deep analysis workspace to inspect IOC traces,
+                  source intelligence, and detonation insights.
+                </p>
+                <button
+                  onClick={() => router.push("/dashboard/threats")}
+                  className="mt-4 rounded-lg bg-[#2DD4BF] px-4 py-2 text-sm font-semibold text-black transition hover:bg-[#14B8A6]"
+                >
+                  Open Deep Analysis
+                </button>
+              </div>
+
+              <div className="rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-3 backdrop-blur-[8px]">
+                {latestScan?.target ? (
+                  <iframe
+                    src={`https://image.thum.io/get/width/1200/crop/800/https://${latestScan.target}`}
+                    title="Sandbox preview"
+                    className="h-[320px] w-full rounded-lg border border-white/10 bg-black"
+                  />
+                ) : (
+                  <div className="flex h-[320px] items-center justify-center rounded-lg border border-white/10 bg-black/30 text-sm text-[#8B949E]">
+                    Run a threat scan first to generate sandbox preview data.
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

@@ -5,13 +5,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
+  Activity,
+  AlertTriangle,
+  Boxes,
   CreditCard,
+  Database,
+  FileText,
   FlaskConical,
-  Laptop,
   LayoutDashboard,
+  Link2,
+  Monitor,
+  ScanLine,
   Settings,
   Shield,
-  ShieldAlert,
   Terminal,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -23,42 +29,43 @@ type SidebarItemProps = {
   active: boolean;
 };
 
-const glassCard =
-  "bg-white/5 backdrop-blur-3xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl";
-
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Laptop, label: "Endpoint Fleet", href: "/dashboard/fleet" },
-  {
-    icon: FlaskConical,
-    label: "Sandbox Analysis",
-    href: "/dashboard/sandbox",
-  },
+  { icon: ScanLine, label: "Threat Scanner", href: "/dashboard/scans" },
+  { icon: FlaskConical, label: "Sandbox Analysis", href: "/dashboard/sandbox" },
+  { icon: Monitor, label: "Endpoint Fleet", href: "/dashboard/fleet" },
+  { icon: AlertTriangle, label: "Incident Reports", href: "/dashboard/incidents" },
+  { icon: Database, label: "Intel Vault", href: "/dashboard/intel" },
   { icon: Terminal, label: "AI Terminal", href: "/dashboard/terminal" },
-  { icon: ShieldAlert, label: "Protocols", href: "/dashboard/protocols" },
+  { icon: Shield, label: "Protocols", href: "/dashboard/protocols" },
   { icon: CreditCard, label: "Billing", href: "/dashboard/billing" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
+  { icon: Link2, label: "Identity Chain", href: "/dashboard/identity" },
+  { icon: Activity, label: "MTTR", href: "/dashboard/mttr" },
+  { icon: Boxes, label: "Admin", href: "/dashboard/admin" },
+  { icon: Boxes, label: "Agent Console", href: "/dashboard/agent" },
+  { icon: Boxes, label: "Agent Fleet Ops", href: "/dashboard/agents" },
+  { icon: Boxes, label: "API Keys", href: "/dashboard/apikeys" },
+  { icon: Boxes, label: "Audit", href: "/dashboard/audit" },
+  { icon: Boxes, label: "Profile", href: "/dashboard/profile" },
+  { icon: Boxes, label: "Support", href: "/dashboard/support" },
+  { icon: Boxes, label: "Threat Analysis", href: "/dashboard/threats" },
 ];
 
 function SidebarItem({ icon: Icon, label, href, active }: SidebarItemProps) {
   return (
-    <motion.div
-      whileHover={!active ? { scale: 1.02, filter: "brightness(1.1)" } : {}}
-      whileTap={{ scale: 0.98 }}
-    >
+    <motion.div whileTap={{ scale: 0.98 }}>
       <Link
         href={href}
-        className={`group relative flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 w-full text-left overflow-hidden ${
+        className={`group relative flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left font-medium [transition:all_0.2s_ease] ${
           active
-            ? "bg-[#2DD4BF]/10 text-[#2DD4BF] border border-[#2DD4BF]/20"
-            : "text-white/70 hover:text-white hover:bg-white/5"
+            ? "border-l-[3px] border-l-[#2DD4BF] bg-[rgba(45,212,191,0.15)] text-[#2DD4BF]"
+            : "text-white/90 hover:bg-[rgba(255,255,255,0.07)]"
         }`}
+        style={{ cursor: "pointer" }}
       >
         <Icon className="w-5 h-5 z-10" />
         <span className="z-10">{label}</span>
-        {!active && (
-          <div className="absolute bottom-0 left-4 right-4 h-[2px] bg-[#2DD4BF]/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100 rounded-t-full" />
-        )}
       </Link>
     </motion.div>
   );
@@ -111,9 +118,8 @@ export default function Sidebar() {
       <nav className="flex-1 p-4 flex flex-col gap-2">
         {navItems.map((item) => {
           const active =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname?.startsWith(item.href);
+            pathname === item.href ||
+            (item.href !== "/dashboard" && pathname?.startsWith(item.href));
 
           return (
             <SidebarItem

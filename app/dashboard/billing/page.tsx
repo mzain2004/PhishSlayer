@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -137,7 +137,7 @@ export default function BillingPage() {
       </div>
 
       {/* Plan Card */}
-      <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 relative overflow-hidden">
         {isPaid && (
           <div className="h-px w-full bg-gradient-to-r from-teal-500/60 via-teal-500/20 to-transparent mb-6 -mt-6 -mx-6 px-0 rounded-t-2xl" />
         )}
@@ -160,7 +160,7 @@ export default function BillingPage() {
               <button
                 disabled={isPortalLoading}
                 onClick={handleManageSubscription}
-                className="flex items-center gap-2 px-4 py-2 bg-[#1c2128] border border-[#30363d] text-[#e6edf3] hover:bg-[#21262d] text-sm font-medium rounded-full transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-[#1c2128] border border-white/10 text-[#e6edf3] hover:bg-[#21262d] text-sm font-medium rounded-[6px] transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50"
               >
                 {isPortalLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
@@ -181,14 +181,14 @@ export default function BillingPage() {
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 border-t border-[#30363d] pt-6 gap-6">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 border-t border-white/10 pt-6 gap-6">
           <div>
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Current Tier
             </p>
             <p className="text-[#e6edf3] text-sm font-semibold">{plan.name}</p>
           </div>
-          <div className="md:border-l border-[#30363d] md:pl-6">
+          <div className="md:border-l border-white/10 md:pl-6">
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Billing
             </p>
@@ -196,7 +196,7 @@ export default function BillingPage() {
               {isPaid ? "Monthly via Paddle" : "Free"}
             </p>
           </div>
-          <div className="md:border-l border-[#30363d] md:pl-6">
+          <div className="md:border-l border-white/10 md:pl-6">
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Monthly Amount
             </p>
@@ -208,7 +208,7 @@ export default function BillingPage() {
       </div>
 
       {!billingCustomerId && (
-        <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-6">
+        <div className="liquid-glass rounded-2xl p-6">
           <h3 className="text-[#E6EDF3] text-lg font-semibold">
             No Active Subscription
           </h3>
@@ -225,7 +225,7 @@ export default function BillingPage() {
       )}
 
       {/* Usage Section */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+      <div className="liquid-glass rounded-xl p-6">
         <h3 className="text-[#e6edf3] text-sm font-semibold mb-6">
           Plan Limits
         </h3>
@@ -290,8 +290,8 @@ export default function BillingPage() {
       </div>
 
       {/* Invoice History */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-xl overflow-hidden">
-        <div className="bg-[#1c2128] border-b border-[#30363d] px-5 py-3">
+      <div className="liquid-glass rounded-xl overflow-hidden">
+        <div className="bg-[#1c2128] border-b border-white/10 px-5 py-3">
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-[#6e7681]" />
             <span className="text-[#6e7681] text-xs uppercase tracking-wider font-semibold">
@@ -302,7 +302,7 @@ export default function BillingPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#30363d] text-[#6e7681] text-xs uppercase tracking-wider">
+              <tr className="border-b border-white/10 text-[#6e7681] text-xs uppercase tracking-wider">
                 <th className="px-5 py-3 font-semibold">Date</th>
                 <th className="px-5 py-3 font-semibold">Amount</th>
                 <th className="px-5 py-3 font-semibold">Status</th>
@@ -337,3 +337,4 @@ export default function BillingPage() {
     </div>
   );
 }
+

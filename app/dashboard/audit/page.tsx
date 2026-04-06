@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -102,7 +102,7 @@ export default function AuditLogPage() {
         <div className="text-center space-y-4">
           <Shield className="w-12 h-12 text-slate-300 mx-auto" />
           <h2 className="text-2xl font-bold text-white">Access Denied</h2>
-          <p className="text-slate-500 max-w-sm">
+          <p className="text-[#8B949E] max-w-sm">
             You do not have the required permissions to view the system audit
             logs.
           </p>
@@ -122,25 +122,25 @@ export default function AuditLogPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full flex flex-col min-h-screen bg-[#0a0f1e]">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full flex flex-col min-h-screen bg-black">
       <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
             <FileText className="w-8 h-8 text-teal-400" />
             Audit Log
           </h1>
-          <p className="text-slate-500 mt-2 text-sm">
+          <p className="text-[#8B949E] mt-2 text-sm">
             Comprehensive compliance and activity tracking across all platform
             actions.
           </p>
         </div>
       </div>
 
-      <div className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col flex-1">
+      <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col flex-1">
         {/* Toolbar */}
-        <div className="p-4 border-b border-slate-800 bg-slate-900/50 flex flex-col sm:flex-row gap-4">
+        <div className="p-4 border-b border-white/10 bg-white/5 flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8B949E]" />
             <input
               type="text"
               placeholder="Search user, action, or resource..."
@@ -149,19 +149,19 @@ export default function AuditLogPage() {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 border border-slate-700 rounded-lg text-sm text-white bg-slate-900 focus:ring-2 focus:ring-teal-500 placeholder-slate-500"
+              className="w-full pl-9 pr-4 py-2 border border-white/10 rounded-lg text-sm text-white bg-white/5 focus:ring-2 focus:ring-teal-500 placeholder-slate-500"
             />
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
             <div className="relative w-full sm:w-48">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8B949E]" />
               <select
                 value={actionFilter}
                 onChange={(e) => {
                   setActionFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full pl-9 pr-8 py-2 border border-slate-700 rounded-lg text-sm text-slate-300 focus:ring-2 focus:ring-teal-500 bg-slate-900 appearance-none"
+                className="w-full pl-9 pr-8 py-2 border border-white/10 rounded-lg text-sm text-slate-300 focus:ring-2 focus:ring-teal-500 bg-white/5 appearance-none"
               >
                 <option value="all">All Actions</option>
                 <option value="login">Login</option>
@@ -179,7 +179,7 @@ export default function AuditLogPage() {
         {/* Table */}
         <div className="overflow-x-auto flex-1 h-[500px]">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-slate-900/50 text-slate-500 sticky top-0 border-b border-slate-800">
+            <thead className="bg-white/5 text-[#8B949E] sticky top-0 border-b border-white/10">
               <tr>
                 <th className="px-6 py-4 font-bold tracking-widest uppercase text-[10px]">
                   Timestamp / IP
@@ -200,7 +200,7 @@ export default function AuditLogPage() {
                 <tr>
                   <td
                     colSpan={4}
-                    className="px-6 py-12 text-center text-slate-500"
+                    className="px-6 py-12 text-center text-[#8B949E]"
                   >
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-teal-600" />
                     Loading audit trails...
@@ -214,14 +214,14 @@ export default function AuditLogPage() {
                   >
                     <Shield className="w-8 h-8 mx-auto mb-2 text-red-300" />
                     <p className="font-semibold">Failed to load audit logs</p>
-                    <p className="text-sm text-slate-500 mt-1">{fetchError}</p>
+                    <p className="text-sm text-[#8B949E] mt-1">{fetchError}</p>
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
                   <td
                     colSpan={4}
-                    className="px-6 py-12 text-center text-slate-500"
+                    className="px-6 py-12 text-center text-[#8B949E]"
                   >
                     <Activity className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                     <p className="font-semibold">
@@ -237,7 +237,7 @@ export default function AuditLogPage() {
                 logs.map((log) => (
                   <tr
                     key={log.id}
-                    className="hover:bg-slate-800/50 transition-colors"
+                    className="hover:bg-white/10 transition-colors"
                   >
                     <td className="px-6 py-3">
                       <div className="flex flex-col gap-0.5">
@@ -245,7 +245,7 @@ export default function AuditLogPage() {
                           {new Date(log.created_at).toLocaleString()}
                         </span>
                         {log.ip_address && (
-                          <span className="text-xs text-slate-400 font-mono">
+                          <span className="text-xs text-[#8B949E] font-mono">
                             {log.ip_address}
                           </span>
                         )}
@@ -262,14 +262,14 @@ export default function AuditLogPage() {
                           <span className="font-semibold text-slate-200">
                             {log.user_email || "System"}
                           </span>
-                          <span className="text-[10px] uppercase font-bold text-slate-500">
+                          <span className="text-[10px] uppercase font-bold text-[#8B949E]">
                             {log.user_role}
                           </span>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-3">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold font-mono tracking-tight bg-slate-800 text-teal-400">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold font-mono tracking-tight bg-white/10 text-teal-400">
                         {log.action}
                       </span>
                     </td>
@@ -282,7 +282,7 @@ export default function AuditLogPage() {
                         </span>
                         {log.details && (
                           <span
-                            className="text-xs text-slate-500 max-w-xs truncate"
+                            className="text-xs text-[#8B949E] max-w-xs truncate"
                             title={JSON.stringify(log.details)}
                           >
                             {JSON.stringify(log.details).substring(0, 50)}
@@ -301,8 +301,8 @@ export default function AuditLogPage() {
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-900/50 flex items-center justify-between">
-          <p className="text-sm text-slate-500">
+        <div className="p-4 border-t border-white/10 bg-white/5 flex items-center justify-between">
+          <p className="text-sm text-[#8B949E]">
             Showing{" "}
             <span className="font-semibold text-white">
               {(page - 1) * pageSize + (logs.length > 0 ? 1 : 0)}
@@ -318,17 +318,17 @@ export default function AuditLogPage() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1 || loading}
-              className="p-1.5 rounded border border-slate-700 hover:bg-slate-800 disabled:opacity-50 text-slate-400"
+              className="p-1.5 rounded border border-white/10 hover:bg-white/10 disabled:opacity-50 text-[#8B949E]"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <span className="text-sm font-medium px-4 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-300">
+            <span className="text-sm font-medium px-4 py-1.5 bg-white/10 border border-white/10 rounded text-slate-300">
               {page} / {totalPages}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || loading}
-              className="p-1.5 rounded border border-slate-700 hover:bg-slate-800 disabled:opacity-50 text-slate-400"
+              className="p-1.5 rounded border border-white/10 hover:bg-white/10 disabled:opacity-50 text-[#8B949E]"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -338,3 +338,4 @@ export default function AuditLogPage() {
     </div>
   );
 }
+

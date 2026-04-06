@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import {
   ColumnDef,
   flexRender,
@@ -58,7 +58,7 @@ export function DataTable<TData, TValue>({
           placeholder={searchPlaceholder}
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          className="max-w-sm bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
+          className="max-w-sm bg-black border-slate-700 text-slate-100 placeholder:text-[#8B949E]"
         />
       )}
       <div className="rounded-lg border border-slate-800 overflow-hidden">
@@ -67,12 +67,12 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="border-slate-800 bg-slate-900/50"
+                className="border-slate-800 bg-black/50"
               >
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="text-slate-400 font-medium"
+                    className="text-[#8B949E] font-medium"
                   >
                     {header.isPlaceholder
                       ? null
@@ -106,7 +106,7 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center text-slate-500"
+                  className="h-24 text-center text-[#8B949E]"
                 >
                   No results found.
                 </TableCell>
@@ -116,7 +116,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-[#8B949E]">
           {table.getFilteredRowModel().rows.length} total results
         </p>
         <div className="flex items-center gap-2">
@@ -125,11 +125,11 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            className="border-slate-700 text-slate-400 hover:bg-slate-800"
+            className="border-slate-700 text-[#8B949E] hover:bg-slate-800"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="text-sm text-slate-400">
+          <span className="text-sm text-[#8B949E]">
             Page {table.getState().pagination.pageIndex + 1} of{" "}
             {table.getPageCount()}
           </span>
@@ -138,7 +138,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            className="border-slate-700 text-slate-400 hover:bg-slate-800"
+            className="border-slate-700 text-[#8B949E] hover:bg-slate-800"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -147,3 +147,4 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
+

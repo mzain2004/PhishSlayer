@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
@@ -64,7 +64,7 @@ export default function TwoFactorPage() {
 
   return (
     <div className="flex min-h-screen w-full bg-[#fafafa] font-sans text-slate-900">
-      {/* Left — Brand Panel */}
+      {/* Left â€” Brand Panel */}
       <div className="hidden lg:flex lg:w-[45%] xl:w-[42%] relative flex-col justify-between bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white overflow-hidden">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-indigo-500/30 rounded-full blur-[120px]" />
@@ -102,7 +102,7 @@ export default function TwoFactorPage() {
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-emerald-300 shrink-0" />
                 <span className="text-sm text-blue-100">
-                  Works offline — no SMS needed
+                  Works offline â€” no SMS needed
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -115,13 +115,13 @@ export default function TwoFactorPage() {
           </div>
 
           <p className="text-xs text-blue-200/70">
-            © {mounted ? new Date().getFullYear() : "-"} Phish-Slayer Enterprise
+            Â© {mounted ? new Date().getFullYear() : "-"} Phish-Slayer Enterprise
             Security
           </p>
         </div>
       </div>
 
-      {/* Right — 2FA Form / Success */}
+      {/* Right â€” 2FA Form / Success */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 sm:px-12">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
@@ -138,7 +138,7 @@ export default function TwoFactorPage() {
             <>
               <Link
                 href="/auth/login"
-                className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors mb-8"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[#8B949E] hover:text-blue-600 transition-colors mb-8"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to sign in
@@ -148,7 +148,7 @@ export default function TwoFactorPage() {
                 <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
                   Verify your identity
                 </h2>
-                <p className="text-sm text-slate-500 leading-relaxed">
+                <p className="text-sm text-[#8B949E] leading-relaxed">
                   Scan this QR code with your authenticator app, then enter the
                   6-digit code it generates.
                 </p>
@@ -169,7 +169,7 @@ export default function TwoFactorPage() {
 
               {/* Manual key */}
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-2">
                   Can&apos;t scan? Enter this key manually
                 </p>
                 <div className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2.5">
@@ -237,7 +237,7 @@ export default function TwoFactorPage() {
                 <button
                   type="button"
                   onClick={() => setOtp(Array(OTP_LENGTH).fill(""))}
-                  className="inline-flex items-center gap-1.5 font-medium text-slate-500 hover:text-blue-600 transition-colors"
+                  className="inline-flex items-center gap-1.5 font-medium text-[#8B949E] hover:text-blue-600 transition-colors"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Reset code
@@ -245,7 +245,7 @@ export default function TwoFactorPage() {
                 <span className="text-slate-300">|</span>
                 <Link
                   href="/dashboard/support"
-                  className="font-medium text-slate-500 hover:text-blue-600 transition-colors"
+                  className="font-medium text-[#8B949E] hover:text-blue-600 transition-colors"
                 >
                   Need help?
                 </Link>
@@ -260,7 +260,7 @@ export default function TwoFactorPage() {
               <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
                 2FA enabled
               </h2>
-              <p className="text-sm text-slate-500 leading-relaxed mb-8">
+              <p className="text-sm text-[#8B949E] leading-relaxed mb-8">
                 Two-factor authentication is now active on your account.
                 You&apos;ll be asked for a verification code each time you sign
                 in.
@@ -278,3 +278,4 @@ export default function TwoFactorPage() {
     </div>
   );
 }
+

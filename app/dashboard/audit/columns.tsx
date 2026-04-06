@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ const actionCategoryColors: Record<string, string> = {
   incident: "bg-blue-500/10 text-blue-400 border-blue-500/20",
   intel: "bg-red-500/10 text-red-400 border-red-500/20",
   user: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-  auth: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+  auth: "bg-slate-500/10 text-[#8B949E] border-slate-500/20",
   other: "bg-slate-500/10 text-slate-300 border-slate-500/20",
 };
 
@@ -61,7 +61,7 @@ export const auditColumns: ColumnDef<AuditRow>[] = [
         variant="ghost"
         size="sm"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="text-slate-400 hover:text-slate-100 -ml-3"
+        className="text-[#8B949E] hover:text-slate-100 -ml-3"
       >
         Timestamp <ArrowUpDown className="ml-2 h-3 w-3" />
       </Button>
@@ -69,8 +69,8 @@ export const auditColumns: ColumnDef<AuditRow>[] = [
     cell: ({ row }) => {
       const date = row.getValue("created_at") as string;
       return (
-        <span className="text-slate-500 text-xs font-mono">
-          {date ? new Date(date).toLocaleString() : "—"}
+        <span className="text-[#8B949E] text-xs font-mono">
+          {date ? new Date(date).toLocaleString() : "â€”"}
         </span>
       );
     },
@@ -81,9 +81,9 @@ export const auditColumns: ColumnDef<AuditRow>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <span className="text-slate-300 text-sm">
-          {row.getValue("user_email") || "—"}
+          {row.getValue("user_email") || "â€”"}
         </span>
-        <Badge className="bg-slate-700/50 text-slate-400 border-slate-600 text-[10px]">
+        <Badge className="bg-slate-700/50 text-[#8B949E] border-slate-600 text-[10px]">
           {row.original.user_role}
         </Badge>
       </div>
@@ -110,12 +110,12 @@ export const auditColumns: ColumnDef<AuditRow>[] = [
     cell: ({ row }) => {
       const type = row.original.resource_type;
       const id = row.original.resource_id;
-      if (!type && !id) return <span className="text-slate-600">—</span>;
+      if (!type && !id) return <span className="text-slate-600">â€”</span>;
       return (
-        <span className="text-slate-400 text-sm">
-          {type && <span className="text-slate-500">{type}/</span>}
+        <span className="text-[#8B949E] text-sm">
+          {type && <span className="text-[#8B949E]">{type}/</span>}
           <span className="font-mono">
-            {id ? (id.length > 20 ? id.slice(0, 20) + "…" : id) : ""}
+            {id ? (id.length > 20 ? id.slice(0, 20) + "â€¦" : id) : ""}
           </span>
         </span>
       );
@@ -126,13 +126,14 @@ export const auditColumns: ColumnDef<AuditRow>[] = [
     header: "Details",
     cell: ({ row }) => {
       const details = row.original.details;
-      if (!details) return <span className="text-slate-600">—</span>;
+      if (!details) return <span className="text-slate-600">â€”</span>;
       const str = JSON.stringify(details);
       return (
-        <span className="text-slate-500 text-xs font-mono" title={str}>
-          {str.length > 50 ? str.slice(0, 50) + "…" : str}
+        <span className="text-[#8B949E] text-xs font-mono" title={str}>
+          {str.length > 50 ? str.slice(0, 50) + "â€¦" : str}
         </span>
       );
     },
   },
 ];
+

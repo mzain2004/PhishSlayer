@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -29,7 +29,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="flex min-h-screen w-full bg-[#fafafa] font-sans text-slate-900">
-      {/* Left — Brand Panel */}
+      {/* Left â€” Brand Panel */}
       <div className="hidden lg:flex lg:w-[45%] xl:w-[42%] relative flex-col justify-between bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white overflow-hidden">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-indigo-500/30 rounded-full blur-[120px]" />
@@ -79,13 +79,13 @@ export default function ResetPasswordPage() {
           </div>
 
           <p className="text-xs text-blue-200/70">
-            © {mounted ? new Date().getFullYear() : "-"} Phish-Slayer Enterprise
+            Â© {mounted ? new Date().getFullYear() : "-"} Phish-Slayer Enterprise
             Security
           </p>
         </div>
       </div>
 
-      {/* Right — Form / Success */}
+      {/* Right â€” Form / Success */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 sm:px-12">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
@@ -102,7 +102,7 @@ export default function ResetPasswordPage() {
             <>
               <Link
                 href="/auth/login"
-                className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors mb-8"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[#8B949E] hover:text-blue-600 transition-colors mb-8"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to sign in
@@ -112,7 +112,7 @@ export default function ResetPasswordPage() {
                 <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
                   Create new password
                 </h2>
-                <p className="text-sm text-slate-500 leading-relaxed">
+                <p className="text-sm text-[#8B949E] leading-relaxed">
                   Your new password must be different from previously used
                   passwords.
                 </p>
@@ -136,7 +136,7 @@ export default function ResetPasswordPage() {
                     New password
                   </label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8B949E]">
                       <Lock className="w-4 h-4" />
                     </span>
                     <input
@@ -149,12 +149,12 @@ export default function ResetPasswordPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Min. 8 characters"
-                      className="block w-full rounded-lg border border-slate-200 bg-white py-3 pl-10 pr-12 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
+                      className="block w-full rounded-lg border border-slate-200 bg-white py-3 pl-10 pr-12 text-sm text-slate-900 placeholder:text-[#8B949E] shadow-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 transition-colors"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-[#8B949E] hover:text-slate-600 transition-colors"
                     >
                       {showPassword ? (
                         <EyeOff className="w-4 h-4" />
@@ -204,7 +204,7 @@ export default function ResetPasswordPage() {
                     Confirm new password
                   </label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8B949E]">
                       <Lock className="w-4 h-4" />
                     </span>
                     <input
@@ -217,7 +217,7 @@ export default function ResetPasswordPage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter your password"
-                      className={`block w-full rounded-lg border bg-white py-3 pl-10 pr-12 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm transition-colors focus:ring-1 ${
+                      className={`block w-full rounded-lg border bg-white py-3 pl-10 pr-12 text-sm text-slate-900 placeholder:text-[#8B949E] shadow-sm transition-colors focus:ring-1 ${
                         confirmPassword.length > 0 && !passwordsMatch
                           ? "border-red-300 focus:border-red-500 focus:ring-red-500"
                           : "border-slate-200 focus:border-blue-600 focus:ring-blue-600"
@@ -226,7 +226,7 @@ export default function ResetPasswordPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 transition-colors"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-[#8B949E] hover:text-slate-600 transition-colors"
                     >
                       {showConfirm ? (
                         <EyeOff className="w-4 h-4" />
@@ -266,7 +266,7 @@ export default function ResetPasswordPage() {
               <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
                 Password updated
               </h2>
-              <p className="text-sm text-slate-500 leading-relaxed mb-8">
+              <p className="text-sm text-[#8B949E] leading-relaxed mb-8">
                 Your password has been successfully reset. You can now sign in
                 with your new credentials.
               </p>
@@ -283,3 +283,4 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
+

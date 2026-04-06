@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useTransition } from "react";
 import { toast } from "sonner";
@@ -154,7 +154,7 @@ export default function UserProfilePage() {
   return (
     <div className="px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#30363d]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/10">
         <div>
           <h1 className="text-[#e6edf3] text-2xl font-semibold tracking-tight">Profile Settings</h1>
           <p className="text-[#8b949e] text-sm mt-0.5">Manage your identity and account security</p>
@@ -173,11 +173,11 @@ export default function UserProfilePage() {
         {/* Left: Avatar & Personal Info */}
         <div className="lg:col-span-2 space-y-8">
           {/* Avatar Card */}
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+          <div className="liquid-glass rounded-xl p-6">
             <h3 className="text-[#e6edf3] text-sm font-semibold mb-6">Profile Picture</h3>
             <div className="flex items-center gap-6">
               <div className="relative group">
-                <div className="w-24 h-24 rounded-full bg-[#0d1117] border border-[#30363d] flex items-center justify-center overflow-hidden">
+                <div className="w-24 h-24 rounded-full bg-[#0d1117] border border-white/10 flex items-center justify-center overflow-hidden">
                   {displayAvatar ? (
                     <img src={displayAvatar} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
@@ -189,7 +189,7 @@ export default function UserProfilePage() {
                     </div>
                   )}
                 </div>
-                <label className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#1c2128] border border-[#30363d] rounded-full flex items-center justify-center text-[#8b949e] hover:text-teal-400 cursor-pointer transition-colors shadow-lg">
+                <label className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#1c2128] border border-white/10 rounded-full flex items-center justify-center text-[#8b949e] hover:text-teal-400 cursor-pointer transition-colors shadow-lg">
                   <Camera className="w-4 h-4" />
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                 </label>
@@ -202,7 +202,7 @@ export default function UserProfilePage() {
           </div>
 
           {/* Personal Info Card */}
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+          <div className="liquid-glass rounded-xl p-6">
             <div className="flex items-center gap-2 mb-6">
               <User className="w-4 h-4 text-[#6e7681]" />
               <h3 className="text-[#e6edf3] text-sm font-semibold">Personal Information</h3>
@@ -216,7 +216,7 @@ export default function UserProfilePage() {
                     type="text"
                     value={formData.display_name}
                     onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
-                    className="w-full pl-10 pr-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
+                    className="w-full pl-10 pr-4 py-2 bg-[#0d1117] border border-white/10 rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
                     placeholder="E.g. John Doe"
                   />
                 </div>
@@ -230,7 +230,7 @@ export default function UserProfilePage() {
                     type="email"
                     value={email}
                     disabled
-                    className="w-full pl-10 pr-4 py-2 bg-[#1c2128] border border-[#30363d] rounded-lg text-sm text-[#6e7681] cursor-not-allowed outline-none"
+                    className="w-full pl-10 pr-4 py-2 bg-[#1c2128] border border-white/10 rounded-lg text-sm text-[#6e7681] cursor-not-allowed outline-none"
                   />
                 </div>
               </div>
@@ -243,7 +243,7 @@ export default function UserProfilePage() {
                     type="tel"
                     value={formData.phone_number}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone_number: e.target.value }))}
-                    className="w-full pl-10 pr-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
+                    className="w-full pl-10 pr-4 py-2 bg-[#0d1117] border border-white/10 rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
                     placeholder="+1 (555) 000-0000"
                   />
                 </div>
@@ -256,7 +256,7 @@ export default function UserProfilePage() {
                   <select
                     value={formData.department}
                     onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                    className="w-full pl-10 pr-10 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none appearance-none transition-all"
+                    className="w-full pl-10 pr-10 py-2 bg-[#0d1117] border border-white/10 rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none appearance-none transition-all"
                   >
                     <option>Security Operations</option>
                     <option>IT Administration</option>
@@ -273,7 +273,7 @@ export default function UserProfilePage() {
         {/* Right: Security & Sessions */}
         <div className="space-y-8">
           {/* Security Card */}
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+          <div className="liquid-glass rounded-xl p-6">
             <div className="flex items-center gap-2 mb-6">
               <Lock className="w-4 h-4 text-[#6e7681]" />
               <h3 className="text-[#e6edf3] text-sm font-semibold">Security</h3>
@@ -285,8 +285,8 @@ export default function UserProfilePage() {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
-                  placeholder="••••••••"
+                  className="w-full px-4 py-2 bg-[#0d1117] border border-white/10 rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 />
               </div>
               <div className="space-y-2">
@@ -295,14 +295,14 @@ export default function UserProfilePage() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
-                  placeholder="••••••••"
+                  className="w-full px-4 py-2 bg-[#0d1117] border border-white/10 rounded-lg text-sm text-[#e6edf3] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none transition-all"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 />
               </div>
               <button
                 onClick={handlePasswordChange}
                 disabled={isPending || !newPassword}
-                className="w-full py-2 bg-[#1c2128] border border-[#30363d] text-[#e6edf3] hover:bg-[#21262d] text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                className="w-full py-2 bg-[#1c2128] border border-white/10 text-[#e6edf3] hover:bg-[#21262d] text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
               >
                 Update Password
               </button>
@@ -310,7 +310,7 @@ export default function UserProfilePage() {
           </div>
 
           {/* Session Info */}
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+          <div className="liquid-glass rounded-xl p-6">
             <h3 className="text-[#e6edf3] text-sm font-semibold mb-6">Current Session</h3>
             <div className="flex items-start gap-4 mb-6">
               <div className="w-10 h-10 rounded-lg bg-[#3fb950]/10 flex items-center justify-center border border-[#3fb950]/20">
@@ -322,7 +322,7 @@ export default function UserProfilePage() {
               </div>
             </div>
             {sessionInfo && (
-              <p className="text-[#8b949e] text-xs border-t border-[#30363d] pt-4">
+              <p className="text-[#8b949e] text-xs border-t border-white/10 pt-4">
                 Started: <span className="text-[#e6edf3]">{sessionInfo.created_at}</span>
               </p>
             )}
@@ -333,7 +333,7 @@ export default function UserProfilePage() {
                   await supabase.auth.signOut({ scope: "local" });
                   window.location.href = "/";
                 }}
-                className="flex items-center justify-center gap-2 w-full py-2 bg-transparent border border-[#30363d] text-[#e6edf3] hover:border-[#8b949e] text-sm font-medium rounded-lg transition-colors"
+                className="flex items-center justify-center gap-2 w-full py-2 bg-transparent border border-white/10 text-[#e6edf3] hover:border-[#8b949e] text-sm font-medium rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" /> Sign Out
               </button>
@@ -372,3 +372,4 @@ export default function UserProfilePage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -22,8 +22,8 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="flex min-h-screen w-full bg-[#fafafa] font-sans text-slate-900">
-      {/* Left — Brand Panel */}
-      <div className="hidden lg:flex lg:w-[45%] xl:w-[42%] relative flex-col justify-between bg-slate-950 text-white overflow-hidden">
+      {/* Left â€” Brand Panel */}
+      <div className="hidden lg:flex lg:w-[45%] xl:w-[42%] relative flex-col justify-between bg-black text-white overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-900 to-teal-900 opacity-80" />
         <div className="absolute -top-32 -left-32 w-[30rem] h-[30rem] bg-teal-500/10 rounded-full blur-[100px]" />
         <div className="absolute bottom-0 right-0 w-[20rem] h-[20rem] bg-cyan-500/10 rounded-full blur-[80px]" />
@@ -51,19 +51,19 @@ export default function ForgotPasswordPage() {
             </p>
           </div>
 
-          <p className="text-xs text-slate-500 font-medium">
-            © {mounted ? new Date().getFullYear() : "-"} Phish-Slayer Enterprise
+          <p className="text-xs text-[#8B949E] font-medium">
+            Â© {mounted ? new Date().getFullYear() : "-"} Phish-Slayer Enterprise
             Security
           </p>
         </div>
       </div>
 
-      {/* Right — Form / Success */}
+      {/* Right â€” Form / Success */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 sm:px-12">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="flex items-center gap-3 mb-10 lg:hidden">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-teal-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-teal-400">
               <ShieldAlert className="w-6 h-6" />
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900">
@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
           {/* Back to login */}
           <Link
             href="/auth/login"
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-teal-600 transition-colors mb-8"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[#8B949E] hover:text-teal-600 transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to sign in
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
                 <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
                   Reset your password
                 </h2>
-                <p className="text-sm text-slate-500 leading-relaxed">
+                <p className="text-sm text-[#8B949E] leading-relaxed">
                   Enter the email address associated with your account.
                   We&apos;ll send you a link to reset your password.
                 </p>
@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
                     Email address
                   </label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8B949E]">
                       <Mail className="w-4 h-4" />
                     </span>
                     <input
@@ -120,7 +120,7 @@ export default function ForgotPasswordPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@company.com"
-                      className="block w-full rounded-lg border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+                      className="block w-full rounded-lg border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder:text-[#8B949E] shadow-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -143,20 +143,20 @@ export default function ForgotPasswordPage() {
               <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
                 Check your inbox
               </h2>
-              <p className="text-sm text-slate-500 leading-relaxed mb-8">
+              <p className="text-sm text-[#8B949E] leading-relaxed mb-8">
                 We&apos;ve sent a password reset link to{" "}
                 <span className="font-semibold text-slate-700">{email}</span>.
                 Click the link in the email to create a new password.
               </p>
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left mb-6">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-2">
                   Didn&apos;t receive the email?
                 </p>
                 <ul className="text-sm text-slate-600 space-y-1.5">
-                  <li>• Check your spam or junk folder</li>
-                  <li>• Make sure you entered the correct email</li>
+                  <li>â€¢ Check your spam or junk folder</li>
+                  <li>â€¢ Make sure you entered the correct email</li>
                   <li>
-                    •{" "}
+                    â€¢{" "}
                     <button
                       type="button"
                       onClick={() => setSubmitted(false)}
@@ -181,3 +181,4 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+

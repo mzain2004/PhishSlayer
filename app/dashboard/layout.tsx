@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -40,6 +40,18 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const pathname = usePathname();
+
+  const sectionTitle =
+    pathname === "/dashboard"
+      ? "Command Center"
+      : pathname
+          .split("/")
+          .filter(Boolean)
+          .slice(1)
+          .join(" ")
+          .replace(/-/g, " ")
+          .replace(/\b\w/g, (char) => char.toUpperCase()) || "Dashboard";
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -81,12 +93,24 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#0d1117]">
+    <div className="flex min-h-screen bg-black">
       <SidebarNav profile={profile} />
 
-      <main className="flex-1 ml-20 min-h-screen bg-[#0d1117] overflow-y-auto relative">
-        <DashboardErrorBoundary>{children}</DashboardErrorBoundary>
+      <main className="relative ml-20 min-h-screen flex-1 overflow-y-auto bg-black">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-white/10 bg-black/80 px-4 backdrop-blur sm:px-8">
+          <div>
+            <h1 className="text-sm font-semibold tracking-wide text-white sm:text-base">{sectionTitle}</h1>
+          </div>
+          <div className="text-xs text-[#8B949E] sm:text-sm">
+            {profile?.display_name || profile?.email || "Authenticated user"}
+          </div>
+        </header>
+
+        <div className="p-4 sm:p-8">
+          <DashboardErrorBoundary>{children}</DashboardErrorBoundary>
+        </div>
       </main>
     </div>
   );
 }
+

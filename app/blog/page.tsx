@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
@@ -47,7 +47,7 @@ export default function BlogPage() {
       
       <main className="pt-24 min-h-screen">
         {/* HERO */}
-        <section className="py-24 border-b border-[#30363D]">
+        <section className="py-24 border-b border-white/10">
           <div className="max-w-4xl mx-auto px-6 text-center">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} 
@@ -74,9 +74,9 @@ export default function BlogPage() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.1 }}
-                  className="bg-[#161B22] border border-[#30363D] rounded-[12px] overflow-hidden group hover:border-[#2DD4BF]/50 transition-colors cursor-pointer flex flex-col"
+                  className="liquid-glass rounded-[12px] overflow-hidden group hover:border-[#2DD4BF]/50 transition-colors cursor-pointer flex flex-col"
                 >
-                  <div className="aspect-video bg-[#0D1117] relative border-b border-[#30363D] flex items-center justify-center overflow-hidden">
+                  <div className="aspect-video bg-[#0D1117] relative border-b border-white/10 flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:16px_16px] opacity-20" />
                     <div className={`w-32 h-32 blur-3xl rounded-full ${post.bg} absolute opacity-50 group-hover:opacity-100 transition-opacity duration-500`} />
                     <code className="text-[#30363D] font-black text-6xl rotate-12 group-hover:scale-110 transition-transform duration-500">&lt;SYS/&gt;</code>
@@ -94,7 +94,7 @@ export default function BlogPage() {
                       {post.title}
                     </h2>
                     
-                    <div className="mt-auto flex items-center gap-2 text-xs text-[#8B949E] font-medium pt-6 border-t border-[#30363D]">
+                    <div className="mt-auto flex items-center gap-2 text-xs text-[#8B949E] font-medium pt-6 border-t border-white/10">
                       <Clock className="w-4 h-4" /> {post.readTime}
                     </div>
                   </div>
@@ -103,7 +103,7 @@ export default function BlogPage() {
             </div>
             
             <div className="mt-16 text-center">
-              <button className="bg-transparent border border-[#30363D] hover:bg-[#1C2128] text-[#E6EDF3] font-bold px-8 py-3 rounded-[8px] transition-colors">
+              <button className="bg-transparent border border-white/10 hover:bg-[#1C2128] text-[#E6EDF3] font-bold px-8 py-3 rounded-[8px] transition-colors">
                 Load More Articles
               </button>
             </div>
@@ -115,3 +115,4 @@ export default function BlogPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Header } from "@/components/landing/Header";
@@ -68,7 +68,7 @@ export default function ContactPage() {
       
       <main className="pt-24 min-h-screen">
         {/* HERO */}
-        <section className="py-24 border-b border-[#30363D] relative overflow-hidden">
+        <section className="py-24 border-b border-white/10 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#2DD4BF]/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2" />
           <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
             <motion.h1 
@@ -81,7 +81,7 @@ export default function ContactPage() {
               initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
               className="text-lg md:text-xl text-[#8B949E] leading-relaxed max-w-2xl mx-auto"
             >
-              Whether you have a security question, want a demo, or are interested in investing — we respond within 24 hours.
+              Whether you have a security question, want a demo, or are interested in investing â€” we respond within 24 hours.
             </motion.p>
           </div>
         </section>
@@ -95,9 +95,9 @@ export default function ContactPage() {
                 <motion.div 
                   key={i}
                   initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
-                  className="bg-[#161B22] border border-[#30363D] p-6 rounded-[12px] flex items-center gap-4 hover:border-[#30363D]/80 transition-colors"
+                  className="liquid-glass p-6 rounded-[12px] flex items-center gap-4 hover:border-white/20 transition-colors"
                 >
-                  <div className={`w-12 h-12 rounded-[8px] bg-[#0D1117] border border-[#30363D] flex items-center justify-center ${opt.color}`}>
+                  <div className={`w-12 h-12 rounded-[8px] bg-[#0D1117] border border-white/10 flex items-center justify-center ${opt.color}`}>
                     {opt.icon}
                   </div>
                   <div>
@@ -111,7 +111,7 @@ export default function ContactPage() {
             {/* Right: Form */}
             <motion.div 
               initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-              className="lg:col-span-3 bg-[#161B22] border border-[#30363D] rounded-[12px] p-8 md:p-12 shadow-2xl"
+              className="lg:col-span-3 liquid-glass rounded-[12px] p-8 md:p-12 shadow-2xl"
             >
               {status === "success" ? (
                 <div className="h-full flex flex-col items-center justify-center text-center py-16">
@@ -132,28 +132,28 @@ export default function ContactPage() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-[#8B949E]">First Name <span className="text-[#F85149]">*</span></label>
-                      <input name="firstName" required className="w-full bg-[#0D1117] border border-[#30363D] rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF]" />
+                      <input name="firstName" required className="w-full bg-[#0D1117] border border-white/10 rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF]" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-[#8B949E]">Last Name <span className="text-[#F85149]">*</span></label>
-                      <input name="lastName" required className="w-full bg-[#0D1117] border border-[#30363D] rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF]" />
+                      <input name="lastName" required className="w-full bg-[#0D1117] border border-white/10 rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF]" />
                     </div>
                   </div>
                   
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-[#8B949E]">Email Address <span className="text-[#F85149]">*</span></label>
-                      <input type="email" name="email" required className="w-full bg-[#0D1117] border border-[#30363D] rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF]" />
+                      <input type="email" name="email" required className="w-full bg-[#0D1117] border border-white/10 rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF]" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-[#8B949E]">Company</label>
-                      <input name="company" className="w-full bg-[#0D1117] border border-[#30363D] rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF]" />
+                      <input name="company" className="w-full bg-[#0D1117] border border-white/10 rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF]" />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-[#8B949E]">Inquiry Type</label>
-                    <select name="type" className="w-full bg-[#0D1117] border border-[#30363D] rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] appearance-none">
+                    <select name="type" className="w-full bg-[#0D1117] border border-white/10 rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] appearance-none">
                       <option>General Inquiry</option>
                       <option>Demo Request</option>
                       <option>Bug Report</option>
@@ -164,7 +164,7 @@ export default function ContactPage() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-[#8B949E]">Message <span className="text-[#F85149]">*</span></label>
-                    <textarea name="message" required rows={5} className="w-full bg-[#0D1117] border border-[#30363D] rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] resize-none" />
+                    <textarea name="message" required rows={5} className="w-full bg-[#0D1117] border border-white/10 rounded-[8px] px-4 py-3 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] resize-none" />
                   </div>
 
                   {status === "error" && (
@@ -190,3 +190,4 @@ export default function ContactPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { ArrowRight, Database, Search, Bot } from "lucide-react";
@@ -61,7 +61,7 @@ export function GatePipeline() {
             <div key={i} className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto relative z-10">
               <motion.div
                 variants={itemVariants}
-                className="bg-[#161B22] border border-[#30363D] p-8 rounded-[16px] w-full md:w-72 shrink-0 flex flex-col items-center text-center relative overflow-hidden hover:border-[#2DD4BF]/50 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)] hover:-translate-y-2 transition-all duration-300 ease-out"
+                className="liquid-glass p-8 rounded-[16px] w-full md:w-72 shrink-0 flex flex-col items-center text-center relative overflow-hidden hover:border-[#2DD4BF]/50 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)] hover:-translate-y-2 transition-all duration-300 ease-out"
               >
                 {/* Top colored bar */}
                 <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundColor: g.color }} />
@@ -104,12 +104,12 @@ export function GatePipeline() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: false, margin: "-80px" }}
           transition={{ ...springConfig, delay: 0.5 }}
-          className="mt-20 max-w-3xl mx-auto bg-[#161B22] border border-[#30363D] rounded-[16px] p-6 font-mono text-sm relative"
+          className="mt-20 max-w-3xl mx-auto liquid-glass rounded-[16px] p-6 font-mono text-sm relative"
         >
-          <div className="absolute -top-3 left-6 px-3 bg-[#0A0E13] border border-[#30363D] text-[#8B949E] font-mono text-[10px] font-bold rounded-full uppercase tracking-[0.12em]">
+          <div className="absolute -top-3 left-6 px-3 bg-[#0A0E13] border border-white/10 text-[#8B949E] font-mono text-[10px] font-bold rounded-full uppercase tracking-[0.12em]">
             Pipeline Output
           </div>
-          <div className="flex items-center justify-between mb-4 border-b border-[#30363D] pb-4">
+          <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-4">
             <div className="flex items-center gap-3">
               <span className="w-3 h-3 rounded-full bg-[#F85149] animate-pulse shadow-[0_0_10px_rgba(248,81,73,0.6)]" />
               <span className="text-[#F85149] font-bold">VERDICT: MALICIOUS</span>
@@ -128,3 +128,4 @@ export function GatePipeline() {
     </section>
   );
 }
+

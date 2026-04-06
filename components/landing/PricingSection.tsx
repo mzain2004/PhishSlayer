@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -43,7 +43,7 @@ export function PricingSection() {
       name: "SOC Pro",
       monthlyPrice: "49",
       annualPrice: "470",
-      savings: "Save $118 — 2 months free",
+      savings: "Save $118 â€” 2 months free",
       strikethrough: "$588",
       description: "For proactive security teams.",
       features: [
@@ -60,7 +60,7 @@ export function PricingSection() {
       name: "Command & Control",
       monthlyPrice: "299",
       annualPrice: "2870",
-      savings: "Save $718 — 2 months free",
+      savings: "Save $718 â€” 2 months free",
       strikethrough: "$3,588",
       description: "For critical infrastructure.",
       features: [
@@ -199,7 +199,7 @@ export function PricingSection() {
                         borderRadius: "16px",
                       }
                 }
-                className={`relative p-8 flex flex-col transition-all duration-300 ease-out hover:-translate-y-2 bg-[#161B22] ${isCC ? "shadow-2xl z-20" : isFree ? "opacity-90" : ""}`}
+                className={`relative p-8 flex flex-col transition-all duration-300 ease-out hover:-translate-y-2 bg-black ${isCC ? "shadow-2xl z-20" : isFree ? "opacity-90" : ""}`}
               >
                 {isCC && (
                   <div
@@ -311,3 +311,4 @@ export function PricingSection() {
     </section>
   );
 }
+

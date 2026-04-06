@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { PlayCircle, ShieldCheck, TerminalSquare, Monitor } from "lucide-react";
@@ -67,10 +67,10 @@ export function ProductDemo() {
           whileInView={{ opacity: 1, y: 0 }} 
           viewport={{ once: true, amount: 0.2 }}
           transition={springConfig}
-          className="relative group rounded-2xl bg-slate-900/40 backdrop-blur-2xl border border-white/5 overflow-hidden"
+          className="relative group rounded-2xl bg-black/40 backdrop-blur-2xl border border-white/5 overflow-hidden"
         >
           {/* Top Bar */}
-          <div className="h-10 bg-slate-900/60 border-b border-white/5 flex items-center px-4 gap-2">
+          <div className="h-10 bg-black/60 border-b border-white/5 flex items-center px-4 gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500/70" />
             <div className="w-3 h-3 rounded-full bg-amber-400/70" />
             <div className="w-3 h-3 rounded-full bg-green-500/70" />
@@ -83,7 +83,7 @@ export function ProductDemo() {
                   className={`flex items-center gap-2 px-4 h-full border-r border-white/5 transition-colors duration-200 ${
                     activeTab === i 
                       ? "text-teal-400 border-t-2 border-t-teal-400 bg-white/[0.02]" 
-                      : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.02]"
+                      : "text-[#8B949E] hover:text-slate-300 hover:bg-white/[0.02]"
                   }`}
                 >
                   {tab.icon} {tab.title}
@@ -95,7 +95,7 @@ export function ProductDemo() {
           {/* Content Area */}
           <div className="aspect-video bg-[#050507] relative w-full h-full overflow-hidden flex items-center justify-center p-8">
             {activeTab === 0 ? (
-              <div className="w-full h-full text-slate-500 flex items-center justify-center font-mono relative">
+              <div className="w-full h-full text-[#8B949E] flex items-center justify-center font-mono relative">
                 <div className="text-center">
                   <Monitor className="w-16 h-16 mx-auto mb-4 opacity-40" strokeWidth={1.5} />
                   <p className="antialiased">Dashboard visualization module loading...</p>
@@ -123,7 +123,7 @@ export function ProductDemo() {
                 </div>
               </div>
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 font-mono">
+              <div className="w-full h-full flex flex-col items-center justify-center text-[#8B949E] font-mono">
                 <ShieldCheck className="w-16 h-16 mx-auto mb-4 text-teal-400/70" strokeWidth={1.5} />
                 <p className="antialiased">Auto-Remediation rules engine online.</p>
                 <div className="mt-6 flex gap-2">
@@ -147,3 +147,4 @@ export function ProductDemo() {
     </section>
   );
 }
+

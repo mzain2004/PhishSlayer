@@ -1,4 +1,4 @@
-import { Lock } from 'lucide-react'
+﻿import { Lock } from 'lucide-react'
 import Link from 'next/link'
 
 interface UpgradeBannerProps {
@@ -8,7 +8,7 @@ interface UpgradeBannerProps {
 
 export function UpgradeBanner({ feature, requiredTier }: UpgradeBannerProps) {
   return (
-    <div className="flex flex-col items-center justify-center p-8 bg-[#161b22] border border-[#30363d] rounded-xl text-center shadow-lg space-y-4 max-w-lg mx-auto mt-12">
+    <div className="flex flex-col items-center justify-center p-8 liquid-glass rounded-xl text-center shadow-lg space-y-4 max-w-lg mx-auto mt-12">
       <div className="p-4 bg-slate-800/50 rounded-full border border-slate-700">
         <Lock className="w-8 h-8 text-[#2dd4bf]" />
       </div>
@@ -17,7 +17,7 @@ export function UpgradeBanner({ feature, requiredTier }: UpgradeBannerProps) {
         {feature} is Locked
       </h3>
       
-      <p className="text-slate-400 text-sm">
+      <p className="text-[#8B949E] text-sm">
         This feature requires the <span className="text-[#2dd4bf] font-medium">{requiredTier}</span> plan or higher. Upgrade your workspace to unlock advanced threat intelligence capabilities.
       </p>
       
@@ -30,3 +30,4 @@ export function UpgradeBanner({ feature, requiredTier }: UpgradeBannerProps) {
     </div>
   )
 }
+

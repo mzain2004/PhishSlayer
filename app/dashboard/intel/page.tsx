@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useTransition } from "react";
 import { toast } from "sonner";
@@ -23,10 +23,10 @@ import { canManageIntelVault } from "@/lib/rbac/roles";
 import { useTier } from "@/hooks/useTier";
 import { UpgradeBanner } from "@/components/ui/UpgradeBanner";
 
-/* ── Severity Badge ───────────────────────────────────────────────── */
+/* â”€â”€ Severity Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function SeverityBadge({ severity }: { severity: string }) {
   const s = severity?.toLowerCase() ?? "";
-  let bg = "bg-slate-500/10 text-slate-400 border-slate-500/20";
+  let bg = "bg-slate-500/10 text-[#8B949E] border-slate-500/20";
   if (s === "critical")
     bg =
       "bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_6px_rgba(239,68,68,0.15)]";
@@ -36,7 +36,7 @@ function SeverityBadge({ severity }: { severity: string }) {
   else if (s === "medium")
     bg = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
   else if (s === "low")
-    bg = "bg-slate-500/10 text-slate-400 border-slate-500/20";
+    bg = "bg-slate-500/10 text-[#8B949E] border-slate-500/20";
 
   return (
     <span
@@ -47,7 +47,7 @@ function SeverityBadge({ severity }: { severity: string }) {
   );
 }
 
-/* ── Main Page ────────────────────────────────────────────────────── */
+/* â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function IntelVaultPage() {
   const [whitelist, setWhitelist] = useState<any[]>([]);
   const [indicators, setIndicators] = useState<any[]>([]);
@@ -92,7 +92,7 @@ export default function IntelVaultPage() {
 
   const { limits, isSuperAdmin, loading: tierLoading } = useTier();
 
-  /* ── Loading ─────────────────────────────────────────────────────── */
+  /* â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   if (!loaded || roleLoading || tierLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -109,9 +109,9 @@ export default function IntelVaultPage() {
     );
   }
 
-  /* ── Page ─────────────────────────────────────────────────────────── */
+  /* â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   return (
-    <div className="bg-[#0a0f1e] text-white font-sans min-h-screen flex flex-col w-full overflow-x-hidden">
+    <div className="bg-black text-white font-sans min-h-screen flex flex-col w-full overflow-x-hidden">
       <main className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10">
         {/* Page Header */}
         <div className="mb-8">
@@ -119,7 +119,7 @@ export default function IntelVaultPage() {
             <Database className="w-7 h-7 text-teal-400" />
             Intel Vault
           </h1>
-          <p className="text-slate-500 mt-2 text-sm">
+          <p className="text-[#8B949E] mt-2 text-sm">
             Manage your organization&apos;s whitelisted targets and proprietary
             threat intelligence indicators.
           </p>
@@ -169,7 +169,7 @@ export default function IntelVaultPage() {
           ].map((kpi) => (
             <div
               key={kpi.label}
-              className={`rounded-xl border bg-[#0f1629] border-slate-800 p-4 flex items-center gap-4 ${kpi.color} transition-shadow hover:shadow-md`}
+              className={`rounded-xl border bg-white/5 border-white/10 p-4 flex items-center gap-4 ${kpi.color} transition-shadow hover:shadow-md`}
             >
               <kpi.icon className="w-6 h-6 shrink-0 opacity-80" />
               <div>
@@ -183,25 +183,25 @@ export default function IntelVaultPage() {
         </div>
 
         <div className="flex flex-col xl:flex-row gap-8 items-start">
-          {/* ────────────── Whitelist Table ────────────── */}
-          <div className="w-full xl:w-[380px] xl:min-w-[340px] bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col">
+          {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Whitelist Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          <div className="w-full xl:w-[380px] xl:min-w-[340px] bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="px-5 py-4 border-b border-slate-800 flex items-center gap-2">
+            <div className="px-5 py-4 border-b border-white/10 flex items-center gap-2">
               <ListPlus className="w-5 h-5 text-teal-400" />
               <h2 className="text-base font-semibold text-white">
                 Target Whitelist
               </h2>
-              <span className="ml-auto text-xs font-bold text-slate-400 bg-slate-900 rounded-full px-2.5 py-0.5 border border-slate-800">
+              <span className="ml-auto text-xs font-bold text-[#8B949E] bg-white/5 rounded-full px-2.5 py-0.5 border border-white/10">
                 {whitelist.length}
               </span>
             </div>
 
             {/* Table header */}
-            <div className="bg-slate-900/50 px-5 py-2 border-b border-slate-800 flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <div className="bg-white/5 px-5 py-2 border-b border-white/10 flex items-center justify-between">
+              <span className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider">
                 Target
               </span>
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider">
                 Date Added
               </span>
             </div>
@@ -213,7 +213,7 @@ export default function IntelVaultPage() {
                 <p className="text-sm font-medium text-slate-600">
                   No whitelisted targets found.
                 </p>
-                <p className="text-xs text-slate-400 mt-1 max-w-[220px]">
+                <p className="text-xs text-[#8B949E] mt-1 max-w-[220px]">
                   Targets added from the Threat Intel dashboard will appear
                   here.
                 </p>
@@ -223,13 +223,13 @@ export default function IntelVaultPage() {
                 {whitelist.map((item) => (
                   <li
                     key={item.id}
-                    className="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-800/30 transition-colors group"
+                    className="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-white/10 transition-colors group"
                   >
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-semibold text-white truncate">
                         {item.target}
                       </span>
-                      <span className="text-[11px] text-slate-400 mt-0.5">
+                      <span className="text-[11px] text-[#8B949E] mt-0.5">
                         {new Date(item.created_at).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -242,7 +242,7 @@ export default function IntelVaultPage() {
                         onClick={() => handleRemoveWhitelist(item.id)}
                         disabled={isPending}
                         aria-label={`Remove ${item.target} from whitelist`}
-                        className="p-1.5 rounded-md text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
+                        className="p-1.5 rounded-md text-[#8B949E] hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -253,31 +253,31 @@ export default function IntelVaultPage() {
             )}
           </div>
 
-          {/* ────────────── Intel Vault Table ────────────── */}
-          <div className="flex-1 w-full bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col">
+          {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Intel Vault Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          <div className="flex-1 w-full bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="px-5 py-4 border-b border-slate-800 flex items-center gap-2">
+            <div className="px-5 py-4 border-b border-white/10 flex items-center gap-2">
               <Database className="w-5 h-5 text-teal-400" />
               <h2 className="text-base font-semibold text-white">
                 Proprietary Intel Vault
               </h2>
-              <span className="ml-auto text-xs font-bold text-slate-400 bg-slate-900 border border-slate-800 rounded-full px-2.5 py-0.5">
+              <span className="ml-auto text-xs font-bold text-[#8B949E] bg-white/5 border border-white/10 rounded-full px-2.5 py-0.5">
                 {indicators.length}
               </span>
             </div>
 
             {/* Table header */}
-            <div className="bg-slate-900/50 px-5 py-2 border-b border-slate-800 grid grid-cols-12 gap-3 items-center">
-              <span className="col-span-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <div className="bg-white/5 px-5 py-2 border-b border-white/10 grid grid-cols-12 gap-3 items-center">
+              <span className="col-span-5 text-[11px] font-bold text-[#8B949E] uppercase tracking-wider">
                 Indicator
               </span>
-              <span className="col-span-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <span className="col-span-2 text-[11px] font-bold text-[#8B949E] uppercase tracking-wider">
                 Type
               </span>
-              <span className="col-span-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <span className="col-span-2 text-[11px] font-bold text-[#8B949E] uppercase tracking-wider">
                 Severity
               </span>
-              <span className="col-span-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <span className="col-span-2 text-[11px] font-bold text-[#8B949E] uppercase tracking-wider">
                 Source
               </span>
               <span className="col-span-1" />
@@ -290,7 +290,7 @@ export default function IntelVaultPage() {
                 <p className="text-sm font-medium text-slate-600">
                   No threat indicators found.
                 </p>
-                <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                <p className="text-xs text-[#8B949E] mt-1 max-w-sm">
                   Run the intel harvester or manually add indicators to populate
                   this vault.
                 </p>
@@ -300,7 +300,7 @@ export default function IntelVaultPage() {
                 {indicators.map((item) => (
                   <li
                     key={item.id}
-                    className="px-5 py-3 grid grid-cols-12 gap-3 items-center hover:bg-slate-800/30 transition-colors group"
+                    className="px-5 py-3 grid grid-cols-12 gap-3 items-center hover:bg-white/10 transition-colors group"
                   >
                     {/* Indicator */}
                     <div className="col-span-5 min-w-0">
@@ -315,7 +315,7 @@ export default function IntelVaultPage() {
                     {/* Type */}
                     <div className="col-span-2">
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider text-teal-400 bg-teal-500/10 border border-teal-500/20">
-                        {item.type || "—"}
+                        {item.type || "â€”"}
                       </span>
                     </div>
 
@@ -326,8 +326,8 @@ export default function IntelVaultPage() {
 
                     {/* Source */}
                     <div className="col-span-2">
-                      <span className="text-xs font-medium text-slate-500 truncate block">
-                        {item.source || "—"}
+                      <span className="text-xs font-medium text-[#8B949E] truncate block">
+                        {item.source || "â€”"}
                       </span>
                     </div>
 
@@ -338,7 +338,7 @@ export default function IntelVaultPage() {
                           onClick={() => handleRemoveIndicator(item.id)}
                           disabled={isPending}
                           aria-label={`Remove indicator ${item.indicator}`}
-                          className="p-1.5 rounded-md text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
+                          className="p-1.5 rounded-md text-[#8B949E] hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -351,9 +351,9 @@ export default function IntelVaultPage() {
           </div>
         </div>
 
-        {/* ────────────── API Documentation ────────────── */}
-        <div className="mt-10 bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/50 flex items-center gap-3">
+        {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ API Documentation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        <div className="mt-10 bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/10 bg-white/5 flex items-center gap-3">
             <Code className="w-5 h-5 text-teal-400" />
             <h2 className="text-base font-semibold text-white">
               Public API v1
@@ -369,11 +369,11 @@ export default function IntelVaultPage() {
               <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wide">
                 Endpoint
               </h3>
-              <div className="bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 font-mono text-sm text-green-400 flex items-center justify-between gap-4">
+              <div className="bg-black border border-white/10 rounded-lg px-4 py-3 font-mono text-sm text-green-400 flex items-center justify-between gap-4">
                 <span>
                   <span className="text-teal-400 font-bold">GET</span>{" "}
                   <span className="text-slate-300">/api/v1/scan</span>
-                  <span className="text-slate-400">?target=example.com</span>
+                  <span className="text-[#8B949E]">?target=example.com</span>
                 </span>
               </div>
             </div>
@@ -383,13 +383,13 @@ export default function IntelVaultPage() {
               <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wide">
                 Authentication
               </h3>
-              <p className="text-sm text-slate-400 mb-3">
+              <p className="text-sm text-[#8B949E] mb-3">
                 Include your API key in the{" "}
-                <code className="text-xs bg-slate-950 px-1.5 py-0.5 rounded font-mono text-teal-400 border border-slate-800">
+                <code className="text-xs bg-black px-1.5 py-0.5 rounded font-mono text-teal-400 border border-white/10">
                   x-api-key
                 </code>{" "}
                 header. Set{" "}
-                <code className="text-xs bg-slate-950 px-1.5 py-0.5 rounded font-mono text-teal-400 border border-slate-800">
+                <code className="text-xs bg-black px-1.5 py-0.5 rounded font-mono text-teal-400 border border-white/10">
                   PHISH_SLAYER_API_KEY
                 </code>{" "}
                 in your environment.
@@ -414,7 +414,7 @@ export default function IntelVaultPage() {
                   <Copy className="w-3.5 h-3.5" /> Copy
                 </button>
               </div>
-              <pre className="bg-slate-950 text-slate-300 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-slate-800">
+              <pre className="bg-black text-slate-300 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-white/10">
                 {`curl -X GET \\
   "https://your-domain.com/api/v1/scan?target=example.com" \\
   -H "x-api-key: YOUR_API_KEY"`}
@@ -426,7 +426,7 @@ export default function IntelVaultPage() {
               <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wide">
                 POST Example
               </h3>
-              <pre className="bg-slate-950 text-slate-300 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-slate-800">
+              <pre className="bg-black text-slate-300 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-white/10">
                 {`curl -X POST "https://your-domain.com/api/v1/scan" \\
   -H "x-api-key: YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
@@ -439,7 +439,7 @@ export default function IntelVaultPage() {
               <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wide">
                 Response Format
               </h3>
-              <pre className="bg-slate-950 text-green-400 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-slate-800">
+              <pre className="bg-black text-green-400 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-white/10">
                 {`{
   "success": true,
   "data": {
@@ -462,3 +462,4 @@ export default function IntelVaultPage() {
     </div>
   );
 }
+

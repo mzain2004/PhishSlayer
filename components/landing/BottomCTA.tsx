@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -51,7 +51,7 @@ export function BottomCTA() {
           </Link>
           <Link
             href="/pricing"
-            className="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-transparent border border-[#30363D] hover:border-[#2DD4BF] hover:text-[#2DD4BF] text-[#E6EDF3] font-bold px-10 py-4 rounded-full transition-all text-lg"
+            className="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-transparent border border-white/10 hover:border-[#2DD4BF] hover:text-[#2DD4BF] text-[#E6EDF3] font-bold px-10 py-4 rounded-full transition-all text-lg"
           >
             View Pricing <PlayCircle className="w-5 h-5 ml-1" strokeWidth={1.5} />
           </Link>
@@ -60,3 +60,4 @@ export function BottomCTA() {
     </section>
   );
 }
+

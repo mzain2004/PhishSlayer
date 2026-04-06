@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import { X, Shield, CheckCircle } from 'lucide-react'
 import { joinWaitlist } from '@/lib/supabase/waitlist-actions'
@@ -57,7 +57,7 @@ export default function WaitlistModal({ isOpen, onClose, tier, tierName, onSucce
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-[#161b22] border border-[#30363d] rounded-2xl p-8 w-full max-w-md shadow-2xl">
+      <div className="relative liquid-glass rounded-2xl p-8 w-full max-w-md shadow-2xl">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-[#8b949e] hover:text-[#e6edf3] transition-colors"
@@ -73,7 +73,7 @@ export default function WaitlistModal({ isOpen, onClose, tier, tierName, onSucce
               </div>
               <div>
                 <h3 className="text-[#e6edf3] font-bold text-lg">Join the Waitlist</h3>
-                <p className="text-[#8b949e] text-sm">{tierName} — Coming Soon</p>
+                <p className="text-[#8b949e] text-sm">{tierName} â€” Coming Soon</p>
               </div>
             </div>
 
@@ -87,7 +87,7 @@ export default function WaitlistModal({ isOpen, onClose, tier, tierName, onSucce
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
               placeholder="your@email.com"
-              className="w-full bg-[#0d1117] border border-[#30363d] rounded-full px-6 py-3 text-[#e6edf3] text-sm placeholder-[#8b949e] focus:outline-none focus:border-[#2dd4bf] transition-colors mb-3"
+              className="w-full bg-[#0d1117] border border-white/10 rounded-full px-6 py-3 text-[#e6edf3] text-sm placeholder-[#8b949e] focus:outline-none focus:border-[#2dd4bf] transition-colors mb-3"
             />
 
             {error && <p className="text-[#f85149] text-xs mb-3">{error}</p>}
@@ -114,3 +114,4 @@ export default function WaitlistModal({ isOpen, onClose, tier, tierName, onSucce
     </div>
   )
 }
+

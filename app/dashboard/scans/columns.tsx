@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ const verdictColors: Record<string, string> = {
   malicious: "bg-red-500/10 text-red-400 border-red-500/20",
   suspicious: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
   clean: "bg-green-500/10 text-green-400 border-green-500/20",
-  whitelisted: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+  whitelisted: "bg-slate-500/10 text-[#8B949E] border-slate-500/20",
 };
 
 export const scanColumns: ColumnDef<ScanRow>[] = [
@@ -29,7 +29,7 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
         variant="ghost"
         size="sm"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="text-slate-400 hover:text-slate-100 -ml-3"
+        className="text-[#8B949E] hover:text-slate-100 -ml-3"
       >
         Target <ArrowUpDown className="ml-2 h-3 w-3" />
       </Button>
@@ -61,7 +61,7 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
         variant="ghost"
         size="sm"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="text-slate-400 hover:text-slate-100 -ml-3"
+        className="text-[#8B949E] hover:text-slate-100 -ml-3"
       >
         Risk <ArrowUpDown className="ml-2 h-3 w-3" />
       </Button>
@@ -82,7 +82,7 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
             : "bg-green-500";
       return (
         <div className="flex items-center gap-2">
-          <div className="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+          <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full ${bg}`}
               style={{ width: `${score}%` }}
@@ -97,8 +97,8 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
     accessorKey: "threat_category",
     header: "Category",
     cell: ({ row }) => (
-      <span className="text-slate-400 text-sm">
-        {row.getValue("threat_category") || "—"}
+      <span className="text-[#8B949E] text-sm">
+        {row.getValue("threat_category") || "â€”"}
       </span>
     ),
   },
@@ -109,7 +109,7 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
         variant="ghost"
         size="sm"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="text-slate-400 hover:text-slate-100 -ml-3"
+        className="text-[#8B949E] hover:text-slate-100 -ml-3"
       >
         Scanned <ArrowUpDown className="ml-2 h-3 w-3" />
       </Button>
@@ -117,8 +117,8 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
     cell: ({ row }) => {
       const date = row.getValue("created_at") as string;
       return (
-        <span className="text-slate-500 text-sm">
-          {date ? new Date(date).toLocaleString() : "—"}
+        <span className="text-[#8B949E] text-sm">
+          {date ? new Date(date).toLocaleString() : "â€”"}
         </span>
       );
     },
@@ -139,3 +139,4 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
     ),
   },
 ];
+

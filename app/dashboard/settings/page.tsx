@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useTransition } from "react";
 import { toast } from "sonner";
@@ -151,14 +151,14 @@ export default function PlatformSettingsPage() {
   const isSuperAdmin = role === "super_admin";
 
   return (
-    <div className="bg-[#0a0f1e] text-white font-sans min-h-screen flex flex-col w-full overflow-x-hidden">
+    <div className="bg-black text-white font-sans min-h-screen flex flex-col w-full overflow-x-hidden">
       <main className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white tracking-tight">
             Platform Settings
           </h1>
-          <p className="text-slate-400 mt-2 text-sm">
+          <p className="text-[#8B949E] mt-2 text-sm">
             Manage your notification preferences, security, and account
             sessions.
           </p>
@@ -166,14 +166,14 @@ export default function PlatformSettingsPage() {
 
         <div className="flex flex-col gap-8">
           {/* Section 1: Notifications */}
-          <div className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden">
-            <div className="p-6 md:p-8 border-b border-slate-800 flex items-center justify-between">
+          <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+            <div className="p-6 md:p-8 border-b border-white/10 flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                   <BellRing className="w-5 h-5 text-teal-400" /> Notification
                   Preferences
                 </h3>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="text-sm text-[#8B949E] mt-1">
                   Configure how you receive alerts and updates.
                 </p>
               </div>
@@ -193,7 +193,7 @@ export default function PlatformSettingsPage() {
                   <span className="text-sm font-semibold text-white group-hover:text-teal-400 transition-colors">
                     Email Notifications
                   </span>
-                  <span className="text-sm text-slate-400">
+                  <span className="text-sm text-[#8B949E]">
                     Receive system notifications via email.
                   </span>
                 </div>
@@ -211,14 +211,14 @@ export default function PlatformSettingsPage() {
                   />
                 </div>
               </label>
-              <div className="h-px bg-slate-800 w-full" />
+              <div className="h-px bg-white/10 w-full" />
               {/* Toggle Item */}
               <label className="flex items-center justify-between py-2 cursor-pointer group">
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-white group-hover:text-teal-400 transition-colors">
                     Critical Threat Alerts
                   </span>
-                  <span className="text-sm text-slate-400">
+                  <span className="text-sm text-[#8B949E]">
                     Immediate email alerts for CRITICAL severity scans.
                   </span>
                 </div>
@@ -236,14 +236,14 @@ export default function PlatformSettingsPage() {
                   />
                 </div>
               </label>
-              <div className="h-px bg-slate-800 w-full" />
+              <div className="h-px bg-white/10 w-full" />
               {/* Toggle Item */}
               <label className="flex items-center justify-between py-2 cursor-pointer group">
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-white group-hover:text-teal-400 transition-colors">
                     Incident Assignments
                   </span>
-                  <span className="text-sm text-slate-400">
+                  <span className="text-sm text-[#8B949E]">
                     Get notified when a manager assigns an incident to you.
                   </span>
                 </div>
@@ -261,14 +261,14 @@ export default function PlatformSettingsPage() {
                   />
                 </div>
               </label>
-              <div className="h-px bg-slate-800 w-full" />
+              <div className="h-px bg-white/10 w-full" />
               {/* Toggle Item */}
               <label className="flex items-center justify-between py-2 cursor-pointer group">
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-white group-hover:text-teal-400 transition-colors">
                     Weekly Digest
                   </span>
-                  <span className="text-sm text-slate-400">
+                  <span className="text-sm text-[#8B949E]">
                     Receive a weekly summary of organization security health.
                   </span>
                 </div>
@@ -292,54 +292,54 @@ export default function PlatformSettingsPage() {
           {/* Section 2: Security Settings */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Password Change */}
-            <div className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col">
-              <div className="p-6 border-b border-slate-800">
+            <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
+              <div className="p-6 border-b border-white/10">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-slate-400" /> Change Password
+                  <Lock className="w-5 h-5 text-[#8B949E]" /> Change Password
                 </h3>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="text-sm text-[#8B949E] mt-1">
                   Update your account access password.
                 </p>
               </div>
               <div className="p-6 space-y-4 flex-1">
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">
+                  <label className="block text-sm font-medium text-[#8B949E] mb-1">
                     Current Password
                   </label>
                   <input
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 px-3 py-2 border rounded-lg text-sm"
-                    placeholder="••••••••"
+                    className="w-full bg-white/5 border-white/10 text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 px-3 py-2 border rounded-lg text-sm"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">
+                  <label className="block text-sm font-medium text-[#8B949E] mb-1">
                     New Password
                   </label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 px-3 py-2 border rounded-lg text-sm"
-                    placeholder="••••••••"
+                    className="w-full bg-white/5 border-white/10 text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 px-3 py-2 border rounded-lg text-sm"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">
+                  <label className="block text-sm font-medium text-[#8B949E] mb-1">
                     Confirm New Password
                   </label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 px-3 py-2 border rounded-lg text-sm"
-                    placeholder="••••••••"
+                    className="w-full bg-white/5 border-white/10 text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 px-3 py-2 border rounded-lg text-sm"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 bg-[#0f1629] border-t border-slate-800 flex justify-end">
+              <div className="px-6 py-4 bg-white/5 border-t border-white/10 flex justify-end">
                 <button
                   onClick={handlePasswordChange}
                   disabled={
@@ -361,13 +361,13 @@ export default function PlatformSettingsPage() {
             </div>
 
             {/* Active Session & Logout */}
-            <div className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col">
-              <div className="p-6 border-b border-slate-800">
+            <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
+              <div className="p-6 border-b border-white/10">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <ShieldAlert className="w-5 h-5 text-slate-400" /> Active
+                  <ShieldAlert className="w-5 h-5 text-[#8B949E]" /> Active
                   Session
                 </h3>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="text-sm text-[#8B949E] mt-1">
                   Manage your current authentication sessions.
                 </p>
               </div>
@@ -382,7 +382,7 @@ export default function PlatformSettingsPage() {
                       </span>
                     </div>
                     {sessionInfo ? (
-                      <p className="text-sm text-slate-400 mt-1">
+                      <p className="text-sm text-[#8B949E] mt-1">
                         Signed in since: {sessionInfo.created_at}
                       </p>
                     ) : (
@@ -394,7 +394,7 @@ export default function PlatformSettingsPage() {
                 <div className="space-y-3">
                   <button
                     onClick={handleLogoutLocal}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-700 rounded-lg text-sm font-medium text-slate-300 hover:border-slate-500 hover:text-white bg-transparent transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-white/10 rounded-lg text-sm font-medium text-slate-300 hover:border-slate-500 hover:text-white bg-transparent transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout This Device
@@ -412,12 +412,12 @@ export default function PlatformSettingsPage() {
           </div>
 
           {/* Section 3: API Access */}
-          <div className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-800">
+          <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-800">
             <div className="p-6 md:p-8 md:w-1/3 shrink-0">
               <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                 <Key className="w-5 h-5 text-teal-400" /> API Access
               </h3>
-              <p className="text-sm text-slate-400 mt-2">
+              <p className="text-sm text-[#8B949E] mt-2">
                 Programmatic access to Phish-Slayer REST endpoints for pipeline
                 integration.
               </p>
@@ -428,13 +428,13 @@ export default function PlatformSettingsPage() {
                   <p className="text-sm font-medium text-slate-300">
                     Your Current API Key
                   </p>
-                  <code className="block w-full py-2.5 px-4 bg-slate-900 border border-slate-700 rounded-lg text-teal-400 font-mono text-sm tracking-wider">
-                    {apiKey.substring(0, 8)}••••••••••••••••••••••••
+                  <code className="block w-full py-2.5 px-4 bg-white/5 border border-white/10 rounded-lg text-teal-400 font-mono text-sm tracking-wider">
+                    {apiKey.substring(0, 8)}â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢
                   </code>
                 </div>
               ) : (
                 <div className="text-center md:text-left">
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-[#8B949E]">
                     No API key generated for this account.
                   </p>
                 </div>
@@ -444,7 +444,7 @@ export default function PlatformSettingsPage() {
                   href="/dashboard/apikeys"
                   className="text-sm font-bold text-teal-400 hover:text-teal-300 hover:underline"
                 >
-                  Manage API Keys →
+                  Manage API Keys â†’
                 </Link>
               </div>
             </div>
@@ -452,12 +452,12 @@ export default function PlatformSettingsPage() {
 
           {/* Section 4: SIEM Integration */}
           {(role === "super_admin" || role === "manager") && (
-            <div className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-800">
+            <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-800">
               <div className="p-6 md:p-8 md:w-1/3 shrink-0">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                   <Send className="w-5 h-5 text-teal-400" /> SIEM Integration
                 </h3>
-                <p className="text-sm text-slate-400 mt-2">
+                <p className="text-sm text-[#8B949E] mt-2">
                   Configure your SIEM endpoint to receive threat data in STIX
                   2.1 + Native JSON format. Compatible with Splunk, Elastic
                   SIEM, Microsoft Sentinel, and any webhook receiver.
@@ -466,7 +466,7 @@ export default function PlatformSettingsPage() {
               <div className="p-6 md:p-8 flex-1 flex flex-col justify-center">
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-[#8B949E] block mb-1.5">
                       Webhook URL (HTTPS only)
                     </label>
                     <input
@@ -474,7 +474,7 @@ export default function PlatformSettingsPage() {
                       value={siemWebhookUrl}
                       onChange={(e) => setSiemWebhookUrl(e.target.value)}
                       placeholder="https://your-siem.example.com/webhook"
-                      className="w-full bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 px-3 py-2 border rounded-lg text-sm font-mono"
+                      className="w-full bg-white/5 border-white/10 text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 px-3 py-2 border rounded-lg text-sm font-mono"
                     />
                     {siemWebhookUrl &&
                       !siemWebhookUrl.startsWith("https://") && (
@@ -510,7 +510,7 @@ export default function PlatformSettingsPage() {
                         }
                       }}
                       disabled={siemTesting || !siemWebhookUrl}
-                      className="px-4 py-2 border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                      className="px-4 py-2 border border-white/10 text-slate-300 hover:border-slate-500 hover:text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                     >
                       {siemTesting ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -564,12 +564,12 @@ export default function PlatformSettingsPage() {
 
           {/* Digest Schedule */}
           {notifyDigest && (
-            <div className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-800">
+            <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-800">
               <div className="p-6 md:p-8 md:w-1/3 shrink-0">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                   <BellRing className="w-5 h-5 text-teal-400" /> Weekly Digest
                 </h3>
-                <p className="text-sm text-slate-400 mt-2">
+                <p className="text-sm text-[#8B949E] mt-2">
                   Choose when to receive your weekly threat summary.
                 </p>
               </div>
@@ -578,7 +578,7 @@ export default function PlatformSettingsPage() {
                   <select
                     value={digestSchedule}
                     onChange={(e) => setDigestSchedule(e.target.value)}
-                    className="w-full max-w-xs bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 px-3 py-2 border rounded-lg text-sm"
+                    className="w-full max-w-xs bg-white/5 border-white/10 text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 px-3 py-2 border rounded-lg text-sm"
                   >
                     <option value="monday_9am">Every Monday at 9 AM</option>
                     <option value="sunday_midnight">
@@ -652,3 +652,4 @@ export default function PlatformSettingsPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -42,7 +42,7 @@ export function AdaptiveAIVision() {
         throw new Error("waitlist_request_failed");
       }
 
-      setFeedback("You're on the list! We'll be in touch. 🚀");
+      setFeedback("You're on the list! We'll be in touch. ðŸš€");
       setEmail("");
     } catch {
       setError("Something went wrong. Please try again.");
@@ -62,7 +62,7 @@ export function AdaptiveAIVision() {
             transition={springConfig}
             className="inline-block bg-[#2DD4BF]/10 border border-[#2DD4BF]/30 text-[#2DD4BF] font-mono text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-[0.12em] mb-6"
           >
-            In Development — Q3 2026
+            In Development â€” Q3 2026
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 80 }}
@@ -71,7 +71,7 @@ export function AdaptiveAIVision() {
             transition={springConfig}
             className="text-3xl md:text-5xl font-bold tracking-[-0.01em]"
           >
-            The Next Phase — AI That Fights Back
+            The Next Phase â€” AI That Fights Back
           </motion.h2>
         </div>
 
@@ -85,7 +85,7 @@ export function AdaptiveAIVision() {
           }}
           className="grid md:grid-cols-2 gap-8 md:gap-16 items-center relative mb-20"
         >
-          <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-[#0A0E13] border-4 border-[#30363D] rounded-full items-center justify-center font-black text-xl text-[#8B949E] z-10 shadow-2xl">
+          <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-[#0A0E13] border-4 border-white/10 rounded-full items-center justify-center font-black text-xl text-[#8B949E] z-10 shadow-2xl">
             VS
           </div>
 
@@ -94,7 +94,7 @@ export function AdaptiveAIVision() {
               hidden: { opacity: 0, x: -50 },
               visible: { opacity: 1, x: 0, transition: springConfig },
             }}
-            className="bg-[#161B22] border border-[#F85149]/30 rounded-[16px] p-8 relative overflow-hidden transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(248,81,73,0.15)]"
+            className="bg-black border border-[#F85149]/30 rounded-[16px] p-8 relative overflow-hidden transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(248,81,73,0.15)]"
           >
             <span className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#F85149] block mb-4">
               The Problem
@@ -107,7 +107,7 @@ export function AdaptiveAIVision() {
               fly. Signatures change every 3 seconds. Static detection rules are
               obsolete before they&apos;re even deployed.
             </p>
-            <div className="font-mono text-xs bg-[#0D1117] p-3 rounded-[8px] border border-[#30363D] text-[#F85149] opacity-80">
+            <div className="font-mono text-xs bg-[#0D1117] p-3 rounded-[8px] border border-white/10 text-[#F85149] opacity-80">
               <span className="font-bold">&gt; Mutation cycle 284:</span>{" "}
               payload obfuscated.
               <br />
@@ -123,7 +123,7 @@ export function AdaptiveAIVision() {
               hidden: { opacity: 0, x: 50 },
               visible: { opacity: 1, x: 0, transition: springConfig },
             }}
-            className="bg-[#161B22] border border-[#2DD4BF]/30 rounded-[16px] p-8 relative overflow-hidden transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)]"
+            className="bg-black border border-[#2DD4BF]/30 rounded-[16px] p-8 relative overflow-hidden transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)]"
           >
             <span className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#2DD4BF] block mb-4">
               The Solution
@@ -166,7 +166,7 @@ export function AdaptiveAIVision() {
               placeholder="security@acme.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 bg-[#161B22] border border-[#30363D] rounded-full px-6 py-3 text-sm font-mono focus:outline-none focus:border-[#2DD4BF] transition-colors"
+              className="flex-1 liquid-glass rounded-full px-6 py-3 text-sm font-mono focus:outline-none focus:border-[#2DD4BF] transition-colors"
               required
             />
             <button
@@ -186,3 +186,4 @@ export function AdaptiveAIVision() {
     </section>
   );
 }
+

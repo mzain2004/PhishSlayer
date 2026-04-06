@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Component, type ReactNode } from "react";
 import { ShieldAlert } from "lucide-react";
@@ -37,7 +37,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
             <h1 className="text-2xl font-bold text-slate-900 mb-2">
               Something went wrong
             </h1>
-            <p className="text-slate-500 mb-6">
+            <p className="text-[#8B949E] mb-6">
               An unexpected error occurred. Please refresh the page or contact
               support if the problem persists.
             </p>
@@ -58,3 +58,4 @@ export class DashboardErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+

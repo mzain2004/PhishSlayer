@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
@@ -46,11 +46,11 @@ export function HeroSection() {
           <motion.div variants={fadeInUp} className="mb-8 inline-flex">
             <div className="inline-flex items-center gap-2 bg-[#2DD4BF]/[0.08] border border-[#2DD4BF]/25 rounded-[4px] px-3.5 py-1.5 font-mono text-[11px] tracking-[0.1em] text-[#2DD4BF] uppercase">
               <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF] animate-pulse" />
-              ADAPTIVE AI DEFENSE — IN DEVELOPMENT
+              ADAPTIVE AI DEFENSE â€” IN DEVELOPMENT
             </div>
           </motion.div>
 
-          {/* H1 — Price Contrast Headline */}
+          {/* H1 â€” Price Contrast Headline */}
           <motion.h1 variants={fadeInUp} className="mb-6">
             <span className="block text-[40px] lg:text-[72px] font-extrabold text-[#E6EDF3] leading-[1.1] tracking-[-0.02em]">
               Enterprise Threat Intelligence.
@@ -75,7 +75,7 @@ export function HeroSection() {
             </Link>
             <Link
               href="/#features"
-              className="inline-flex justify-center items-center gap-2 bg-transparent border border-[#30363D] hover:border-[#2DD4BF] text-[#E6EDF3] hover:text-[#2DD4BF] font-bold text-[15px] px-10 py-4 rounded-full transition-all"
+              className="inline-flex justify-center items-center gap-2 bg-transparent border border-white/10 hover:border-[#2DD4BF] text-[#E6EDF3] hover:text-[#2DD4BF] font-bold text-[15px] px-10 py-4 rounded-full transition-all"
             >
               See How It Works <PlayCircle className="w-4 h-4" strokeWidth={1.5} />
             </Link>
@@ -88,7 +88,7 @@ export function HeroSection() {
               { value: "95", label: "scan engines" },
               { value: "$0", label: "to start" },
             ].map((stat, i) => (
-              <div key={i} className={`flex flex-col items-center px-6 ${i > 0 ? 'border-l border-[#30363D]' : ''}`}>
+              <div key={i} className={`flex flex-col items-center px-6 ${i > 0 ? 'border-l border-white/10' : ''}`}>
                 <span className="text-[28px] font-bold text-[#E6EDF3] tracking-tight">{stat.value}</span>
                 <span className="text-[12px] font-mono text-[#8B949E] uppercase tracking-[0.15em]">{stat.label}</span>
               </div>
@@ -99,3 +99,4 @@ export function HeroSection() {
     </section>
   );
 }
+

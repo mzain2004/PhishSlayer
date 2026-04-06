@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
@@ -14,7 +14,7 @@ const springConfig = {
 
 const TERMINAL_LINES = [
   {
-    text: "[AGENT-01] process_event: chrome.exe → 142.250.x.x:443",
+    text: "[AGENT-01] process_event: chrome.exe â†’ 142.250.x.x:443",
     color: "#2DD4BF",
   },
   {
@@ -135,8 +135,8 @@ export function EDRSection() {
           transition={{ ...springConfig, delay: 0.2 }}
           className="relative"
         >
-          <div className="bg-[#161B22] border border-[#30363D] rounded-[8px] shadow-2xl overflow-hidden relative z-10">
-            <div className="h-10 bg-[#0D1117] border-b border-[#30363D] flex items-center px-4 gap-2">
+          <div className="liquid-glass rounded-[8px] shadow-2xl overflow-hidden relative z-10">
+            <div className="h-10 bg-[#0D1117] border-b border-white/10 flex items-center px-4 gap-2">
               <div className="w-3 h-3 rounded-full bg-[#30363D]" />
               <div className="w-3 h-3 rounded-full bg-[#30363D]" />
               <div className="w-3 h-3 rounded-full bg-[#30363D]" />
@@ -175,3 +175,4 @@ export function EDRSection() {
     </section>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -55,18 +55,9 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
         href={href}
         className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer text-sm ${
           isActive
-            ? "font-semibold"
-            : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#1C2128]"
+            ? "font-semibold bg-teal-400/10 text-teal-400 border-l-2 border-teal-400"
+            : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-white/5"
         }`}
-        style={
-          isActive
-            ? {
-                background: "rgba(45, 212, 191, 0.1)",
-                borderLeft: "2px solid #2DD4BF",
-                color: "#2DD4BF",
-              }
-            : undefined
-        }
       >
         <Icon className="w-6 h-6 flex-shrink-0" />
         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100 whitespace-nowrap overflow-hidden">
@@ -80,7 +71,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
     super_admin: "bg-red-500/10 text-red-400 border border-red-500/20",
     manager: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
     analyst: "bg-teal-500/10 text-teal-400 border border-teal-500/20",
-    viewer: "bg-slate-500/10 text-slate-400 border border-slate-500/20",
+    viewer: "bg-white/10 text-[#8B949E] border border-white/10",
   };
 
   const getInitials = () => {
@@ -91,9 +82,9 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
   };
 
   return (
-    <aside className="w-20 hover:w-64 transition-[width] duration-300 ease-in-out group fixed left-0 top-0 h-full bg-[#161b22] border-r border-[#30363d] flex flex-col z-50 overflow-hidden">
+    <aside className="w-20 hover:w-64 transition-[width] duration-300 ease-in-out group fixed left-0 top-0 h-full bg-black border-r border-white/10 flex flex-col z-50 overflow-hidden">
       {/* Logo Section */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-[#30363d] overflow-hidden">
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10 overflow-hidden">
         <div className="w-7 h-7 bg-teal-500/20 rounded-lg flex items-center justify-center flex-shrink-0 border border-teal-500/30">
           <Shield className="w-3.5 h-3.5 text-teal-400" />
         </div>
@@ -218,18 +209,18 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
           label="Incidents"
         />
 
-        <div className="mt-8 border-t border-[#30363d]/50 pt-2">
+        <div className="mt-8 border-t border-white/10 pt-2">
           <NavItem href="/dashboard/support" icon={LifeBuoy} label="Support" />
         </div>
       </nav>
 
       {/* User Profile Area */}
-      <div className="bg-[#1c2128] border-t border-[#30363d] px-3 py-3 overflow-hidden">
+      <div className="bg-black border-t border-white/10 px-3 py-3 overflow-hidden">
         <Link
           href="/dashboard/profile"
-          className="flex items-center gap-3 p-2 rounded-full hover:bg-teal-500/10 transition-colors group/profile"
+          className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors group/profile"
         >
-          <div className="w-8 h-8 rounded-full bg-[#30363d] flex items-center justify-center overflow-hidden border border-[#30363d] flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden border border-white/10 flex-shrink-0">
             {profile?.avatar_url ? (
               <img
                 src={profile.avatar_url}
@@ -259,3 +250,4 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
     </aside>
   );
 }
+

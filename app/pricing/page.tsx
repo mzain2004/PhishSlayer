@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -65,7 +65,7 @@ const faqs = [
   },
   {
     q: "Is there a free trial?",
-    a: "Yes — paid plans include a 14-day free trial. No credit card required to start.",
+    a: "Yes â€” paid plans include a 14-day free trial. No credit card required to start.",
   },
   {
     q: "Is my data secure?",
@@ -325,7 +325,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-[#0d1117] text-[#e6edf3] font-sans selection:bg-teal-500/30">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-[#0d1117]/80 backdrop-blur-md border-b border-[#30363d]">
+      <nav className="sticky top-0 z-50 bg-[#0d1117]/80 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-8 py-4">
           <Link
             href="/"
@@ -340,7 +340,7 @@ export default function PricingPage() {
                   href="/dashboard"
                   className="bg-teal-500 hover:bg-teal-400 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors"
                 >
-                  Command Center →
+                  Command Center â†’
                 </Link>
               ) : (
                 <>
@@ -403,17 +403,17 @@ export default function PricingPage() {
                     ? {
                         border: "2px solid transparent",
                         background:
-                          "linear-gradient(#161B22, #161B22) padding-box, linear-gradient(135deg, #2DD4BF, #A78BFA) border-box",
+                          "linear-gradient(#000000, #000000) padding-box, linear-gradient(135deg, #2DD4BF, #A78BFA) border-box",
                         borderRadius: "16px",
                         transform: "scale(1.03)",
                         boxShadow: "0 0 40px rgba(45, 212, 191, 0.15)",
                       }
                     : {
-                        border: "1px solid #30363D",
+                        border: "1px solid rgba(255,255,255,0.1)",
                         borderRadius: "16px",
                       }
                 }
-                className={`relative p-8 flex flex-col transition-all duration-300 bg-[#161B22] ${
+                className={`relative p-8 flex flex-col transition-all duration-300 bg-black ${
                   isCC ? "z-20" : isFree ? "opacity-90" : ""
                 }`}
               >
@@ -559,7 +559,7 @@ export default function PricingPage() {
             onClick={() => (cancelLoading ? null : setShowCancelModal(false))}
           />
 
-          <div className="relative w-full max-w-md rounded-xl border border-[#30363D] bg-[#161B22] p-6 shadow-2xl">
+          <div className="relative w-full max-w-md rounded-xl border border-white/10 bg-black p-6 shadow-2xl">
             <h3 className="text-lg font-bold text-[#E6EDF3] mb-3">
               Cancel Subscription
             </h3>
@@ -573,7 +573,7 @@ export default function PricingPage() {
                 type="button"
                 onClick={() => setShowCancelModal(false)}
                 disabled={cancelLoading}
-                className="px-4 py-2 rounded-md border border-[#30363D] bg-transparent text-[#E6EDF3] text-sm font-semibold hover:bg-[#21262D] disabled:opacity-60"
+                className="px-4 py-2 rounded-md border border-white/10 bg-transparent text-[#E6EDF3] text-sm font-semibold hover:bg-[#21262D] disabled:opacity-60"
               >
                 Keep Plan
               </button>
@@ -591,7 +591,7 @@ export default function PricingPage() {
       ) : null}
 
       {/* FAQ */}
-      <section className="bg-[#161b22]/50 border-t border-[#30363d] py-24">
+      <section className="bg-black/50 border-t border-white/10 py-24">
         <div className="max-w-3xl mx-auto px-8">
           <h2 className="text-3xl font-bold text-center mb-12">
             Deployment Intelligence
@@ -600,7 +600,7 @@ export default function PricingPage() {
             {faqs.map((f, i) => (
               <div
                 key={i}
-                className="bg-[#161b22] border border-[#30363d] rounded-xl p-6"
+                className="liquid-glass rounded-xl p-6"
               >
                 <h4 className="text-[#e6edf3] font-semibold mb-2">{f.q}</h4>
                 <p className="text-[#8b949e] text-sm leading-relaxed">{f.a}</p>
@@ -610,9 +610,10 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <footer className="py-12 border-t border-[#30363d] text-center text-xs text-[#6e7681]">
-        © 2026 Phish-Slayer Platform. All rights reserved.
+      <footer className="py-12 border-t border-white/10 text-center text-xs text-[#6e7681]">
+        Â© 2026 Phish-Slayer Platform. All rights reserved.
       </footer>
     </div>
   );
 }
+

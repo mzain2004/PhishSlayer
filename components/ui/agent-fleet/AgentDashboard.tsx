@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 
@@ -56,11 +56,11 @@ export default function AgentDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {agents.map((agent) => (
-          <div key={agent.agentId} className="bg-[#161b22] border border-[#30363d] rounded-xl hover:bg-[#1c2128] transition-all duration-200 overflow-hidden group">
+          <div key={agent.agentId} className="liquid-glass rounded-xl hover:bg-[#1c2128] transition-all duration-200 overflow-hidden group">
             <div className="p-5">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#0d1117] border border-[#30363d] flex items-center justify-center text-teal-400 group-hover:border-teal-500/30 transition-colors">
+                  <div className="w-10 h-10 rounded-lg bg-[#0d1117] border border-white/10 flex items-center justify-center text-teal-400 group-hover:border-teal-500/30 transition-colors">
                     <Terminal className="w-5 h-5" />
                   </div>
                   <div>
@@ -73,7 +73,7 @@ export default function AgentDashboard() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 py-4 border-t border-[#30363d]/50">
+              <div className="grid grid-cols-2 gap-4 py-4 border-t border-white/10">
                 <div>
                   <p className="text-[#6e7681] text-[10px] uppercase font-bold tracking-wider">Platform</p>
                   <p className="text-[#e6edf3] text-xs font-medium capitalize mt-1">
@@ -93,14 +93,14 @@ export default function AgentDashboard() {
                 <button 
                   onClick={() => { setModalType('kill_process'); setTargetAgentId(agent.agentId); }} 
                   disabled={agent.status === 'offline'}
-                  title={agent.status === 'offline' ? "Agent offline — cannot send commands" : ""}
-                  className="py-1.5 bg-[#1c2128] hover:bg-[#21262d] border border-[#30363d] text-[#e6edf3] text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  title={agent.status === 'offline' ? "Agent offline â€” cannot send commands" : ""}
+                  className="py-1.5 bg-[#1c2128] hover:bg-[#21262d] border border-white/10 text-[#e6edf3] text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                   Kill Process
                 </button>
                 <button 
                   onClick={() => { setModalType('block_ip'); setTargetAgentId(agent.agentId); }}
                   disabled={agent.status === 'offline'}
-                  title={agent.status === 'offline' ? "Agent offline — cannot send commands" : ""}
+                  title={agent.status === 'offline' ? "Agent offline â€” cannot send commands" : ""}
                   className="py-1.5 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 text-teal-400 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                   Block IP
                 </button>
@@ -110,8 +110,8 @@ export default function AgentDashboard() {
         ))}
 
         {agents.length === 0 && (
-          <div className="col-span-full border border-[#30363d] border-dashed rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 bg-[#161b22] border border-[#30363d] rounded-2xl flex items-center justify-center mb-6">
+          <div className="col-span-full border border-white/10 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 liquid-glass rounded-2xl flex items-center justify-center mb-6">
               <Monitor className="w-8 h-8 text-[#8b949e]" />
             </div>
             <h3 className="text-[#e6edf3] text-lg font-semibold mb-2">Deploy Your First Agent</h3>
@@ -121,27 +121,27 @@ export default function AgentDashboard() {
 
             <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
               {/* macOS / Linux */}
-              <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 text-left">
+              <div className="liquid-glass rounded-xl p-5 text-left">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-6 h-6 rounded bg-[#0d1117] border border-[#30363d] flex items-center justify-center">
+                  <div className="w-6 h-6 rounded bg-[#0d1117] border border-white/10 flex items-center justify-center">
                     <Terminal className="w-3.5 h-3.5 text-teal-400" />
                   </div>
                   <span className="text-[#e6edf3] text-xs font-bold uppercase tracking-widest">Linux / macOS</span>
                 </div>
-                <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[11px] text-teal-400 overflow-x-auto whitespace-nowrap border border-[#30363d]">
+                <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[11px] text-teal-400 overflow-x-auto whitespace-nowrap border border-white/10">
                   curl -sSL https://phishslayer.tech/install | bash
                 </div>
               </div>
 
               {/* Windows */}
-              <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 text-left">
+              <div className="liquid-glass rounded-xl p-5 text-left">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-6 h-6 rounded bg-[#0d1117] border border-[#30363d] flex items-center justify-center">
+                  <div className="w-6 h-6 rounded bg-[#0d1117] border border-white/10 flex items-center justify-center">
                     <Terminal className="w-3.5 h-3.5 text-indigo-400" />
                   </div>
                   <span className="text-[#e6edf3] text-xs font-bold uppercase tracking-widest">Windows (PS)</span>
                 </div>
-                <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[11px] text-indigo-400 overflow-x-auto whitespace-nowrap border border-[#30363d]">
+                <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[11px] text-indigo-400 overflow-x-auto whitespace-nowrap border border-white/10">
                   iwr https://phishslayer.tech/install.ps1 | iex
                 </div>
               </div>
@@ -164,8 +164,8 @@ export default function AgentDashboard() {
       </div>
 
       {/* Mitigation Log */}
-      <div className="mt-8 bg-[#161b22] border border-[#30363d] rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#30363d] flex items-center gap-2">
+      <div className="mt-8 liquid-glass rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/10 flex items-center gap-2">
           <Terminal className="w-4 h-4 text-teal-400" />
           <h3 className="text-[#e6edf3] font-semibold text-sm">Mitigation Log</h3>
         </div>
@@ -198,7 +198,7 @@ export default function AgentDashboard() {
       {/* Command Modal */}
       {modalType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
+          <div className="liquid-glass rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
             <h3 className="text-[#e6edf3] text-lg font-semibold mb-2">
               {modalType === 'kill_process' ? 'Kill Process' : 'Block IP Address'}
             </h3>
@@ -211,7 +211,7 @@ export default function AgentDashboard() {
               placeholder={modalType === 'kill_process' ? 'e.g. 5124' : 'e.g. 192.168.1.100'}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="w-full bg-[#0d1117] border border-[#30363d] text-[#e6edf3] rounded-md px-3 py-2 text-sm focus:outline-none focus:border-teal-500 mb-6"
+              className="w-full bg-[#0d1117] border border-white/10 text-[#e6edf3] rounded-md px-3 py-2 text-sm focus:outline-none focus:border-teal-500 mb-6"
             />
             <div className="flex gap-3 justify-end">
               <button 
@@ -232,3 +232,4 @@ export default function AgentDashboard() {
     </div>
   );
 }
+

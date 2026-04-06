@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
@@ -55,7 +55,7 @@ export function Testimonials() {
             <motion.div
               key={i}
               variants={{ hidden: { opacity: 0, y: 80 }, visible: { opacity: 1, y: 0, transition: springConfig } }}
-              className="bg-[#161B22] border border-[#30363D] rounded-[16px] p-8 flex flex-col hover:border-[#2DD4BF]/50 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)] hover:-translate-y-2 transition-all duration-300 ease-out"
+              className="liquid-glass rounded-[16px] p-8 flex flex-col hover:border-[#2DD4BF]/50 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)] hover:-translate-y-2 transition-all duration-300 ease-out"
             >
               <div className="flex gap-1 mb-6">
                 {[...Array(5)].map((_, j) => (
@@ -67,7 +67,7 @@ export function Testimonials() {
                 &quot;{t.quote}&quot;
               </p>
               
-              <div className="flex items-center gap-4 pt-6 border-t border-[#30363D]">
+              <div className="flex items-center gap-4 pt-6 border-t border-white/10">
                 <div className="w-12 h-12 bg-[#2DD4BF]/10 border border-[#2DD4BF]/30 rounded-full flex items-center justify-center text-[#2DD4BF] font-bold text-lg">
                   {t.initial}
                 </div>
@@ -83,3 +83,4 @@ export function Testimonials() {
     </section>
   );
 }
+

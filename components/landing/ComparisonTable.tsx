@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { Check, X, Minus } from "lucide-react";
@@ -44,7 +44,7 @@ export function ComparisonTable() {
                 {row.feature}
               </div>
             ))}
-            <div className="h-16 text-[#E6EDF3] font-extrabold text-lg flex items-center tracking-tight border-t border-[#30363D] mt-4">
+            <div className="h-16 text-[#E6EDF3] font-extrabold text-lg flex items-center tracking-tight border-t border-white/10 mt-4">
               Starting Price
             </div>
           </div>
@@ -55,14 +55,14 @@ export function ComparisonTable() {
               Best Value: Phish-Slayer
             </div>
             {rows.map((row, i) => (
-              <div key={i} className="h-10 flex items-center justify-between md:justify-center border-b border-[#30363D]/50 md:border-none pb-2 md:pb-0">
+              <div key={i} className="h-10 flex items-center justify-between md:justify-center border-b border-white/10 md:border-none pb-2 md:pb-0">
                 <span className="md:hidden text-[#8B949E] font-bold uppercase text-xs font-mono">{row.feature}</span>
                 <span className="text-teal-400 font-bold flex items-center gap-2">
                   <Check className="w-4 h-4 text-teal-400" strokeWidth={2.5} /> {row.ps}
                 </span>
               </div>
             ))}
-            <div className="h-16 flex items-center justify-between md:justify-center pt-4 md:border-t border-[#30363D] mt-4">
+            <div className="h-16 flex items-center justify-between md:justify-center pt-4 md:border-t border-white/10 mt-4">
               <span className="md:hidden text-[#E6EDF3] font-bold">Price</span>
               <div className="text-center">
                 <span className="text-[#E6EDF3] text-3xl font-extrabold tracking-tight">$49</span>
@@ -72,36 +72,36 @@ export function ComparisonTable() {
           </div>
 
           {/* Competitor 1 */}
-          <div className="flex flex-col gap-6 bg-slate-900/30 border border-slate-800 rounded-2xl p-6 transition-all duration-300">
-            <div className="text-center text-slate-400 font-bold mb-2">Recorded Future</div>
+          <div className="flex flex-col gap-6 bg-black/30 border border-slate-800 rounded-2xl p-6 transition-all duration-300">
+            <div className="text-center text-[#8B949E] font-bold mb-2">Recorded Future</div>
             {rows.map((row, i) => (
-              <div key={i} className="h-10 flex items-center justify-between md:justify-center border-b border-[#30363D]/50 md:border-none pb-2 md:pb-0">
-                <span className="md:hidden text-slate-500 font-bold uppercase text-xs font-mono">{row.feature}</span>
-                <span className="text-slate-400 flex items-center gap-2 text-sm">
+              <div key={i} className="h-10 flex items-center justify-between md:justify-center border-b border-white/10 md:border-none pb-2 md:pb-0">
+                <span className="md:hidden text-[#8B949E] font-bold uppercase text-xs font-mono">{row.feature}</span>
+                <span className="text-[#8B949E] flex items-center gap-2 text-sm">
                    <Minus className="w-4 h-4 text-slate-600" /> {row.rf}
                 </span>
               </div>
             ))}
             <div className="h-16 flex items-center justify-between md:justify-center pt-4 md:border-t border-slate-800 mt-4">
-              <span className="md:hidden text-slate-500 font-bold">Price</span>
-              <span className="text-slate-400 font-bold">$25,000<span className="text-xs">/yr</span></span>
+              <span className="md:hidden text-[#8B949E] font-bold">Price</span>
+              <span className="text-[#8B949E] font-bold">$25,000<span className="text-xs">/yr</span></span>
             </div>
           </div>
 
           {/* Competitor 2 */}
-          <div className="flex flex-col gap-6 bg-slate-900/30 border border-slate-800 rounded-2xl p-6 transition-all duration-300">
-            <div className="text-center text-slate-400 font-bold mb-2">ThreatConnect</div>
+          <div className="flex flex-col gap-6 bg-black/30 border border-slate-800 rounded-2xl p-6 transition-all duration-300">
+            <div className="text-center text-[#8B949E] font-bold mb-2">ThreatConnect</div>
             {rows.map((row, i) => (
-              <div key={i} className="h-10 flex items-center justify-between md:justify-center border-b border-[#30363D]/50 md:border-none pb-2 md:pb-0">
-                <span className="md:hidden text-slate-500 font-bold uppercase text-xs font-mono">{row.feature}</span>
-                <span className="text-slate-400 flex items-center gap-2 text-sm">
+              <div key={i} className="h-10 flex items-center justify-between md:justify-center border-b border-white/10 md:border-none pb-2 md:pb-0">
+                <span className="md:hidden text-[#8B949E] font-bold uppercase text-xs font-mono">{row.feature}</span>
+                <span className="text-[#8B949E] flex items-center gap-2 text-sm">
                    <X className="w-4 h-4 text-slate-600" /> {row.tc}
                 </span>
               </div>
             ))}
             <div className="h-16 flex items-center justify-between md:justify-center pt-4 md:border-t border-slate-800 mt-4">
-              <span className="md:hidden text-slate-500 font-bold">Price</span>
-              <span className="text-slate-400 font-bold">$50,000<span className="text-xs">/yr</span></span>
+              <span className="md:hidden text-[#8B949E] font-bold">Price</span>
+              <span className="text-[#8B949E] font-bold">$50,000<span className="text-xs">/yr</span></span>
             </div>
           </div>
         </motion.div>
@@ -109,3 +109,4 @@ export function ComparisonTable() {
     </section>
   );
 }
+

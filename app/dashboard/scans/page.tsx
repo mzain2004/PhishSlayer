@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useTransition, Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -151,17 +151,17 @@ function ScanManagerContent() {
   const isManagerOrAdmin = role && canViewAllScans(role);
 
   return (
-    <div className="bg-[#0a0f1e] font-sans text-slate-100 antialiased min-h-screen flex flex-col w-full">
+    <div className="bg-black font-sans text-slate-100 antialiased min-h-screen flex flex-col w-full">
       <main className="flex-1 px-4 sm:px-8 py-8 w-full max-w-5xl mx-auto flex flex-col gap-10">
         {/* Hero Scanner Section */}
-        <section className="relative bg-[#0f1629] rounded-2xl border border-slate-800 overflow-hidden">
+        <section className="relative bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-20 -right-20 w-80 h-80 bg-teal-900/20 rounded-full blur-3xl opacity-60"></div>
             <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-indigo-900/20 rounded-full blur-3xl opacity-40"></div>
           </div>
 
           {isViewer && (
-            <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-slate-400 shadow-sm">
+            <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-xs font-bold text-[#8B949E] shadow-sm">
               <Eye className="w-3.5 h-3.5" />
               View Only
             </div>
@@ -174,7 +174,7 @@ function ScanManagerContent() {
             <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-3">
               Threat Scanner
             </h1>
-            <p className="text-slate-500 text-base max-w-lg mb-10 leading-relaxed">
+            <p className="text-[#8B949E] text-base max-w-lg mb-10 leading-relaxed">
               Enter a URL or IP address to run a deep threat analysis powered by
               VirusTotal and Gemini AI.
             </p>
@@ -183,7 +183,7 @@ function ScanManagerContent() {
             {!isViewer && (
               <div className="w-full max-w-2xl flex flex-col sm:flex-row gap-3">
                 <div className="flex-1 relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-[#8B949E]">
                     <Crosshair className="w-5 h-5" />
                   </span>
                   <input
@@ -195,7 +195,7 @@ function ScanManagerContent() {
                     }
                     disabled={isPending}
                     placeholder="e.g. 8.8.8.8 or suspicious-domain.com"
-                    className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-700 rounded-xl text-base text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-base text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
                 <button
@@ -208,12 +208,12 @@ function ScanManagerContent() {
                   ) : (
                     <ShieldCheck className="w-5 h-5" />
                   )}
-                  {isPending ? "Scanning…" : "Scan Target"}
+                  {isPending ? "Scanningâ€¦" : "Scan Target"}
                 </button>
               </div>
             )}
             {isViewer && (
-              <div className="w-full max-w-lg bg-slate-800 border border-slate-700 rounded-xl p-4 text-sm text-slate-400 font-medium flex items-center justify-center gap-2">
+              <div className="w-full max-w-lg bg-white/10 border border-white/10 rounded-xl p-4 text-sm text-[#8B949E] font-medium flex items-center justify-center gap-2">
                 <Eye className="w-4 h-4" />
                 Your role restricts launching new scans. You can view existing
                 historical scans below.
@@ -222,8 +222,8 @@ function ScanManagerContent() {
 
             {isPending && (
               <p className="mt-4 text-sm text-teal-400 font-medium animate-pulse">
-                Analyzing target with VirusTotal + Gemini AI — this may take a
-                moment…
+                Analyzing target with VirusTotal + Gemini AI â€” this may take a
+                momentâ€¦
               </p>
             )}
           </div>
@@ -243,16 +243,16 @@ function ScanManagerContent() {
           <div className="flex flex-wrap items-center gap-2">
             {/* View Scope Toggle for Managers+ */}
             {isManagerOrAdmin && (
-              <div className="flex bg-slate-900 p-1 rounded-lg border border-slate-700">
+              <div className="flex bg-white/5 p-1 rounded-lg border border-white/10">
                 <button
                   onClick={() => setViewScope("all")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${viewScope === "all" ? "bg-slate-800 shadow-sm text-white" : "text-slate-500 hover:text-slate-300"}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${viewScope === "all" ? "bg-white/10 shadow-sm text-white" : "text-[#8B949E] hover:text-slate-300"}`}
                 >
                   <Users className="w-3.5 h-3.5" /> All Users
                 </button>
                 <button
                   onClick={() => setViewScope("my")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${viewScope === "my" ? "bg-slate-800 shadow-sm text-white" : "text-slate-500 hover:text-slate-300"}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${viewScope === "my" ? "bg-white/10 shadow-sm text-white" : "text-[#8B949E] hover:text-slate-300"}`}
                 >
                   <User className="w-3.5 h-3.5" /> My Scans
                 </button>
@@ -260,8 +260,8 @@ function ScanManagerContent() {
             )}
 
             {/* Date Filters */}
-            <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg p-1">
-              <Filter className="w-4 h-4 text-slate-400 ml-2" />
+            <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg p-1">
+              <Filter className="w-4 h-4 text-[#8B949E] ml-2" />
               <select
                 value={dateRange}
                 onChange={(e: any) => setDateRange(e.target.value)}
@@ -279,37 +279,37 @@ function ScanManagerContent() {
         {/* Scans Table */}
         <section>
           {paginatedScans.length === 0 ? (
-            <div className="bg-[#0f1629] rounded-xl border border-slate-800 p-16 text-center">
+            <div className="bg-white/5 rounded-xl border border-white/10 p-16 text-center">
               <FileWarning className="w-12 h-12 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-300 mb-1">
                 No scans found
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-[#8B949E]">
                 Adjust your filters or launch a new scan to populate history.
               </p>
             </div>
           ) : (
-            <div className="bg-[#0f1629] rounded-xl border border-slate-800 overflow-hidden flex flex-col">
+            <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="bg-slate-900/50 border-b border-slate-800">
-                      <th className="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <tr className="bg-white/5 border-b border-white/10">
+                      <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                         Target
                       </th>
-                      <th className="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                         Verdict
                       </th>
-                      <th className="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider hidden sm:table-cell">
+                      <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider hidden sm:table-cell">
                         Engines
                       </th>
-                      <th className="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider hidden lg:table-cell">
+                      <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider hidden lg:table-cell">
                         Risk
                       </th>
-                      <th className="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider hidden lg:table-cell">
+                      <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider hidden lg:table-cell">
                         Category
                       </th>
-                      <th className="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">
+                      <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider text-right">
                         Date
                       </th>
                     </tr>
@@ -319,13 +319,13 @@ function ScanManagerContent() {
                       <tr
                         key={s.id || i}
                         onClick={() => router.push("/dashboard/threats")}
-                        className="hover:bg-slate-800/50 transition-colors cursor-pointer"
+                        className="hover:bg-white/10 transition-colors cursor-pointer"
                       >
                         <td className="px-6 py-4">
                           <p className="text-sm font-semibold text-teal-400 truncate max-w-[220px] font-mono">
                             {s.target}
                           </p>
-                          <p className="text-xs text-slate-400 mt-0.5">
+                          <p className="text-xs text-[#8B949E] mt-0.5">
                             {s.status}
                           </p>
                         </td>
@@ -342,7 +342,7 @@ function ScanManagerContent() {
                               {s.verdict}
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400">—</span>
+                            <span className="text-xs text-[#8B949E]">â€”</span>
                           )}
                         </td>
                         <td className="px-6 py-4 hidden sm:table-cell">
@@ -352,7 +352,7 @@ function ScanManagerContent() {
                               <span className="text-sm font-bold text-slate-300">
                                 {s.malicious_count}/{s.total_engines}
                               </span>
-                              <div className="w-16 bg-slate-800 rounded-full h-1.5">
+                              <div className="w-16 bg-white/10 rounded-full h-1.5">
                                 <div
                                   className={`h-1.5 rounded-full ${
                                     s.malicious_count > 0
@@ -369,7 +369,7 @@ function ScanManagerContent() {
                               </div>
                             </div>
                           ) : (
-                            <span className="text-xs text-slate-400">—</span>
+                            <span className="text-xs text-[#8B949E]">â€”</span>
                           )}
                         </td>
                         <td className="px-6 py-4 hidden lg:table-cell">
@@ -386,23 +386,23 @@ function ScanManagerContent() {
                               {s.risk_score}/100
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400">—</span>
+                            <span className="text-xs text-[#8B949E]">â€”</span>
                           )}
                         </td>
                         <td className="px-6 py-4 hidden lg:table-cell">
-                          <span className="text-sm text-slate-400">
-                            {s.threat_category || "—"}
+                          <span className="text-sm text-[#8B949E]">
+                            {s.threat_category || "â€”"}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <span className="text-xs text-slate-500 flex items-center justify-end gap-1">
+                          <span className="text-xs text-[#8B949E] flex items-center justify-end gap-1">
                             <Clock className="w-3 h-3" />
                             {s.date
                               ? new Date(s.date).toLocaleDateString("en-US", {
                                   month: "short",
                                   day: "numeric",
                                 })
-                              : "—"}
+                              : "â€”"}
                           </span>
                         </td>
                       </tr>
@@ -413,8 +413,8 @@ function ScanManagerContent() {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-6 py-4 bg-slate-900/50 border-t border-slate-800">
-                  <span className="text-sm text-slate-500">
+                <div className="flex items-center justify-between px-6 py-4 bg-white/5 border-t border-white/10">
+                  <span className="text-sm text-[#8B949E]">
                     Showing {page * ITEMS_PER_PAGE + 1} to{" "}
                     {Math.min(
                       (page + 1) * ITEMS_PER_PAGE,
@@ -426,11 +426,11 @@ function ScanManagerContent() {
                     <button
                       onClick={() => setPage((p) => Math.max(0, p - 1))}
                       disabled={page === 0}
-                      className="p-1.5 rounded-md border border-slate-700 bg-slate-900 text-slate-400 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="p-1.5 rounded-md border border-white/10 bg-white/5 text-[#8B949E] hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <span className="text-xs font-bold text-slate-400 px-2">
+                    <span className="text-xs font-bold text-[#8B949E] px-2">
                       Page {page + 1} of {totalPages}
                     </span>
                     <button
@@ -438,7 +438,7 @@ function ScanManagerContent() {
                         setPage((p) => Math.min(totalPages - 1, p + 1))
                       }
                       disabled={page >= totalPages - 1}
-                      className="p-1.5 rounded-md border border-slate-700 bg-slate-900 text-slate-400 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="p-1.5 rounded-md border border-white/10 bg-white/5 text-[#8B949E] hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -466,3 +466,4 @@ export default function ScanManagerDashboard() {
     </Suspense>
   );
 }
+

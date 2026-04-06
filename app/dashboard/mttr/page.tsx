@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import type { TimelineEvent } from "@/lib/microsoft/timelineBuilder";
@@ -97,15 +97,15 @@ export default function MTTRDashboardPage() {
   function getTypeIcon(type: string): string {
     switch (type) {
       case "signin":
-        return "🔐";
+        return "ðŸ”";
       case "privilege":
-        return "⚡";
+        return "âš¡";
       case "action":
-        return "🎯";
+        return "ðŸŽ¯";
       case "alert":
-        return "🚨";
+        return "ðŸš¨";
       default:
-        return "📋";
+        return "ðŸ“‹";
     }
   }
 
@@ -168,8 +168,8 @@ export default function MTTRDashboardPage() {
             value={hours}
             onChange={(event) => setHours(Number(event.target.value))}
             style={{
-              background: "#161B22",
-              border: "1px solid #30363D",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
               color: "#E6EDF3",
               padding: "8px 16px",
               borderRadius: "6px",
@@ -194,7 +194,7 @@ export default function MTTRDashboardPage() {
               opacity: downloading ? 0.7 : 1,
             }}
           >
-            {downloading ? "Generating..." : "📄 Export PDF"}
+            {downloading ? "Generating..." : "ðŸ“„ Export PDF"}
           </button>
         </div>
       </div>
@@ -237,8 +237,8 @@ export default function MTTRDashboardPage() {
             <div
               key={card.label}
               style={{
-                background: "#161B22",
-                border: "1px solid #30363D",
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
                 borderRadius: "8px",
                 padding: "20px",
               }}
@@ -280,8 +280,8 @@ export default function MTTRDashboardPage() {
 
       <div
         style={{
-          background: "#161B22",
-          border: "1px solid #30363D",
+          background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(255,255,255,0.1)",
           borderRadius: "8px",
           padding: "20px",
         }}
@@ -339,7 +339,7 @@ export default function MTTRDashboardPage() {
                 top: 0,
                 bottom: 0,
                 width: "2px",
-                background: "#30363D",
+                background: "rgba(255,255,255,0.1)",
               }}
             />
 
@@ -361,7 +361,7 @@ export default function MTTRDashboardPage() {
                     height: "12px",
                     borderRadius: "50%",
                     background: getSeverityColor(event.severity),
-                    border: "2px solid #161B22",
+                    border: "2px solid rgba(255,255,255,0.05)",
                   }}
                 />
 
@@ -418,7 +418,7 @@ export default function MTTRDashboardPage() {
                             fontSize: "10px",
                           }}
                         >
-                          ⚠ Partial
+                          âš  Partial
                         </span>
                       ) : null}
                     </div>
@@ -488,8 +488,8 @@ export default function MTTRDashboardPage() {
       <div
         style={{
           marginTop: "16px",
-          background: "#161B22",
-          border: "1px solid #30363D",
+          background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(255,255,255,0.1)",
           borderRadius: "8px",
           padding: "16px",
         }}
@@ -516,3 +516,4 @@ export default function MTTRDashboardPage() {
     </div>
   );
 }
+

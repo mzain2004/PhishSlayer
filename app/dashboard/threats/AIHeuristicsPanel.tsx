@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useHeuristicStore } from "@/lib/stores/heuristicStore";
@@ -54,7 +54,7 @@ export default function AIHeuristicsPanel({
       }
 
       if (!domText || domText.length < 10) {
-        domText = `Target domain: ${target}. No DOM text available — analyze based on domain name patterns and known threat intelligence.`;
+        domText = `Target domain: ${target}. No DOM text available â€” analyze based on domain name patterns and known threat intelligence.`;
       }
 
       const res = await fetch("/api/threat/ai-analysis", {
@@ -104,7 +104,7 @@ export default function AIHeuristicsPanel({
       case "medium":
         return "bg-orange-500/10 text-orange-400 border-orange-500/20";
       default:
-        return "bg-slate-500/10 text-slate-400 border-slate-500/20";
+        return "bg-slate-500/10 text-[#8B949E] border-slate-500/20";
     }
   };
 
@@ -121,7 +121,7 @@ export default function AIHeuristicsPanel({
         <p className="text-sm font-semibold text-white">
           Gemini is analyzing page content...
         </p>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-[#8B949E]">
           Scanning for manipulation tactics, credential harvesting, and
           deceptive patterns
         </p>
@@ -157,7 +157,7 @@ export default function AIHeuristicsPanel({
         </div>
         <div className="text-center">
           <h3 className="text-lg font-bold text-white">AI Heuristics Engine</h3>
-          <p className="text-sm text-slate-400 mt-1 max-w-xs">
+          <p className="text-sm text-[#8B949E] mt-1 max-w-xs">
             Deep behavioral analysis of page content using Gemini AI
           </p>
         </div>
@@ -219,8 +219,8 @@ export default function AIHeuristicsPanel({
             <span className="text-lg">/100</span>
           </p>
         </div>
-        <div className="rounded-xl border border-slate-800 bg-[#0f1629] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
             Confidence
           </p>
           <div className="mt-2">
@@ -234,7 +234,7 @@ export default function AIHeuristicsPanel({
       </div>
 
       {/* Manipulation Tactics */}
-      <div className="rounded-xl border border-slate-800 bg-[#0f1629] p-4">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-2 mb-3">
           <Eye className="w-4 h-4 text-orange-400" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -248,19 +248,19 @@ export default function AIHeuristicsPanel({
                 key={i}
                 className="text-xs font-semibold px-2.5 py-1 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full"
               >
-                ⚠️ {t}
+                âš ï¸ {t}
               </span>
             ))}
           </div>
         ) : (
           <p className="text-sm text-emerald-400 font-medium">
-            ✓ No manipulation tactics detected
+            âœ“ No manipulation tactics detected
           </p>
         )}
       </div>
 
       {/* Credential Harvesting */}
-      <div className="rounded-xl border border-slate-800 bg-[#0f1629] p-4">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-2 mb-3">
           <Lock className="w-4 h-4 text-red-400" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -274,21 +274,21 @@ export default function AIHeuristicsPanel({
                 key={i}
                 className="text-xs font-semibold px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full"
               >
-                🔴 {s}
+                ðŸ”´ {s}
               </span>
             ))}
           </div>
         ) : (
           <p className="text-sm text-emerald-400 font-medium">
-            ✓ No credential harvesting signals detected
+            âœ“ No credential harvesting signals detected
           </p>
         )}
       </div>
 
       {/* Key Indicators */}
-      <div className="rounded-xl border border-slate-800 bg-[#0f1629] p-4">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <ShieldAlert className="w-4 h-4 text-slate-400" />
+          <ShieldAlert className="w-4 h-4 text-[#8B949E]" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
             Key Indicators
           </h4>
@@ -300,30 +300,31 @@ export default function AIHeuristicsPanel({
                 key={i}
                 className="flex items-start gap-2 text-sm text-slate-300"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-slate-500 mt-0.5 shrink-0" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#8B949E] mt-0.5 shrink-0" />
                 {ind}
               </li>
             ))}
           </ul>
         ) : (
           <p className="text-sm text-emerald-400 font-medium">
-            ✓ No suspicious indicators found
+            âœ“ No suspicious indicators found
           </p>
         )}
       </div>
 
       {/* AI Summary */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-[#8B949E] mb-2">
           AI Threat Summary
         </h4>
         <p className="text-sm text-white/90 leading-relaxed">
           {result.summary}
         </p>
-        <p className="text-[10px] text-slate-500 mt-3">
+        <p className="text-[10px] text-[#8B949E] mt-3">
           Analyzed at: {new Date(result.analyzedAt).toLocaleString()}
         </p>
       </div>
     </div>
   );
 }
+

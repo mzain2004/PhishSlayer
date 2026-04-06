@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { initializePaddle, Paddle } from "@paddle/paddle-js";
@@ -140,7 +140,7 @@ export default function PaddleCheckoutButton({
     primary:
       "bg-[#2DD4BF] hover:bg-[#14B8A6] text-[#0D1117] hover:-translate-y-0.5 hover:shadow-lg",
     outline:
-      "bg-transparent border border-[#30363D] hover:border-[#2DD4BF] text-[#E6EDF3] hover:text-[#2DD4BF] hover:-translate-y-0.5",
+      "bg-transparent border border-white/10 hover:border-[#2DD4BF] text-[#E6EDF3] hover:text-[#2DD4BF] hover:-translate-y-0.5",
   };
 
   return (
@@ -157,3 +157,4 @@ export default function PaddleCheckoutButton({
     </button>
   );
 }
+

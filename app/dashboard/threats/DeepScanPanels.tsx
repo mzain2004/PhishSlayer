@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   Loader2,
@@ -19,8 +19,8 @@ function Spinner() {
   return (
     <div className="flex items-center justify-center py-16">
       <Loader2 className="w-7 h-7 animate-spin text-teal-500" />
-      <span className="ml-3 text-sm text-slate-400 font-medium">
-        Running deep scan…
+      <span className="ml-3 text-sm text-[#8B949E] font-medium">
+        Running deep scanâ€¦
       </span>
     </div>
   );
@@ -30,7 +30,7 @@ function Unavailable({ label }: { label: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <Shield className="w-10 h-10 text-slate-600 mb-3" />
-      <p className="text-sm text-slate-500">{label} data unavailable</p>
+      <p className="text-sm text-[#8B949E]">{label} data unavailable</p>
     </div>
   );
 }
@@ -43,12 +43,12 @@ function MonoRow({
   value: string | null | undefined;
 }) {
   return (
-    <div className="flex justify-between items-center py-2 px-4 border-b border-slate-800">
-      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+    <div className="flex justify-between items-center py-2 px-4 border-b border-white/10">
+      <span className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wide">
         {label}
       </span>
       <span className="font-mono text-xs text-slate-300 text-right max-w-[60%] truncate">
-        {value || "—"}
+        {value || "â€”"}
       </span>
     </div>
   );
@@ -71,7 +71,7 @@ function RiskFlagList({ flags }: { flags: string[] }) {
   );
 }
 
-// ─── WHOIS Panel ───
+// â”€â”€â”€ WHOIS Panel â”€â”€â”€
 export function WhoisPanel({
   data,
   loading,
@@ -105,7 +105,7 @@ export function WhoisPanel({
       );
     } else {
       ageBadge = (
-        <span className="text-[10px] font-black text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+        <span className="text-[10px] font-black text-[#8B949E] bg-white/10 px-2 py-0.5 rounded">
           Age: {years} yrs
         </span>
       );
@@ -113,11 +113,11 @@ export function WhoisPanel({
   }
 
   return (
-    <div className="bg-slate-900 rounded-lg border border-slate-800 overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+    <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+      <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Globe className="w-4 h-4 text-teal-400" />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
             WHOIS Intelligence
           </span>
         </div>
@@ -129,8 +129,8 @@ export function WhoisPanel({
       <MonoRow label="Expires" value={w.expiry_date} />
       <MonoRow label="Updated" value={w.updated_date} />
       <MonoRow label="Country" value={w.registrant_country} />
-      <div className="px-4 py-2 border-b border-slate-800">
-        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+      <div className="px-4 py-2 border-b border-white/10">
+        <span className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wide">
           Name Servers
         </span>
         <div className="mt-1 space-y-0.5">
@@ -141,7 +141,7 @@ export function WhoisPanel({
               </div>
             ))
           ) : (
-            <span className="font-mono text-xs text-slate-600">—</span>
+            <span className="font-mono text-xs text-slate-600">â€”</span>
           )}
         </div>
       </div>
@@ -149,7 +149,7 @@ export function WhoisPanel({
   );
 }
 
-// ─── Ghost Mail Panel ───
+// â”€â”€â”€ Ghost Mail Panel â”€â”€â”€
 export function GhostMailPanel({
   data,
   loading,
@@ -164,7 +164,7 @@ export function GhostMailPanel({
   const isGhost = d.ghostMailFlag;
 
   return (
-    <div className="bg-slate-900 rounded-lg border border-slate-800 overflow-hidden">
+    <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
       {/* Status Banner */}
       <div
         className={`px-4 py-4 ${isGhost ? "bg-red-950 border-b border-red-900" : "bg-emerald-950 border-b border-emerald-900"}`}
@@ -178,21 +178,21 @@ export function GhostMailPanel({
               className={`font-black text-sm ${isGhost ? "text-red-300" : "text-emerald-300"}`}
             >
               {isGhost
-                ? "🚨 NO EMAIL INFRASTRUCTURE DETECTED"
-                : "✓ Mail Infrastructure Present"}
+                ? "ðŸš¨ NO EMAIL INFRASTRUCTURE DETECTED"
+                : "âœ“ Mail Infrastructure Present"}
             </h4>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-[#8B949E] mt-0.5">
               {isGhost
-                ? "Domain cannot receive email — common in disposable phishing domains"
-                : "MX records found — domain has active mail routing"}
+                ? "Domain cannot receive email â€” common in disposable phishing domains"
+                : "MX records found â€” domain has active mail routing"}
             </p>
           </div>
         </div>
       </div>
 
       {/* MX Records */}
-      <div className="px-4 py-3 border-b border-slate-800">
-        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+      <div className="px-4 py-3 border-b border-white/10">
+        <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
           MX Records
         </span>
         {d.mxRecords?.length > 0 ? (
@@ -201,7 +201,7 @@ export function GhostMailPanel({
               (mx: { exchange: string; priority: number }, i: number) => (
                 <div key={i} className="flex justify-between font-mono text-xs">
                   <span className="text-slate-300">{mx.exchange}</span>
-                  <span className="text-slate-500">
+                  <span className="text-[#8B949E]">
                     Priority: {mx.priority}
                   </span>
                 </div>
@@ -214,8 +214,8 @@ export function GhostMailPanel({
       </div>
 
       {/* Email Auth Status */}
-      <div className="px-4 py-3 border-b border-slate-800">
-        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">
+      <div className="px-4 py-3 border-b border-white/10">
+        <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest mb-2 block">
           Email Authentication
         </span>
         <div className="space-y-2">
@@ -235,7 +235,7 @@ export function GhostMailPanel({
               >
                 {label}
               </span>
-              <span className="text-[10px] text-slate-500">
+              <span className="text-[10px] text-[#8B949E]">
                 {active ? "Configured" : "Not detected"}
               </span>
             </div>
@@ -248,7 +248,7 @@ export function GhostMailPanel({
   );
 }
 
-// ─── SSL Panel ───
+// â”€â”€â”€ SSL Panel â”€â”€â”€
 export function SslPanel({
   data,
   loading,
@@ -263,7 +263,7 @@ export function SslPanel({
   const days = s.daysRemaining;
   const daysColor =
     days === null
-      ? "text-slate-500"
+      ? "text-[#8B949E]"
       : days > 90
         ? "text-emerald-400"
         : days > 30
@@ -271,7 +271,7 @@ export function SslPanel({
           : "text-red-400";
   const daysBg =
     days === null
-      ? "bg-slate-800"
+      ? "bg-white/10"
       : days > 90
         ? "bg-emerald-950"
         : days > 30
@@ -279,10 +279,10 @@ export function SslPanel({
           : "bg-red-950";
 
   return (
-    <div className="bg-slate-900 rounded-lg border border-slate-800 overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
+    <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+      <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
         <Lock className="w-4 h-4 text-teal-400" />
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
           SSL Certificate Profile
         </span>
       </div>
@@ -291,8 +291,8 @@ export function SslPanel({
       <MonoRow label="Subject" value={s.subject} />
       <MonoRow label="Valid From" value={s.validFrom} />
       <MonoRow label="Valid To" value={s.validTo} />
-      <div className="flex justify-between items-center py-2 px-4 border-b border-slate-800">
-        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+      <div className="flex justify-between items-center py-2 px-4 border-b border-white/10">
+        <span className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wide">
           Days Remaining
         </span>
         <span
@@ -301,7 +301,7 @@ export function SslPanel({
           {days !== null ? `${days} days` : "Unknown"}
         </span>
       </div>
-      <div className="px-4 py-2 border-b border-slate-800 flex gap-2 flex-wrap">
+      <div className="px-4 py-2 border-b border-white/10 flex gap-2 flex-wrap">
         {s.isLetsEncrypt && (
           <span className="text-[10px] font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded">
             Let&apos;s Encrypt
@@ -333,7 +333,7 @@ export function SslPanel({
   );
 }
 
-// ─── Typosquat Panel ───
+// â”€â”€â”€ Typosquat Panel â”€â”€â”€
 export function TyposquatPanel({
   data,
   loading,
@@ -352,8 +352,8 @@ export function TyposquatPanel({
     const brand = t.matchedBrand.toLowerCase();
     const maxLen = Math.max(scanned.length, brand.length);
     return (
-      <div className="px-4 py-3 border-b border-slate-800">
-        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">
+      <div className="px-4 py-3 border-b border-white/10">
+        <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest block mb-2">
           Character Comparison
         </span>
         <div className="flex gap-0.5 font-mono text-sm mb-1">
@@ -393,14 +393,14 @@ export function TyposquatPanel({
   };
 
   return (
-    <div className="bg-slate-900 rounded-lg border border-slate-800 overflow-hidden">
+    <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
       {t.isTyposquat ? (
         <div className="px-4 py-4 bg-red-950 border-b border-red-900">
           <div className="flex items-center gap-3">
             <Eye className="w-6 h-6 text-red-400" />
             <div>
               <h4 className="font-black text-sm text-red-300">
-                ⚠ TYPOSQUATTING DETECTED
+                âš  TYPOSQUATTING DETECTED
               </h4>
               <p className="text-[11px] text-red-400 mt-0.5">
                 Attempting to impersonate{" "}
@@ -415,9 +415,9 @@ export function TyposquatPanel({
             <CheckCircle2 className="w-6 h-6 text-emerald-400" />
             <div>
               <h4 className="font-black text-sm text-emerald-300">
-                ✓ No brand impersonation detected
+                âœ“ No brand impersonation detected
               </h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-[#8B949E] mt-0.5">
                 Domain does not closely match any monitored brands
               </p>
             </div>
@@ -430,8 +430,8 @@ export function TyposquatPanel({
         label="Levenshtein Distance"
         value={t.distance !== null ? String(t.distance) : null}
       />
-      <div className="flex justify-between items-center py-2 px-4 border-b border-slate-800">
-        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+      <div className="flex justify-between items-center py-2 px-4 border-b border-white/10">
+        <span className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wide">
           Homoglyphs
         </span>
         <span
@@ -446,7 +446,7 @@ export function TyposquatPanel({
   );
 }
 
-// ─── DOM Tree Panel ───
+// â”€â”€â”€ DOM Tree Panel â”€â”€â”€
 export function DomTreePanel({
   data,
   loading,
@@ -459,10 +459,10 @@ export function DomTreePanel({
   if (!d) return <Unavailable label="DOM Tree" />;
 
   return (
-    <div className="bg-slate-900 rounded-lg border border-slate-800 overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
+    <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+      <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
         <Eye className="w-4 h-4 text-teal-400" />
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
           DOM Analysis
         </span>
       </div>
@@ -480,7 +480,7 @@ export function DomTreePanel({
       <MonoRow label="Meta Description" value={d.metaDescription} />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-slate-800">
+      <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-white/10">
         {[
           { label: "Forms", value: d.formCount },
           { label: "Inputs", value: d.inputCount },
@@ -489,19 +489,19 @@ export function DomTreePanel({
         ].map(({ label, value }) => (
           <div
             key={label}
-            className="p-3 text-center border-r border-slate-800 last:border-r-0"
+            className="p-3 text-center border-r border-white/10 last:border-r-0"
           >
             <div className="font-mono text-lg font-black text-slate-200">
               {value}
             </div>
-            <div className="text-[10px] text-slate-500 uppercase">{label}</div>
+            <div className="text-[10px] text-[#8B949E] uppercase">{label}</div>
           </div>
         ))}
       </div>
 
       {/* Suspicious Keywords */}
       {d.suspiciousKeywords?.length > 0 && (
-        <div className="px-4 py-3 border-b border-slate-800">
+        <div className="px-4 py-3 border-b border-white/10">
           <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest block mb-2">
             Suspicious Keywords
           </span>
@@ -523,14 +523,14 @@ export function DomTreePanel({
       {/* External Links */}
       {d.externalLinks?.length > 0 && (
         <div className="px-4 py-3">
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">
+          <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest block mb-2">
             External Links ({d.externalLinks.length})
           </span>
           <div className="max-h-32 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-slate-700">
             {d.externalLinks.slice(0, 50).map((link: string, i: number) => (
               <div
                 key={i}
-                className="font-mono text-[10px] text-slate-400 truncate"
+                className="font-mono text-[10px] text-[#8B949E] truncate"
               >
                 {link}
               </div>
@@ -541,3 +541,4 @@ export function DomTreePanel({
     </div>
   );
 }
+

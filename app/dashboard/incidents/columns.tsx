@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ const severityColors: Record<string, string> = {
   CRITICAL: "bg-red-500/10 text-red-400 border-red-500/20",
   HIGH: "bg-orange-500/10 text-orange-400 border-orange-500/20",
   MEDIUM: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  LOW: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+  LOW: "bg-slate-500/10 text-[#8B949E] border-slate-500/20",
 };
 
 const statusColors: Record<string, string> = {
@@ -35,7 +35,7 @@ export const incidentColumns: ColumnDef<IncidentRow>[] = [
         variant="ghost"
         size="sm"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="text-slate-400 hover:text-slate-100 -ml-3"
+        className="text-[#8B949E] hover:text-slate-100 -ml-3"
       >
         Title <ArrowUpDown className="ml-2 h-3 w-3" />
       </Button>
@@ -78,7 +78,7 @@ export const incidentColumns: ColumnDef<IncidentRow>[] = [
     accessorKey: "assigned_to",
     header: "Assigned To",
     cell: ({ row }) => (
-      <span className="text-slate-400 text-sm">
+      <span className="text-[#8B949E] text-sm">
         {row.getValue("assigned_to") || "Unassigned"}
       </span>
     ),
@@ -90,7 +90,7 @@ export const incidentColumns: ColumnDef<IncidentRow>[] = [
         variant="ghost"
         size="sm"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="text-slate-400 hover:text-slate-100 -ml-3"
+        className="text-[#8B949E] hover:text-slate-100 -ml-3"
       >
         Risk <ArrowUpDown className="ml-2 h-3 w-3" />
       </Button>
@@ -113,7 +113,7 @@ export const incidentColumns: ColumnDef<IncidentRow>[] = [
         variant="ghost"
         size="sm"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="text-slate-400 hover:text-slate-100 -ml-3"
+        className="text-[#8B949E] hover:text-slate-100 -ml-3"
       >
         Created <ArrowUpDown className="ml-2 h-3 w-3" />
       </Button>
@@ -121,10 +121,11 @@ export const incidentColumns: ColumnDef<IncidentRow>[] = [
     cell: ({ row }) => {
       const date = row.getValue("created_at") as string;
       return (
-        <span className="text-slate-500 text-sm">
-          {date ? new Date(date).toLocaleString() : "—"}
+        <span className="text-[#8B949E] text-sm">
+          {date ? new Date(date).toLocaleString() : "â€”"}
         </span>
       );
     },
   },
 ];
+

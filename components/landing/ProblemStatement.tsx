@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { AlertTriangle, Zap, ShieldX } from "lucide-react";
@@ -54,7 +54,7 @@ export function ProblemStatement() {
             <motion.div
               key={i}
               variants={fadeInUp}
-              className="group relative bg-[#161B22] border border-[#30363D] p-8 rounded-[16px] overflow-hidden hover:border-[#2DD4BF]/50 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)] hover:-translate-y-2 transition-all duration-300 ease-out"
+              className="group relative liquid-glass p-8 rounded-[16px] overflow-hidden hover:border-[#2DD4BF]/50 hover:shadow-[0_20px_40px_-15px_rgba(45,212,191,0.15)] hover:-translate-y-2 transition-all duration-300 ease-out"
             >
               {/* Top highlight gradient line */}
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#F85149] to-transparent opacity-50 group-hover:via-[#2DD4BF] transition-all" />
@@ -81,13 +81,13 @@ export function ProblemStatement() {
           whileInView="visible"
           viewport={{ once: false, margin: "-80px" }}
           variants={fadeInUp}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 p-10 border border-[#30363D] bg-[#161B22]/50 backdrop-blur-sm rounded-[16px]"
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 p-10 border border-white/10 bg-black/50 backdrop-blur-sm rounded-[16px]"
         >
           <div className="text-center px-4">
             <p className="text-4xl font-extrabold text-[#E6EDF3] mb-1 tracking-tight">207</p>
             <p className="text-[12px] font-mono text-[#8B949E] uppercase tracking-[0.12em]">Days avg breach detection time</p>
           </div>
-          <div className="text-center px-4 md:border-x md:border-[#30363D]">
+          <div className="text-center px-4 md:border-x md:border-white/10">
             <p className="text-4xl font-extrabold text-[#E6EDF3] mb-1 tracking-tight">43%</p>
             <p className="text-[12px] font-mono text-[#8B949E] uppercase tracking-[0.12em]">Of attacks target SMBs</p>
           </div>
@@ -100,3 +100,4 @@ export function ProblemStatement() {
     </section>
   );
 }
+

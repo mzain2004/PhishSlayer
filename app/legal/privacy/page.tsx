@@ -1,9 +1,9 @@
-export default function PrivacyPage() {
+﻿export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-[#0d1117]">
-      <div className="border-b border-[#30363d] px-6 py-4">
+      <div className="border-b border-white/10 px-6 py-4">
         <a href="/" className="text-[#2dd4bf] text-sm hover:underline">
-          ← Back to Phish-Slayer
+          â† Back to Phish-Slayer
         </a>
       </div>
       <div className="max-w-4xl mx-auto px-6 py-12">
@@ -18,7 +18,7 @@ export default function PrivacyPage() {
             },
             {
               title: '2. What Information We Collect',
-              content: 'We collect: (a) Account information — email address, name, job title when you register. (b) Endpoint telemetry — IP addresses, process names, hostnames, and network connection data collected by the EDR agent you install on systems you own. (c) Payment information — handled entirely by our payment processor; we never store card numbers. (d) Usage data — scan targets, scan results, and threat intelligence data you submit.'
+              content: 'We collect: (a) Account information â€” email address, name, job title when you register. (b) Endpoint telemetry â€” IP addresses, process names, hostnames, and network connection data collected by the EDR agent you install on systems you own. (c) Payment information â€” handled entirely by our payment processor; we never store card numbers. (d) Usage data â€” scan targets, scan results, and threat intelligence data you submit.'
             },
             {
               title: '3. How We Use Your Information',
@@ -58,27 +58,28 @@ export default function PrivacyPage() {
             },
             {
               title: '12. Contact Us',
-              content: 'Phish-Slayer / MinionCore — Bahawalpur, Punjab, Pakistan. Email: support@phishslayer.tech'
+              content: 'Phish-Slayer / MinionCore â€” Bahawalpur, Punjab, Pakistan. Email: support@phishslayer.tech'
             },
           ].map((section) => (
-            <div key={section.title} className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+            <div key={section.title} className="liquid-glass rounded-xl p-6">
               <h2 className="text-[#e6edf3] font-semibold text-base mb-3">{section.title}</h2>
               <p className="text-[#8b949e] text-sm leading-relaxed">{section.content}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-10 pt-8 border-t border-[#30363d]">
+        <div className="mt-10 pt-8 border-t border-white/10">
           <a
             href="https://app.termly.io/dsar/830853a6-ef0c-4574-af45-fcb5e787fa37"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#2dd4bf] text-sm hover:underline"
           >
-            Submit a Data Subject Access Request →
+            Submit a Data Subject Access Request â†’
           </a>
         </div>
       </div>
     </main>
   )
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useTransition, useMemo } from "react";
 import { toast } from "sonner";
@@ -56,7 +56,7 @@ function severityBadge(severity: string) {
   if (s === "critical") return "bg-red-500/10 text-red-400 border-red-500/20";
   if (s === "high")
     return "bg-orange-500/10 text-orange-400 border-orange-500/20";
-  if (s === "low") return "bg-slate-500/10 text-slate-400 border-slate-500/20";
+  if (s === "low") return "bg-slate-500/10 text-[#8B949E] border-slate-500/20";
   return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
 }
 
@@ -321,18 +321,18 @@ export default function IncidentReportsPage() {
   const canAssign = role && canAssignIncidents(role);
 
   return (
-    <div className="bg-[#0a0f1e] text-slate-100 font-sans min-h-screen flex flex-col w-full">
+    <div className="bg-black text-slate-100 font-sans min-h-screen flex flex-col w-full">
       <main className="flex-1 px-4 sm:px-8 py-8 w-full max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-4">
+          <div className="flex items-center gap-2 text-sm text-[#8B949E] mb-4">
             <a
               className="hover:text-teal-600 transition-colors"
               href="/dashboard"
             >
               Dashboard
             </a>
-            <ChevronRight className="w-4 h-4 text-slate-400" />
+            <ChevronRight className="w-4 h-4 text-[#8B949E]" />
             <span className="text-white font-medium">Incident Reports</span>
           </div>
 
@@ -341,15 +341,15 @@ export default function IncidentReportsPage() {
               <h1 className="text-3xl font-bold text-white tracking-tight">
                 Incident Reports
               </h1>
-              <p className="text-slate-500 font-medium mt-1">
+              <p className="text-[#8B949E] font-medium mt-1">
                 {incidents.length} incident{incidents.length !== 1 ? "s" : ""}{" "}
                 on record
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg p-1 h-[42px]">
-                <Filter className="w-4 h-4 text-slate-400 ml-2" />
+              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg p-1 h-[42px]">
+                <Filter className="w-4 h-4 text-[#8B949E] ml-2" />
                 <select
                   value={dateRange}
                   onChange={(e: any) => setDateRange(e.target.value)}
@@ -363,20 +363,20 @@ export default function IncidentReportsPage() {
               </div>
 
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[#8B949E]">
                   <Search className="w-4 h-4" />
                 </span>
                 <input
                   type="text"
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
-                  placeholder="Filter incidents…"
-                  className="w-56 py-2.5 pl-10 pr-4 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all"
+                  placeholder="Filter incidentsâ€¦"
+                  className="w-56 py-2.5 pl-10 pr-4 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all"
                 />
               </div>
               <button
                 onClick={exportToExcel}
-                className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
+                className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-white/10 transition-colors"
               >
                 <Download className="w-4 h-4" />
                 Export
@@ -395,9 +395,9 @@ export default function IncidentReportsPage() {
 
         {/* KPI Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="flex flex-col gap-1 rounded-xl bg-[#0f1629] p-5 border border-slate-800">
+          <div className="flex flex-col gap-1 rounded-xl bg-white/5 p-5 border border-white/10">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-500">
+              <p className="text-sm font-medium text-[#8B949E]">
                 Total Incidents
               </p>
               <Shield className="text-teal-600 w-5 h-5" />
@@ -406,9 +406,9 @@ export default function IncidentReportsPage() {
               {incidents.length}
             </p>
           </div>
-          <div className="flex flex-col gap-1 rounded-xl bg-[#0f1629] p-5 border border-slate-800">
+          <div className="flex flex-col gap-1 rounded-xl bg-white/5 p-5 border border-white/10">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-500">Open</p>
+              <p className="text-sm font-medium text-[#8B949E]">Open</p>
               <AlertTriangle className="text-orange-500 w-5 h-5" />
             </div>
             <p className="text-3xl font-bold text-white mt-2">
@@ -419,9 +419,9 @@ export default function IncidentReportsPage() {
               }
             </p>
           </div>
-          <div className="flex flex-col gap-1 rounded-xl bg-[#0f1629] p-5 border border-slate-800">
+          <div className="flex flex-col gap-1 rounded-xl bg-white/5 p-5 border border-white/10">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-500">Resolved</p>
+              <p className="text-sm font-medium text-[#8B949E]">Resolved</p>
               <CheckCircle2 className="text-emerald-500 w-5 h-5" />
             </div>
             <p className="text-3xl font-bold text-white mt-2">
@@ -432,9 +432,9 @@ export default function IncidentReportsPage() {
               }
             </p>
           </div>
-          <div className="flex flex-col gap-1 rounded-xl bg-[#0f1629] p-5 border border-slate-800">
+          <div className="flex flex-col gap-1 rounded-xl bg-white/5 p-5 border border-white/10">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-500">Critical</p>
+              <p className="text-sm font-medium text-[#8B949E]">Critical</p>
               <AlertTriangle className="text-red-500 w-5 h-5" />
             </div>
             <p className="text-3xl font-bold text-white mt-2">
@@ -449,37 +449,37 @@ export default function IncidentReportsPage() {
 
         {/* Table */}
         {filtered.length === 0 ? (
-          <div className="rounded-xl bg-[#0f1629] border border-slate-800 p-16 text-center">
+          <div className="rounded-xl bg-white/5 border border-white/10 p-16 text-center">
             <FileWarning className="w-12 h-12 text-slate-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-300 mb-1">
               No incidents found
             </h3>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-[#8B949E]">
               {filter || dateRange !== "all"
                 ? "Try adjusting your search filters."
                 : "Incidents created from scans will appear here."}
             </p>
           </div>
         ) : (
-          <div className="rounded-xl bg-[#0f1629] border border-slate-800 overflow-hidden">
+          <div className="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-slate-900/50 border-b border-slate-800">
-                    <th className="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <tr className="bg-white/5 border-b border-white/10">
+                    <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                       Title
                     </th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                       Severity
                     </th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider hidden sm:table-cell">
+                    <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider hidden sm:table-cell">
                       Status
                     </th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider hidden lg:table-cell">
+                    <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider hidden lg:table-cell">
                       Assignee
                     </th>
                     {!isViewOnly && (
-                      <th className="px-6 py-3.5 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">
+                      <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider text-right">
                         Actions
                       </th>
                     )}
@@ -494,14 +494,14 @@ export default function IncidentReportsPage() {
                     return (
                       <tr
                         key={incident.id}
-                        className="hover:bg-slate-800/50 transition-colors"
+                        className="hover:bg-white/10 transition-colors"
                       >
                         <td className="px-6 py-4">
                           <p className="text-sm font-semibold text-white truncate max-w-[260px]">
                             {incident.title}
                           </p>
                           {incident.threat_category && (
-                            <p className="text-xs text-slate-500 mt-0.5 truncate max-w-[260px]">
+                            <p className="text-xs text-[#8B949E] mt-0.5 truncate max-w-[260px]">
                               {incident.threat_category}
                             </p>
                           )}
@@ -530,7 +530,7 @@ export default function IncidentReportsPage() {
                               {isActioning(incident.id, "assign") ? (
                                 <Loader2 className="w-4 h-4 animate-spin text-teal-600" />
                               ) : (
-                                <Users className="w-4 h-4 text-slate-400" />
+                                <Users className="w-4 h-4 text-[#8B949E]" />
                               )}
                               <select
                                 value={incident.assigned_to || ""}
@@ -538,7 +538,7 @@ export default function IncidentReportsPage() {
                                   handleAssign(incident.id, e.target.value)
                                 }
                                 disabled={isPending && actionId === incident.id}
-                                className="bg-slate-900 border border-slate-700 text-sm text-slate-300 py-1.5 px-3 rounded-md focus:ring-1 focus:ring-teal-500 outline-none w-40 truncate"
+                                className="bg-white/5 border border-white/10 text-sm text-slate-300 py-1.5 px-3 rounded-md focus:ring-1 focus:ring-teal-500 outline-none w-40 truncate"
                               >
                                 <option value="" disabled>
                                   Unassigned
@@ -551,7 +551,7 @@ export default function IncidentReportsPage() {
                               </select>
                             </div>
                           ) : (
-                            <p className="text-sm text-slate-400 font-medium">
+                            <p className="text-sm text-[#8B949E] font-medium">
                               {assignedUser?.display_name ||
                                 incident.assignee ||
                                 "Unassigned"}
@@ -635,17 +635,17 @@ export default function IncidentReportsPage() {
       {/* Create Incident Modal */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300">
-          <div className="bg-[#0f1629] border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl relative animate-in fade-in zoom-in duration-200">
+          <div className="bg-white/5 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl relative animate-in fade-in zoom-in duration-200">
             <button
               onClick={() => setIsCreateModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
+              className="absolute top-4 right-4 text-[#8B949E] hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="p-8">
               <h2 className="text-2xl font-bold text-white mb-2">Create New Incident</h2>
-              <p className="text-slate-400 text-sm mb-6">Manually log a threat or security investigation.</p>
+              <p className="text-[#8B949E] text-sm mb-6">Manually log a threat or security investigation.</p>
 
               <form onSubmit={handleCreateIncident} className="space-y-5">
                 <div>
@@ -657,7 +657,7 @@ export default function IncidentReportsPage() {
                     required
                     value={newIncident.title}
                     onChange={(e) => setNewIncident({ ...newIncident, title: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:ring-2 focus:ring-teal-500/50 outline-none transition-all"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:ring-2 focus:ring-teal-500/50 outline-none transition-all"
                     placeholder="e.g. Unusual login from Russia"
                   />
                 </div>
@@ -670,7 +670,7 @@ export default function IncidentReportsPage() {
                     <select
                       value={newIncident.severity}
                       onChange={(e) => setNewIncident({ ...newIncident, severity: e.target.value })}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all cursor-pointer"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all cursor-pointer"
                     >
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
@@ -686,7 +686,7 @@ export default function IncidentReportsPage() {
                     <select
                       value={newIncident.assignee}
                       onChange={(e) => setNewIncident({ ...newIncident, assignee: e.target.value })}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all cursor-pointer"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all cursor-pointer"
                     >
                       <option value="Unassigned">Unassigned</option>
                       {orgUsers.map(u => (
@@ -704,7 +704,7 @@ export default function IncidentReportsPage() {
                     rows={4}
                     value={newIncident.description}
                     onChange={(e) => setNewIncident({ ...newIncident, description: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:ring-2 focus:ring-teal-500/50 outline-none transition-all resize-none"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:ring-2 focus:ring-teal-500/50 outline-none transition-all resize-none"
                     placeholder="Describe the threat or suspicious activity observed..."
                   />
                 </div>
@@ -713,7 +713,7 @@ export default function IncidentReportsPage() {
                   <button
                     type="button"
                     onClick={() => setIsCreateModalOpen(false)}
-                    className="flex-1 px-6 py-3 rounded-xl border border-slate-700 font-semibold text-slate-300 hover:bg-slate-800 transition-all active:scale-95"
+                    className="flex-1 px-6 py-3 rounded-xl border border-white/10 font-semibold text-slate-300 hover:bg-white/10 transition-all active:scale-95"
                   >
                     Cancel
                   </button>
@@ -740,3 +740,4 @@ export default function IncidentReportsPage() {
     </div>
   );
 }
+

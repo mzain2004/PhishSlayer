@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export const metadata = {
   title: "API Docs | Phish-Slayer",
@@ -15,39 +15,39 @@ export default function ApiDocsPage() {
           dashboard.
         </p>
 
-        <section className="bg-[#161B22] border border-[#30363D] rounded-2xl p-6 mb-6">
+        <section className="liquid-glass rounded-2xl p-6 mb-6">
           <h2 className="text-2xl font-semibold mb-4">Endpoint</h2>
           <p className="text-[#8B949E] mb-2">GET /api/v1/scan</p>
           <p className="text-[#8B949E]">POST /api/v1/scan</p>
         </section>
 
-        <section className="bg-[#161B22] border border-[#30363D] rounded-2xl p-6 mb-6">
+        <section className="liquid-glass rounded-2xl p-6 mb-6">
           <h2 className="text-2xl font-semibold mb-4">Authentication</h2>
           <p className="text-[#8B949E] mb-2">
             Send your API key in the header:
           </p>
-          <pre className="bg-[#0D1117] border border-[#30363D] rounded-xl p-4 text-sm overflow-x-auto">
+          <pre className="bg-[#0D1117] border border-white/10 rounded-xl p-4 text-sm overflow-x-auto">
             {`x-api-key: your_api_key_here`}
           </pre>
         </section>
 
-        <section className="bg-[#161B22] border border-[#30363D] rounded-2xl p-6 mb-6">
+        <section className="liquid-glass rounded-2xl p-6 mb-6">
           <h2 className="text-2xl font-semibold mb-4">Request Format</h2>
           <p className="text-[#8B949E] mb-2">GET</p>
-          <pre className="bg-[#0D1117] border border-[#30363D] rounded-xl p-4 text-sm overflow-x-auto mb-4">
+          <pre className="bg-[#0D1117] border border-white/10 rounded-xl p-4 text-sm overflow-x-auto mb-4">
             {`GET /api/v1/scan?target=example.com`}
           </pre>
           <p className="text-[#8B949E] mb-2">POST</p>
-          <pre className="bg-[#0D1117] border border-[#30363D] rounded-xl p-4 text-sm overflow-x-auto">
+          <pre className="bg-[#0D1117] border border-white/10 rounded-xl p-4 text-sm overflow-x-auto">
             {`{
   "target": "example.com"
 }`}
           </pre>
         </section>
 
-        <section className="bg-[#161B22] border border-[#30363D] rounded-2xl p-6 mb-6">
+        <section className="liquid-glass rounded-2xl p-6 mb-6">
           <h2 className="text-2xl font-semibold mb-4">Response Format</h2>
-          <pre className="bg-[#0D1117] border border-[#30363D] rounded-xl p-4 text-sm overflow-x-auto">
+          <pre className="bg-[#0D1117] border border-white/10 rounded-xl p-4 text-sm overflow-x-auto">
             {`{
   "success": true,
   "data": {
@@ -65,7 +65,7 @@ export default function ApiDocsPage() {
           </pre>
         </section>
 
-        <section className="bg-[#161B22] border border-[#30363D] rounded-2xl p-6 mb-10">
+        <section className="liquid-glass rounded-2xl p-6 mb-10">
           <h2 className="text-2xl font-semibold mb-4">Rate Limits</h2>
           <ul className="space-y-2 text-[#8B949E]">
             <li>Recon: API access locked</li>
@@ -84,3 +84,4 @@ export default function ApiDocsPage() {
     </div>
   );
 }
+

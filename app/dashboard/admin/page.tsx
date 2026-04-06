@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useTransition } from "react";
 import { toast } from "sonner";
@@ -125,7 +125,7 @@ export default function UserManagementPage() {
           <Lock className="w-8 h-8 text-red-500" />
         </div>
         <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
-        <p className="text-slate-400 max-w-sm">
+        <p className="text-[#8B949E] max-w-sm">
           You do not have permission to view the User Management page. This area
           is restricted to Super Administrators.
         </p>
@@ -147,11 +147,11 @@ export default function UserManagementPage() {
     super_admin: "bg-red-500/10 text-red-400 border-red-500/20",
     manager: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
     analyst: "bg-teal-500/10 text-teal-400 border-teal-500/20",
-    viewer: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+    viewer: "bg-slate-500/10 text-[#8B949E] border-slate-500/20",
   };
 
   return (
-    <div className="bg-[#0a0f1e] text-white font-sans min-h-screen flex flex-col w-full">
+    <div className="bg-black text-white font-sans min-h-screen flex flex-col w-full">
       <main className="flex-1 px-4 sm:px-8 py-8 w-full max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
@@ -160,7 +160,7 @@ export default function UserManagementPage() {
               <Users className="w-7 h-7 text-teal-400" />
               User Management
             </h1>
-            <p className="text-slate-400 mt-2 text-sm">
+            <p className="text-[#8B949E] mt-2 text-sm">
               Manage organization members, assign roles, and control access.
             </p>
           </div>
@@ -175,52 +175,52 @@ export default function UserManagementPage() {
 
         {/* KPI Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-[#0f1629] border border-slate-800 rounded-xl p-5">
-            <p className="text-sm font-medium text-slate-400">Total Users</p>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+            <p className="text-sm font-medium text-[#8B949E]">Total Users</p>
             <p className="text-3xl font-bold text-white mt-1">{users.length}</p>
           </div>
-          <div className="bg-[#0f1629] border border-slate-800 rounded-xl p-5">
-            <p className="text-sm font-medium text-slate-400">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+            <p className="text-sm font-medium text-[#8B949E]">
               Active Analysts
             </p>
             <p className="text-3xl font-bold text-teal-400 mt-1">
               {activeAnalysts}
             </p>
           </div>
-          <div className="bg-[#0f1629] border border-slate-800 rounded-xl p-5">
-            <p className="text-sm font-medium text-slate-400">Managers</p>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+            <p className="text-sm font-medium text-[#8B949E]">Managers</p>
             <p className="text-3xl font-bold text-indigo-400 mt-1">
               {managers}
             </p>
           </div>
-          <div className="bg-[#0f1629] border border-slate-800 rounded-xl p-5">
-            <p className="text-sm font-medium text-slate-400">Exec Viewers</p>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+            <p className="text-sm font-medium text-[#8B949E]">Exec Viewers</p>
             <p className="text-3xl font-bold text-slate-300 mt-1">{viewers}</p>
           </div>
         </div>
 
         {/* Users Table */}
-        <div className="bg-[#0f1629] border border-slate-800 rounded-xl overflow-hidden">
+        <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-slate-900/50 border-b border-slate-800">
-                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <tr className="bg-white/5 border-b border-white/10">
+                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                     User
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                     Department
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                     Last Active
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">
+                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider text-right">
                     Actions
                   </th>
                 </tr>
@@ -229,11 +229,11 @@ export default function UserManagementPage() {
                 {users.map((u) => (
                   <tr
                     key={u.id}
-                    className={`hover:bg-slate-800/50 transition-colors ${!u.is_active ? "opacity-60 grayscale" : ""}`}
+                    className={`hover:bg-white/10 transition-colors ${!u.is_active ? "opacity-60 grayscale" : ""}`}
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center shrink-0 border border-slate-700">
+                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
                           {u.avatar_url ? (
                             <div
                               className="w-full h-full rounded-full bg-cover bg-center"
@@ -242,7 +242,7 @@ export default function UserManagementPage() {
                               }}
                             />
                           ) : (
-                            <span className="font-bold text-slate-400 text-sm">
+                            <span className="font-bold text-[#8B949E] text-sm">
                               {u.display_name
                                 ? u.display_name.charAt(0).toUpperCase()
                                 : "?"}
@@ -253,7 +253,7 @@ export default function UserManagementPage() {
                           <p className="text-sm font-bold text-white">
                             {u.display_name || "Unknown"}
                           </p>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-[#8B949E]">
                             {u.id.substring(0, 8)}...
                           </p>
                         </div>
@@ -281,7 +281,7 @@ export default function UserManagementPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-slate-300">
-                        {u.department || "—"}
+                        {u.department || "â€”"}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -290,13 +290,13 @@ export default function UserManagementPage() {
                           <CheckCircle2 className="w-3.5 h-3.5" /> Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 bg-slate-800 border border-slate-700 px-2.5 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8B949E] bg-white/10 border border-white/10 px-2.5 py-0.5 rounded-full">
                           <XCircle className="w-3.5 h-3.5" /> Inactive
                         </span>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-500">
+                      <span className="text-sm text-[#8B949E]">
                         {u.last_active
                           ? new Date(u.last_active).toLocaleDateString()
                           : "Never"}
@@ -326,22 +326,22 @@ export default function UserManagementPage() {
       {/* Invite Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#0f1629] rounded-2xl border border-slate-800 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+          <div className="bg-white/5 rounded-2xl border border-white/10 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-teal-400" />
                 Invite New User
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-slate-500 hover:text-slate-300 transition-colors"
+                className="text-[#8B949E] hover:text-slate-300 transition-colors"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
             <div className="p-6 flex flex-col gap-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-400 mb-1">
+                <label className="block text-sm font-semibold text-[#8B949E] mb-1">
                   Email Address
                 </label>
                 <input
@@ -349,17 +349,17 @@ export default function UserManagementPage() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="colleague@company.com"
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-400 mb-1">
+                <label className="block text-sm font-semibold text-[#8B949E] mb-1">
                   Assign Role
                 </label>
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as UserRole)}
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all appearance-none outline-none"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all appearance-none outline-none"
                 >
                   <option value="super_admin">Super Admin</option>
                   <option value="manager">SOC Manager</option>
@@ -368,10 +368,10 @@ export default function UserManagementPage() {
                 </select>
               </div>
             </div>
-            <div className="p-6 bg-slate-900/50 border-t border-slate-800 flex justify-end gap-3">
+            <div className="p-6 bg-white/5 border-t border-white/10 flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white transition-colors"
+                className="px-4 py-2 text-sm font-semibold text-[#8B949E] hover:text-white transition-colors"
               >
                 Cancel
               </button>
@@ -394,3 +394,4 @@ export default function UserManagementPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Shield, Loader2 } from "lucide-react";
@@ -26,7 +26,7 @@ export function Footer() {
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("You're on the list! We'll be in touch. 🚀");
+        toast.success("You're on the list! We'll be in touch. ðŸš€");
         setEmail("");
       } else {
         toast.error(data?.error || "Failed to subscribe. Please try again.");
@@ -49,7 +49,7 @@ export function Footer() {
               PHISH-SLAYER
             </div>
             <p className="text-sm leading-[1.7] mb-6 text-[#8B949E]">
-              Autonomous Blue Team AI — Monitor. Analyze. Neutralize.
+              Autonomous Blue Team AI â€” Monitor. Analyze. Neutralize.
             </p>
             <div className="flex gap-2">
               <input
@@ -57,7 +57,7 @@ export function Footer() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter email for updates"
-                className="bg-[#161B22] border border-[#30363D] rounded-full px-6 py-2.5 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] flex-1 min-w-0 font-mono text-[12px] placeholder:text-[#8B949E]/50 transition-colors"
+                className="liquid-glass rounded-full px-6 py-2.5 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF] flex-1 min-w-0 font-mono text-[12px] placeholder:text-[#8B949E]/50 transition-colors"
               />
               <button
                 onClick={handleSubscribe}
@@ -136,7 +136,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-[#1C2128] flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-          <p>© 2026 Phish-Slayer. All rights reserved.</p>
+          <p>Â© 2026 Phish-Slayer. All rights reserved.</p>
           <p>
             Built by{" "}
             <a
@@ -151,3 +151,4 @@ export function Footer() {
     </footer>
   );
 }
+

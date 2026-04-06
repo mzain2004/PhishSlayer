@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import type { IdentityChain } from "@/lib/microsoft/types";
@@ -285,8 +285,8 @@ export default function IdentityDashboardPage() {
             value={hours}
             onChange={(event) => setHours(Number(event.target.value))}
             style={{
-              background: "#161B22",
-              border: "1px solid #30363D",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
               color: "#E6EDF3",
               padding: "8px 16px",
               borderRadius: "6px",
@@ -321,11 +321,11 @@ export default function IdentityDashboardPage() {
           type="button"
           onClick={() => setActiveTab("chains")}
           style={{
-            border: "1px solid #30363D",
+            border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: "6px",
             padding: "8px 12px",
             cursor: "pointer",
-            background: activeTab === "chains" ? "#2DD4BF" : "#161B22",
+            background: activeTab === "chains" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
             color: activeTab === "chains" ? "#0D1117" : "#E6EDF3",
             fontWeight: 700,
           }}
@@ -336,11 +336,11 @@ export default function IdentityDashboardPage() {
           type="button"
           onClick={() => setActiveTab("anomalies")}
           style={{
-            border: "1px solid #30363D",
+            border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: "6px",
             padding: "8px 12px",
             cursor: "pointer",
-            background: activeTab === "anomalies" ? "#2DD4BF" : "#161B22",
+            background: activeTab === "anomalies" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
             color: activeTab === "anomalies" ? "#0D1117" : "#E6EDF3",
             fontWeight: 700,
           }}
@@ -351,11 +351,11 @@ export default function IdentityDashboardPage() {
           type="button"
           onClick={() => setActiveTab("lifecycle")}
           style={{
-            border: "1px solid #30363D",
+            border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: "6px",
             padding: "8px 12px",
             cursor: "pointer",
-            background: activeTab === "lifecycle" ? "#2DD4BF" : "#161B22",
+            background: activeTab === "lifecycle" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
             color: activeTab === "lifecycle" ? "#0D1117" : "#E6EDF3",
             fontWeight: 700,
           }}
@@ -394,8 +394,8 @@ export default function IdentityDashboardPage() {
             <div
               key={stat.label}
               style={{
-                background: "#161B22",
-                border: "1px solid #30363D",
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
                 borderRadius: "8px",
                 padding: "16px",
               }}
@@ -446,7 +446,7 @@ export default function IdentityDashboardPage() {
             <div
               key={stat.label}
               style={{
-                background: "#161B22",
+                background: "rgba(255,255,255,0.05)",
                 border: `1px solid ${stat.color}`,
                 borderRadius: "8px",
                 padding: "16px",
@@ -506,7 +506,7 @@ export default function IdentityDashboardPage() {
             <div
               key={stat.label}
               style={{
-                background: "#161B22",
+                background: "rgba(255,255,255,0.05)",
                 border: `1px solid ${stat.color}`,
                 borderRadius: "8px",
                 padding: "16px",
@@ -549,8 +549,8 @@ export default function IdentityDashboardPage() {
         chains.length === 0 ? (
           <div
             style={{
-              background: "#161B22",
-              border: "1px solid #30363D",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
               borderRadius: "8px",
               padding: "48px",
               textAlign: "center",
@@ -569,8 +569,8 @@ export default function IdentityDashboardPage() {
               <div
                 key={chain.chainId}
                 style={{
-                  background: "#161B22",
-                  border: `1px solid ${chain.isPartialGraph ? "#E3B341" : "#30363D"}`,
+                  background: "rgba(255,255,255,0.05)",
+                  border: `1px solid ${chain.isPartialGraph ? "#E3B341" : "rgba(255,255,255,0.1)"}`,
                   borderRadius: "8px",
                   padding: "20px",
                 }}
@@ -701,7 +701,7 @@ export default function IdentityDashboardPage() {
                         </div>
                       </div>
                       {index < chain.links.length - 1 ? (
-                        <span style={{ color: "#30363D" }}>-&gt;</span>
+                        <span style={{ color: "rgba(255,255,255,0.1)" }}>-&gt;</span>
                       ) : null}
                     </div>
                   ))}
@@ -731,8 +731,8 @@ export default function IdentityDashboardPage() {
         sortedAnomalies.length === 0 ? (
           <div
             style={{
-              background: "#161B22",
-              border: "1px solid #30363D",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
               borderRadius: "8px",
               padding: "48px",
               textAlign: "center",
@@ -749,8 +749,8 @@ export default function IdentityDashboardPage() {
               <div
                 key={`${anomaly.type}-${anomaly.timestamp}-${index}`}
                 style={{
-                  background: "#161B22",
-                  border: "1px solid #30363D",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
                   borderLeft: `4px solid ${getSeverityColor(anomaly.severity)}`,
                   borderRadius: "8px",
                   padding: "16px",
@@ -809,8 +809,8 @@ export default function IdentityDashboardPage() {
       ) : lifecycleSummaries.length === 0 ? (
         <div
           style={{
-            background: "#161B22",
-            border: "1px solid #30363D",
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: "8px",
             padding: "48px",
             textAlign: "center",
@@ -830,7 +830,7 @@ export default function IdentityDashboardPage() {
               <div
                 key={summaryItem.identityId}
                 style={{
-                  background: "#161B22",
+                  background: "rgba(255,255,255,0.05)",
                   border: `1px solid ${getLifecycleRiskColor(summaryItem.overallRisk)}55`,
                   borderRadius: "8px",
                   padding: "16px",
@@ -863,7 +863,7 @@ export default function IdentityDashboardPage() {
                     </span>
                     <span
                       style={{
-                        border: "1px solid #30363D",
+                        border: "1px solid rgba(255,255,255,0.1)",
                         color: "#8B949E",
                         fontSize: "10px",
                         borderRadius: "4px",
@@ -896,7 +896,7 @@ export default function IdentityDashboardPage() {
                       toggleIdentityExpansion(summaryItem.identityId)
                     }
                     style={{
-                      border: "1px solid #30363D",
+                      border: "1px solid rgba(255,255,255,0.1)",
                       background: "#0D1117",
                       color: "#E6EDF3",
                       borderRadius: "6px",
@@ -954,7 +954,7 @@ export default function IdentityDashboardPage() {
                 {isExpanded ? (
                   <div
                     style={{
-                      borderTop: "1px solid #30363D",
+                      borderTop: "1px solid rgba(255,255,255,0.1)",
                       paddingTop: "12px",
                       display: "flex",
                       flexDirection: "column",
@@ -967,7 +967,7 @@ export default function IdentityDashboardPage() {
                           key={`${summaryItem.identityId}-${eventItem.timestamp}-${eventIndex}`}
                           style={{
                             background: "#0D1117",
-                            border: "1px solid #30363D",
+                            border: "1px solid rgba(255,255,255,0.1)",
                             borderRadius: "6px",
                             padding: "10px 12px",
                           }}
@@ -1023,3 +1023,4 @@ export default function IdentityDashboardPage() {
     </div>
   );
 }
+

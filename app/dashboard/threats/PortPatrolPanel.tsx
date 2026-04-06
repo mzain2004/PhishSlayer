@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import {
@@ -91,7 +91,7 @@ export default function PortPatrolPanel({
       case "medium":
         return "bg-amber-500/10 border-l-4 border-l-amber-500 text-amber-100";
       default:
-        return "bg-slate-800/50 border-l-4 border-l-slate-600 text-slate-300";
+        return "bg-white/10 border-l-4 border-l-slate-600 text-slate-300";
     }
   };
 
@@ -104,7 +104,7 @@ export default function PortPatrolPanel({
       case "medium":
         return "bg-amber-500/10 text-amber-500 border-amber-500/20";
       default:
-        return "bg-slate-500/10 text-slate-400 border-slate-500/20";
+        return "bg-slate-500/10 text-[#8B949E] border-slate-500/20";
     }
   };
 
@@ -113,17 +113,17 @@ export default function PortPatrolPanel({
       case "critical":
         return {
           color: "bg-red-500/10 text-red-500 border-red-500/20",
-          label: "🔴 CRITICAL",
+          label: "ðŸ”´ CRITICAL",
         };
       case "suspicious":
         return {
           color: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-          label: "🟠 SUSPICIOUS",
+          label: "ðŸŸ  SUSPICIOUS",
         };
       default:
         return {
           color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-          label: "🟢 CLEAN",
+          label: "ðŸŸ¢ CLEAN",
         };
     }
   };
@@ -148,10 +148,10 @@ export default function PortPatrolPanel({
               ) : step === i + 1 ? (
                 <Loader2 className="w-4 h-4 text-orange-500 animate-spin shrink-0" />
               ) : (
-                <div className="w-4 h-4 rounded-full border-2 border-slate-700 shrink-0" />
+                <div className="w-4 h-4 rounded-full border-2 border-white/10 shrink-0" />
               )}
               <span
-                className={`text-sm ${step >= i + 1 ? "text-white font-semibold" : "text-slate-400"}`}
+                className={`text-sm ${step >= i + 1 ? "text-white font-semibold" : "text-[#8B949E]"}`}
               >
                 {s.label}
               </span>
@@ -189,8 +189,8 @@ export default function PortPatrolPanel({
         </div>
         <div className="text-center">
           <h3 className="text-lg font-bold text-white">Port Patrol</h3>
-          <p className="text-sm text-slate-400 mt-1 max-w-xs">
-            Active reconnaissance — scans 16 high-risk ports for open services
+          <p className="text-sm text-[#8B949E] mt-1 max-w-xs">
+            Active reconnaissance â€” scans 16 high-risk ports for open services
           </p>
         </div>
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 max-w-sm">
@@ -236,10 +236,10 @@ export default function PortPatrolPanel({
 
       {/* Info cards grid */}
       <div className="grid grid-cols-4 gap-3">
-        <div className="rounded-xl border border-slate-800 bg-[#0f1629] p-3">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
           <div className="flex items-center gap-1.5 mb-1">
-            <Globe className="w-3.5 h-3.5 text-slate-400" />
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <Globe className="w-3.5 h-3.5 text-[#8B949E]" />
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
               Resolved IP
             </p>
           </div>
@@ -247,10 +247,10 @@ export default function PortPatrolPanel({
             {report.resolvedIp}
           </p>
         </div>
-        <div className="rounded-xl border border-slate-800 bg-[#0f1629] p-3">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
           <div className="flex items-center gap-1.5 mb-1">
-            <Timer className="w-3.5 h-3.5 text-slate-400" />
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <Timer className="w-3.5 h-3.5 text-[#8B949E]" />
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
               Duration
             </p>
           </div>
@@ -258,10 +258,10 @@ export default function PortPatrolPanel({
             {(report.scanDurationMs / 1000).toFixed(1)}s
           </p>
         </div>
-        <div className="rounded-xl border border-slate-800 bg-[#0f1629] p-3">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
           <div className="flex items-center gap-1.5 mb-1">
-            <Wifi className="w-3.5 h-3.5 text-slate-400" />
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <Wifi className="w-3.5 h-3.5 text-[#8B949E]" />
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
               Open Ports
             </p>
           </div>
@@ -269,10 +269,10 @@ export default function PortPatrolPanel({
             {report.openPorts.length}
           </p>
         </div>
-        <div className="rounded-xl border border-slate-800 bg-[#0f1629] p-3">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
           <div className="flex items-center gap-1.5 mb-1">
-            <ShieldAlert className="w-3.5 h-3.5 text-slate-400" />
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <ShieldAlert className="w-3.5 h-3.5 text-[#8B949E]" />
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
               Risk
             </p>
           </div>
@@ -286,20 +286,20 @@ export default function PortPatrolPanel({
 
       {/* Open ports table or clean state */}
       {report.openPorts.length > 0 ? (
-        <div className="rounded-xl border border-slate-800 overflow-hidden">
+        <div className="rounded-xl border border-white/10 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-900/50 border-b border-slate-800">
-                <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <tr className="bg-white/5 border-b border-white/10">
+                <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
                   Port
                 </th>
-                <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
                   Service
                 </th>
-                <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
                   Risk
                 </th>
-                <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
                   Description
                 </th>
               </tr>
@@ -320,7 +320,7 @@ export default function PortPatrolPanel({
                       {p.riskLevel}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 text-slate-400 text-xs">
+                  <td className="px-4 py-2.5 text-[#8B949E] text-xs">
                     {p.description}
                   </td>
                 </tr>
@@ -341,12 +341,13 @@ export default function PortPatrolPanel({
       )}
 
       {/* Summary */}
-      <div className="rounded-xl bg-slate-900/50 border border-slate-800 p-4">
+      <div className="rounded-xl bg-white/5 border border-white/10 p-4">
         <p className="text-sm text-slate-300">{report.riskSummary}</p>
-        <p className="text-[10px] text-slate-500 mt-2">
+        <p className="text-[10px] text-[#8B949E] mt-2">
           Scanned at: {new Date(report.scannedAt).toLocaleString()}
         </p>
       </div>
     </div>
   );
 }
+

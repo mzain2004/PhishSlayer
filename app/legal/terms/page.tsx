@@ -1,14 +1,14 @@
-export default function TermsPage() {
+﻿export default function TermsPage() {
   return (
     <main className="min-h-screen bg-[#0d1117]">
-      <div className="border-b border-[#30363d] px-6 py-4">
+      <div className="border-b border-white/10 px-6 py-4">
         <a href="/" className="text-[#2dd4bf] text-sm hover:underline">
-          ← Back to Phish-Slayer
+          â† Back to Phish-Slayer
         </a>
       </div>
       <div className="max-w-4xl mx-auto px-6 py-12">
         <h1 className="text-3xl font-bold text-[#e6edf3] mb-2">Terms of Service</h1>
-        <p className="text-[#8b949e] text-sm mb-10">Last updated: March 19, 2026 · Effective immediately</p>
+        <p className="text-[#8b949e] text-sm mb-10">Last updated: March 19, 2026 Â· Effective immediately</p>
 
         <div className="space-y-8">
           {[
@@ -26,7 +26,7 @@ export default function TermsPage() {
             },
             {
               title: '4. Service Tiers',
-              content: 'The Recon tier is free with usage limits (10 scans/day). SOC Pro and Command & Control tiers are paid subscriptions — currently in waitlist mode pending payment processor approval. Tier limits are enforced technically and may change with notice.'
+              content: 'The Recon tier is free with usage limits (10 scans/day). SOC Pro and Command & Control tiers are paid subscriptions â€” currently in waitlist mode pending payment processor approval. Tier limits are enforced technically and may change with notice.'
             },
             {
               title: '5. Disclaimer of Warranties',
@@ -58,10 +58,10 @@ export default function TermsPage() {
             },
             {
               title: '12. Governing Law',
-              content: 'These terms are governed by the laws of Pakistan. Any disputes shall be resolved through good-faith negotiation. Contact: support@phishslayer.tech — Phish-Slayer / MinionCore, Bahawalpur, Punjab, Pakistan.'
+              content: 'These terms are governed by the laws of Pakistan. Any disputes shall be resolved through good-faith negotiation. Contact: support@phishslayer.tech â€” Phish-Slayer / MinionCore, Bahawalpur, Punjab, Pakistan.'
             },
           ].map((section) => (
-            <div key={section.title} className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
+            <div key={section.title} className="liquid-glass rounded-xl p-6">
               <h2 className="text-[#e6edf3] font-semibold text-base mb-3">{section.title}</h2>
               <p className="text-[#8b949e] text-sm leading-relaxed">{section.content}</p>
             </div>
@@ -71,3 +71,4 @@ export default function TermsPage() {
     </main>
   )
 }
+

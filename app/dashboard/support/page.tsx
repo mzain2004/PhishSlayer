@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -61,7 +61,7 @@ const FAQS = [
   },
   {
     q: "Is my threat data secure?",
-    a: "Yes. All data is protected by Supabase Row Level Security (RLS) — users can only access their own organization's data. API routes use timing-safe authentication, inputs are sanitized with Zod validation, and no secrets are ever exposed to the client.",
+    a: "Yes. All data is protected by Supabase Row Level Security (RLS) â€” users can only access their own organization's data. API routes use timing-safe authentication, inputs are sanitized with Zod validation, and no secrets are ever exposed to the client.",
   },
   {
     q: "How does the Takedown Generator work?",
@@ -219,7 +219,7 @@ export default function SupportPage() {
           <Headset className="w-8 h-8 text-teal-400" />
           Support Center
         </h1>
-        <p className="text-slate-400 mt-2 text-sm">
+        <p className="text-[#8B949E] mt-2 text-sm">
           Everything you need to get the most out of Phish-Slayer
         </p>
       </div>
@@ -228,7 +228,7 @@ export default function SupportPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <a
           href="mailto:support@phishslayer.tech"
-          className="bg-[#0f1629] border border-slate-800 rounded-xl p-6 hover:border-teal-500/50 transition-colors cursor-pointer block group"
+          className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-teal-500/50 transition-colors cursor-pointer block group"
         >
           <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center mb-4 group-hover:bg-teal-500/20 transition-colors">
             <Mail className="w-5 h-5 text-teal-400" />
@@ -236,7 +236,7 @@ export default function SupportPage() {
           <h3 className="text-white font-semibold flex items-center gap-2">
             Email Support
           </h3>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-[#8B949E] text-sm mt-1">
             support@phishslayer.tech
           </p>
         </a>
@@ -244,23 +244,23 @@ export default function SupportPage() {
           href="https://discord.com/invite/phishslayer"
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-[#0f1629] border border-slate-800 rounded-xl p-6 hover:border-[#5865F2]/50 transition-colors cursor-pointer block group"
+          className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-[#5865F2]/50 transition-colors cursor-pointer block group"
         >
           <div className="w-10 h-10 rounded-lg bg-[#5865F2]/10 flex items-center justify-center mb-4 group-hover:bg-[#5865F2]/20 transition-colors">
             <MessageSquare className="w-5 h-5 text-[#5865F2]" />
           </div>
           <h3 className="text-white font-semibold">Community Discord</h3>
-          <p className="text-slate-400 text-sm mt-1">Join the conversation</p>
+          <p className="text-[#8B949E] text-sm mt-1">Join the conversation</p>
         </a>
         <Link
           href="/dashboard/intel"
-          className="bg-[#0f1629] border border-slate-800 rounded-xl p-6 hover:border-indigo-500/50 transition-colors cursor-pointer block group"
+          className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-indigo-500/50 transition-colors cursor-pointer block group"
         >
           <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4 group-hover:bg-indigo-500/20 transition-colors">
             <BookOpen className="w-5 h-5 text-indigo-400" />
           </div>
           <h3 className="text-white font-semibold">Documentation</h3>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-[#8B949E] text-sm mt-1">
             Read the technical guides
           </p>
         </Link>
@@ -269,12 +269,12 @@ export default function SupportPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
         {/* Ticket Form */}
         <div className="xl:col-span-2">
-          <div className="bg-[#0f1629] border border-slate-800 rounded-xl p-6">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-white tracking-tight">
                 Submit a Support Ticket
               </h2>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-[#8B949E] mt-1">
                 Can't find what you're looking for? Send us a message.
               </p>
             </div>
@@ -282,7 +282,7 @@ export default function SupportPage() {
             <form onSubmit={handleSubmitTicket} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-400">
+                  <label className="text-sm font-medium text-[#8B949E]">
                     Subject
                   </label>
                   <input
@@ -290,19 +290,19 @@ export default function SupportPage() {
                     required
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none"
                     placeholder="Brief description of the issue"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-400">
+                  <label className="text-sm font-medium text-[#8B949E]">
                     Category
                   </label>
                   <div className="relative">
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
                     >
                       <option>General Question</option>
                       <option>Bug Report</option>
@@ -311,32 +311,32 @@ export default function SupportPage() {
                       <option>Security Concern</option>
                       <option>API Support</option>
                     </select>
-                    <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <ChevronDown className="w-4 h-4 text-[#8B949E] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1.5 inline-block w-full md:w-1/2 md:pr-2.5">
-                <label className="text-sm font-medium text-slate-400">
+                <label className="text-sm font-medium text-[#8B949E]">
                   Priority
                 </label>
                 <div className="relative">
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
                   >
                     <option>Low</option>
                     <option>Medium</option>
                     <option>High</option>
                     <option>Critical</option>
                   </select>
-                  <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <ChevronDown className="w-4 h-4 text-[#8B949E] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-400">
+                <label className="text-sm font-medium text-[#8B949E]">
                   Message
                 </label>
                 <textarea
@@ -344,12 +344,12 @@ export default function SupportPage() {
                   rows={6}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-700 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none resize-none"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none resize-none"
                   placeholder="Please describe your issue in detail..."
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-800">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/10">
                 <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                   <input
                     ref={fileInputRef}
@@ -361,7 +361,7 @@ export default function SupportPage() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-700 text-slate-300 text-sm hover:border-slate-500 hover:text-white transition-colors"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-white/10 text-slate-300 text-sm hover:border-slate-500 hover:text-white transition-colors"
                   >
                     <Paperclip className="w-4 h-4" />
                     {attachedFile ? attachedFile.name : "Attach File (Max 5MB)"}
@@ -370,7 +370,7 @@ export default function SupportPage() {
                     <button
                       type="button"
                       onClick={() => setAttachedFile(null)}
-                      className="text-slate-500 hover:text-red-400 transition-colors ml-1"
+                      className="text-[#8B949E] hover:text-red-400 transition-colors ml-1"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -391,7 +391,7 @@ export default function SupportPage() {
 
         {/* System Status Sidebar */}
         <div className="flex flex-col gap-6">
-          <div className="bg-[#0f1629] border border-slate-800 rounded-xl p-6">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 System Status
@@ -409,7 +409,7 @@ export default function SupportPage() {
               {SYSTEM_STATUS.map((sys, idx) => (
                 <div
                   key={idx}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-900/50 rounded-lg border border-slate-800/50"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white/5 rounded-lg border border-white/10"
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500"></div>
@@ -424,8 +424,8 @@ export default function SupportPage() {
               ))}
             </div>
 
-            <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between">
-              <span className="text-xs text-slate-500">
+            <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+              <span className="text-xs text-[#8B949E]">
                 Last checked: {currentTime}
               </span>
               <button className="text-xs font-semibold text-teal-400 hover:text-teal-300">
@@ -447,21 +447,21 @@ export default function SupportPage() {
             return (
               <div
                 key={idx}
-                className="bg-[#0f1629] border border-slate-800 rounded-xl overflow-hidden transition-all duration-200"
+                className="bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-200"
               >
                 <button
                   onClick={() => toggleFaq(idx)}
-                  className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-800/30 transition-colors"
+                  className="w-full flex items-center justify-between p-4 text-left hover:bg-white/10 transition-colors"
                 >
                   <span className="text-white font-medium pr-4">{faq.q}</span>
                   <ChevronDown
-                    className={`w-5 h-5 text-slate-400 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+                    className={`w-5 h-5 text-[#8B949E] shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
                   />
                 </button>
                 <div
                   className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"}`}
                 >
-                  <div className="px-4 pb-4 text-slate-400 text-sm leading-relaxed">
+                  <div className="px-4 pb-4 text-[#8B949E] text-sm leading-relaxed">
                     {faq.a}
                   </div>
                 </div>
@@ -478,7 +478,7 @@ export default function SupportPage() {
             <h3 className="text-xl font-bold text-white tracking-tight">
               Need priority support?
             </h3>
-            <p className="text-slate-400 text-sm mt-1">
+            <p className="text-[#8B949E] text-sm mt-1">
               Enterprise plan includes a dedicated account manager and
               guaranteed response times.
             </p>
@@ -495,3 +495,4 @@ export default function SupportPage() {
     </div>
   );
 }
+

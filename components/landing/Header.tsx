@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -23,7 +23,7 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
     <nav
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-[#0D1117]/90 backdrop-blur-xl border-b border-[#30363D]"
+          ? "bg-[#0D1117]/90 backdrop-blur-xl border-b border-white/10"
           : "bg-transparent border-b border-transparent"
       }`}
     >
@@ -68,7 +68,7 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
             <>
               <Link
                 href="/auth/login"
-                className="text-[#8B949E] hover:text-[#E6EDF3] text-sm font-medium transition-colors border border-transparent hover:border-[#30363D] px-6 py-2 rounded-full"
+                className="text-[#8B949E] hover:text-[#E6EDF3] text-sm font-medium transition-colors border border-transparent hover:border-white/10 px-6 py-2 rounded-full"
               >
                 Sign In
               </Link>
@@ -98,7 +98,7 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden bg-[#0D1117]/95 backdrop-blur-xl border-t border-[#30363D] px-6 pb-6 space-y-3 overflow-hidden"
+            className="md:hidden bg-[#0D1117]/95 backdrop-blur-xl border-t border-white/10 px-6 pb-6 space-y-3 overflow-hidden"
           >
             <Link href="/#features" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2">Features</Link>
             <Link href="/#how-it-works" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2">How It Works</Link>
@@ -116,7 +116,7 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
               </Link>
             ) : (
               <>
-                <Link href="/auth/login" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2 text-center border border-[#30363D] rounded-full mt-2">
+                <Link href="/auth/login" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2 text-center border border-white/10 rounded-full mt-2">
                   Sign In
                 </Link>
                 <Link
@@ -134,3 +134,4 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
     </nav>
   );
 }
+

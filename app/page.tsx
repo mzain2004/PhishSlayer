@@ -46,8 +46,13 @@ import {
   useTransform,
 } from "framer-motion";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { createClient } from "@/utils/supabase/client";
-import GlobalSupportWidget from "@/components/GlobalSupportWidget";
+
+const GlobalSupportWidget = dynamic(
+  () => import("@/components/GlobalSupportWidget"),
+  { ssr: false },
+);
 
 const glassCard =
   "bg-white/5 backdrop-blur-3xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl";
@@ -592,31 +597,8 @@ export default function Home() {
     <main className="relative min-h-screen overflow-hidden flex flex-col items-center">
       {/* Background Gradients */}
       <div className="fixed inset-0 z-[-1] pointer-events-none">
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.6, 0.8, 0.6],
-            x: [0, 20, 0],
-            y: [0, -20, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#A78BFA] opacity-20 blur-[150px]"
-        ></motion.div>
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.6, 0.8, 0.6],
-            x: [0, -20, 0],
-            y: [0, 20, 0],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-          className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#2DD4BF] opacity-20 blur-[150px]"
-        ></motion.div>
+        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#A78BFA] opacity-20 blur-[150px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#2DD4BF] opacity-20 blur-[150px]" />
         <div className="absolute top-[30%] left-[50%] w-[40vw] h-[40vw] rounded-full bg-[#A78BFA] opacity-10 blur-[150px]"></div>
       </div>
 
@@ -688,7 +670,7 @@ export default function Home() {
         <div
           className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 ${glassCard}`}
         >
-          <span className="w-2 h-2 rounded-full bg-[#A78BFA] animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-[#A78BFA]"></span>
           <span className="text-sm font-medium text-white/80">
             AI Threat Detection Active
           </span>
@@ -986,8 +968,8 @@ export default function Home() {
 
             {/* Abstract Network Graph Mock */}
             <div className="relative w-full h-full flex items-center justify-center opacity-80">
-              <div className="absolute w-64 h-64 rounded-full border border-[#A78BFA]/30 animate-[spin_60s_linear_infinite]"></div>
-              <div className="absolute w-96 h-96 rounded-full border border-[#2DD4BF]/20 animate-[spin_40s_linear_infinite_reverse]"></div>
+              <div className="absolute w-64 h-64 rounded-full border border-[#A78BFA]/30"></div>
+              <div className="absolute w-96 h-96 rounded-full border border-[#2DD4BF]/20"></div>
               <div className="absolute w-32 h-32 rounded-full bg-[#A78BFA]/10 blur-xl"></div>
               <Network className="w-16 h-16 text-[#2DD4BF] relative z-10" />
 
@@ -1002,7 +984,7 @@ export default function Home() {
                   }}
                 >
                   {i % 3 === 0 && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#A78BFA]/40 animate-ping"></div>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#A78BFA]/40"></div>
                   )}
                 </div>
               ))}

@@ -41,6 +41,14 @@ type ScanRecord = {
 
 const ITEMS_PER_PAGE = 15;
 
+const cardHover = {
+  whileHover: {
+    y: -3,
+    boxShadow: "0 18px 38px rgba(15, 23, 42, 0.45)",
+  },
+  transition: { type: "spring" as const, stiffness: 250, damping: 24 },
+};
+
 function verdictBadge(verdict?: string) {
   const v = verdict?.toLowerCase() || "";
   if (v === "malicious") return "bg-red-500/10 text-red-400 border-red-500/20";
@@ -157,7 +165,7 @@ function ScanManagerContent() {
   return (
     <div className="bg-black font-sans text-slate-100 antialiased min-h-screen flex flex-col w-full">
       <main className="flex-1 px-4 sm:px-8 py-8 w-full max-w-5xl mx-auto flex flex-col gap-10">
-        <section className="rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-2 backdrop-blur-[8px]">
+        <section className="rounded-[12px] border border-[rgba(45,212,191,0.18)] [background:linear-gradient(180deg,rgba(45,212,191,0.06),rgba(255,255,255,0.03))] p-2 backdrop-blur-[8px]">
           <div className="grid grid-cols-2 gap-2">
             <motion.button
               onClick={() => setActiveTab("scanner")}
@@ -189,7 +197,10 @@ function ScanManagerContent() {
         {activeTab === "scanner" ? (
           <>
             {/* Hero Scanner Section */}
-            <section className="relative bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+            <motion.section
+              {...cardHover}
+              className="relative rounded-2xl border border-[rgba(45,212,191,0.18)] bg-[linear-gradient(155deg,rgba(8,47,73,0.35),rgba(15,23,42,0.7))] overflow-hidden"
+            >
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-20 -right-20 w-80 h-80 bg-teal-900/20 rounded-full blur-3xl opacity-60"></div>
                 <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-indigo-900/20 rounded-full blur-3xl opacity-40"></div>
@@ -236,7 +247,10 @@ function ScanManagerContent() {
                     <motion.button
                       onClick={handleScan}
                       disabled={isPending || !target.trim()}
-                      whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(45,212,191,0.4)" }}
+                      whileHover={{
+                        scale: 1.03,
+                        boxShadow: "0 0 20px rgba(45,212,191,0.4)",
+                      }}
                       whileTap={{ scale: 0.96 }}
                       className="flex min-w-[160px] items-center justify-center gap-2 whitespace-nowrap rounded-full px-5 py-2 text-base font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -264,7 +278,7 @@ function ScanManagerContent() {
                   </p>
                 )}
               </div>
-            </section>
+            </motion.section>
 
             {/* Toolbar & Filters */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -331,7 +345,10 @@ function ScanManagerContent() {
                   </p>
                 </div>
               ) : (
-                <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
+                <motion.div
+                  {...cardHover}
+                  className="rounded-xl border border-[rgba(45,212,191,0.14)] bg-[rgba(15,23,42,0.58)] overflow-hidden flex flex-col"
+                >
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
@@ -477,7 +494,9 @@ function ScanManagerContent() {
                         <motion.button
                           onClick={() => setPage((p) => Math.max(0, p - 1))}
                           disabled={page === 0}
-                          whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
+                          whileHover={{
+                            backgroundColor: "rgba(255,255,255,0.14)",
+                          }}
                           whileTap={{ scale: 0.96 }}
                           className="rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-[#8B949E] [transition:all_0.2s_ease] disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -491,7 +510,9 @@ function ScanManagerContent() {
                             setPage((p) => Math.min(totalPages - 1, p + 1))
                           }
                           disabled={page >= totalPages - 1}
-                          whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
+                          whileHover={{
+                            backgroundColor: "rgba(255,255,255,0.14)",
+                          }}
                           whileTap={{ scale: 0.96 }}
                           className="rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-[#8B949E] [transition:all_0.2s_ease] disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -500,12 +521,15 @@ function ScanManagerContent() {
                       </div>
                     </div>
                   )}
-                </div>
+                </motion.div>
               )}
             </section>
           </>
         ) : (
-          <section className="rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]">
+          <motion.section
+            {...cardHover}
+            className="rounded-[12px] border border-[rgba(45,212,191,0.16)] [background:linear-gradient(145deg,rgba(15,23,42,0.72),rgba(15,118,110,0.2))] p-6 backdrop-blur-[8px]"
+          >
             <div className="mb-6 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2DD4BF]/20 text-[#2DD4BF]">
                 <FlaskConical className="h-5 w-5" />
@@ -522,7 +546,10 @@ function ScanManagerContent() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <div className="rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-5 backdrop-blur-[8px]">
+              <motion.div
+                {...cardHover}
+                className="rounded-[12px] border border-[rgba(45,212,191,0.16)] [background:rgba(255,255,255,0.04)] p-5 backdrop-blur-[8px]"
+              >
                 <h3 className="mb-2 text-lg font-semibold text-[#E6EDF3]">
                   Current Target
                 </h3>
@@ -535,15 +562,21 @@ function ScanManagerContent() {
                 </p>
                 <motion.button
                   onClick={() => router.push("/dashboard/threats")}
-                  whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(45,212,191,0.4)" }}
+                  whileHover={{
+                    scale: 1.03,
+                    boxShadow: "0 0 20px rgba(45,212,191,0.4)",
+                  }}
                   whileTap={{ scale: 0.96 }}
                   className="mt-4 rounded-full px-5 py-2 text-sm font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)]"
                 >
                   Open Deep Analysis
                 </motion.button>
-              </div>
+              </motion.div>
 
-              <div className="rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-3 backdrop-blur-[8px]">
+              <motion.div
+                {...cardHover}
+                className="rounded-[12px] border border-[rgba(45,212,191,0.16)] [background:rgba(255,255,255,0.04)] p-3 backdrop-blur-[8px]"
+              >
                 {latestScan?.target ? (
                   <iframe
                     src={`https://image.thum.io/get/width/1200/crop/800/https://${latestScan.target}`}
@@ -555,9 +588,9 @@ function ScanManagerContent() {
                     Run a threat scan first to generate sandbox preview data.
                   </div>
                 )}
-              </div>
+              </motion.div>
             </div>
-          </section>
+          </motion.section>
         )}
       </main>
     </div>

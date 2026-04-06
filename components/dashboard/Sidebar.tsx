@@ -122,7 +122,9 @@ export default function Sidebar() {
               : (user.email ?? "Authenticated user"),
         email: user.email ?? "authenticated@phish-slayer.local",
         avatarUrl:
-          typeof profileRow?.avatar_url === "string" ? profileRow.avatar_url : "",
+          typeof profileRow?.avatar_url === "string"
+            ? profileRow.avatar_url
+            : "",
       });
     };
 

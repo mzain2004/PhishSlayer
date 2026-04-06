@@ -201,7 +201,10 @@ export default function SettingsClient({
         <motion.button
           onClick={saveProfile}
           disabled={isPending}
-          whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(45,212,191,0.4)" }}
+          whileHover={{
+            scale: 1.03,
+            boxShadow: "0 0 20px rgba(45,212,191,0.4)",
+          }}
           whileTap={{ scale: 0.96 }}
           className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] text-sm font-semibold text-black disabled:opacity-60"
         >
@@ -266,7 +269,10 @@ export default function SettingsClient({
         <motion.button
           onClick={regenerateApiKey}
           disabled={isPending}
-          whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(45,212,191,0.4)" }}
+          whileHover={{
+            scale: 1.03,
+            boxShadow: "0 0 20px rgba(45,212,191,0.4)",
+          }}
           whileTap={{ scale: 0.96 }}
           className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] text-sm font-semibold text-black disabled:opacity-60"
         >

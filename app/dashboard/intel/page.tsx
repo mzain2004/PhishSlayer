@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   Trash2,
@@ -22,6 +23,14 @@ import { useRole } from "@/lib/rbac/useRole";
 import { canManageIntelVault } from "@/lib/rbac/roles";
 import { useTier } from "@/hooks/useTier";
 import { UpgradeBanner } from "@/components/ui/UpgradeBanner";
+
+const cardHover = {
+  whileHover: {
+    y: -3,
+    boxShadow: "0 20px 40px rgba(15, 23, 42, 0.45)",
+  },
+  transition: { type: "spring" as const, stiffness: 260, damping: 24 },
+};
 
 /* â”€â”€ Severity Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function SeverityBadge({ severity }: { severity: string }) {
@@ -104,7 +113,10 @@ export default function IntelVaultPage() {
   if (!limits.canUseIntelVault && !isSuperAdmin) {
     return (
       <div className="text-white font-sans min-h-screen pt-20">
-        <UpgradeBanner feature="Proprietary Intel Vault" requiredTier="Command & Control" />
+        <UpgradeBanner
+          feature="Proprietary Intel Vault"
+          requiredTier="Command & Control"
+        />
       </div>
     );
   }
@@ -167,9 +179,10 @@ export default function IntelVaultPage() {
               color: "text-orange-400 bg-orange-500/10 border-orange-500/20",
             },
           ].map((kpi) => (
-            <div
+            <motion.div
+              {...cardHover}
               key={kpi.label}
-              className={`rounded-xl border bg-white/5 border-white/10 p-4 flex items-center gap-4 ${kpi.color} transition-shadow hover:shadow-md`}
+              className={`rounded-xl border bg-[linear-gradient(165deg,rgba(15,23,42,0.7),rgba(15,118,110,0.18))] border-[rgba(45,212,191,0.16)] p-4 flex items-center gap-4 ${kpi.color}`}
             >
               <kpi.icon className="w-6 h-6 shrink-0 opacity-80" />
               <div>
@@ -178,13 +191,16 @@ export default function IntelVaultPage() {
                   {kpi.label}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
         <div className="flex flex-col xl:flex-row gap-8 items-start">
           {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Whitelist Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-          <div className="w-full xl:w-[380px] xl:min-w-[340px] bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
+          <motion.div
+            {...cardHover}
+            className="w-full xl:w-[380px] xl:min-w-[340px] bg-[rgba(15,23,42,0.55)] rounded-xl border border-[rgba(45,212,191,0.16)] overflow-hidden flex flex-col"
+          >
             {/* Header */}
             <div className="px-5 py-4 border-b border-white/10 flex items-center gap-2">
               <ListPlus className="w-5 h-5 text-teal-400" />
@@ -251,10 +267,13 @@ export default function IntelVaultPage() {
                 ))}
               </ul>
             )}
-          </div>
+          </motion.div>
 
           {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Intel Vault Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-          <div className="flex-1 w-full bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
+          <motion.div
+            {...cardHover}
+            className="flex-1 w-full bg-[rgba(15,23,42,0.55)] rounded-xl border border-[rgba(45,212,191,0.16)] overflow-hidden flex flex-col"
+          >
             {/* Header */}
             <div className="px-5 py-4 border-b border-white/10 flex items-center gap-2">
               <Database className="w-5 h-5 text-teal-400" />
@@ -348,11 +367,14 @@ export default function IntelVaultPage() {
                 ))}
               </ul>
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ API Documentation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <div className="mt-10 bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+        <motion.div
+          {...cardHover}
+          className="mt-10 bg-[rgba(15,23,42,0.58)] rounded-xl border border-[rgba(45,212,191,0.16)] overflow-hidden"
+        >
           <div className="px-5 py-4 border-b border-white/10 bg-white/5 flex items-center gap-3">
             <Code className="w-5 h-5 text-teal-400" />
             <h2 className="text-base font-semibold text-white">
@@ -457,9 +479,8 @@ export default function IntelVaultPage() {
               </pre>
             </div>
           </div>
-        </div>
+        </motion.div>
       </main>
     </div>
   );
 }
-

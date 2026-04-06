@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useTransition, useMemo } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   Shield,
@@ -34,6 +35,14 @@ import type { EndpointEvent, EndpointStats } from "@/lib/supabase/agentQueries";
 
 const ROWS_PER_PAGE = 20;
 const BAR_COLORS = ["#0d9488", "#0ea5e9", "#f97316", "#ef4444", "#8b5cf6"];
+
+const cardHover = {
+  whileHover: {
+    y: -3,
+    boxShadow: "0 18px 38px rgba(15, 23, 42, 0.45)",
+  },
+  transition: { type: "spring" as const, stiffness: 260, damping: 24 },
+};
 
 function countryFlag(code: string | null): string {
   if (!code || code.length !== 2) return "ðŸŒ";
@@ -270,7 +279,10 @@ export default function AgentDashboardPage() {
 
         {/* KPI Strip */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="flex flex-col gap-1 rounded-xl bg-white/5 p-5 shadow-sm border border-white/10">
+          <motion.div
+            {...cardHover}
+            className="flex flex-col gap-1 rounded-xl bg-[linear-gradient(165deg,rgba(15,23,42,0.75),rgba(15,118,110,0.18))] p-5 shadow-sm border border-[rgba(45,212,191,0.16)]"
+          >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">Total Events</p>
               <Shield className="text-teal-400 w-5 h-5" />
@@ -278,8 +290,11 @@ export default function AgentDashboardPage() {
             <p className="text-3xl font-bold text-white mt-2">
               {stats?.total ?? 0}
             </p>
-          </div>
-          <div className="flex flex-col gap-1 rounded-xl bg-white/5 p-5 shadow-sm border border-white/10">
+          </motion.div>
+          <motion.div
+            {...cardHover}
+            className="flex flex-col gap-1 rounded-xl bg-[linear-gradient(165deg,rgba(15,23,42,0.75),rgba(127,29,29,0.2))] p-5 shadow-sm border border-[rgba(248,113,113,0.22)]"
+          >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">
                 Critical / High
@@ -289,8 +304,11 @@ export default function AgentDashboardPage() {
             <p className="text-3xl font-bold text-red-500 mt-2">
               {(stats?.critical ?? 0) + (stats?.high ?? 0)}
             </p>
-          </div>
-          <div className="flex flex-col gap-1 rounded-xl bg-white/5 p-5 shadow-sm border border-white/10">
+          </motion.div>
+          <motion.div
+            {...cardHover}
+            className="flex flex-col gap-1 rounded-xl bg-[linear-gradient(165deg,rgba(15,23,42,0.75),rgba(30,58,138,0.2))] p-5 shadow-sm border border-[rgba(56,189,248,0.2)]"
+          >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">Unique IPs</p>
               <Globe className="text-blue-400 w-5 h-5" />
@@ -298,8 +316,11 @@ export default function AgentDashboardPage() {
             <p className="text-3xl font-bold text-white mt-2">
               {stats?.uniqueIps ?? 0}
             </p>
-          </div>
-          <div className="flex flex-col gap-1 rounded-xl bg-white/5 p-5 shadow-sm border border-white/10">
+          </motion.div>
+          <motion.div
+            {...cardHover}
+            className="flex flex-col gap-1 rounded-xl bg-[linear-gradient(165deg,rgba(15,23,42,0.75),rgba(124,45,18,0.2))] p-5 shadow-sm border border-[rgba(251,146,60,0.24)]"
+          >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">
                 Processes Flagged
@@ -309,13 +330,16 @@ export default function AgentDashboardPage() {
             <p className="text-3xl font-bold text-white mt-2">
               {stats?.topProcesses?.length ?? 0}
             </p>
-          </div>
+          </motion.div>
         </div>
 
         {/* Charts + Beaconing */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Bar Chart */}
-          <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-xl p-6 shadow-sm">
+          <motion.div
+            {...cardHover}
+            className="lg:col-span-2 bg-[rgba(15,23,42,0.6)] border border-[rgba(45,212,191,0.16)] rounded-xl p-6 shadow-sm"
+          >
             <div className="flex items-center gap-2 mb-4">
               <Activity className="w-5 h-5 text-teal-400" />
               <h3 className="text-sm font-bold text-white uppercase tracking-wide">
@@ -372,10 +396,13 @@ export default function AgentDashboardPage() {
                 </BarChart>
               </ResponsiveContainer>
             )}
-          </div>
+          </motion.div>
 
           {/* Beaconing Alert */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-sm flex flex-col">
+          <motion.div
+            {...cardHover}
+            className="bg-[rgba(15,23,42,0.6)] border border-[rgba(248,113,113,0.16)] rounded-xl p-6 shadow-sm flex flex-col"
+          >
             <div className="flex items-center gap-2 mb-4">
               <AlertTriangle className="w-5 h-5 text-orange-500" />
               <h3 className="text-sm font-bold text-white uppercase tracking-wide">
@@ -417,11 +444,14 @@ export default function AgentDashboardPage() {
                 </ul>
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* Events Table */}
-        <div className="rounded-xl bg-white/5 shadow-sm border border-white/10 overflow-hidden mb-8">
+        <motion.div
+          {...cardHover}
+          className="rounded-xl bg-[rgba(15,23,42,0.58)] shadow-sm border border-[rgba(45,212,191,0.14)] overflow-hidden mb-8"
+        >
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -558,7 +588,7 @@ export default function AgentDashboardPage() {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Agent Configuration */}
         <div className="rounded-xl bg-white/5 border border-white/10 overflow-hidden shadow-sm">
@@ -621,4 +651,3 @@ WHERE pos.remote_address != ''
     </div>
   );
 }
-

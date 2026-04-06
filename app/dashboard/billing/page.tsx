@@ -75,6 +75,14 @@ export default function BillingPage() {
 
   const [isPortalLoading, setIsPortalLoading] = useState(false);
 
+  const cardHover = {
+    whileHover: {
+      y: -3,
+      boxShadow: "0 18px 36px rgba(15, 23, 42, 0.42)",
+    },
+    transition: { type: "spring" as const, stiffness: 260, damping: 24 },
+  };
+
   const handleManageSubscription = async () => {
     if (!isPaid) {
       toast.info("No active subscription", {
@@ -126,7 +134,7 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
+    <div className="px-6 py-5 space-y-5 max-w-7xl mx-auto w-full">
       {/* Header */}
       <div>
         <h1 className="text-[#e6edf3] text-2xl font-semibold tracking-tight">
@@ -138,12 +146,15 @@ export default function BillingPage() {
       </div>
 
       {/* Plan Card */}
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 relative overflow-hidden">
+      <motion.div
+        {...cardHover}
+        className="bg-[rgba(15,23,42,0.62)] backdrop-blur-md border border-[rgba(45,212,191,0.18)] rounded-2xl p-5 relative overflow-hidden"
+      >
         {isPaid && (
           <div className="h-px w-full bg-gradient-to-r from-teal-500/60 via-teal-500/20 to-transparent mb-6 -mt-6 -mx-6 px-0 rounded-t-2xl" />
         )}
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <Shield className="w-5 h-5 text-teal-400" />
@@ -184,14 +195,14 @@ export default function BillingPage() {
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 border-t border-white/10 pt-6 gap-6">
-          <div>
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-3 border-t border-white/10 pt-4 gap-3">
+          <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Current Tier
             </p>
             <p className="text-[#e6edf3] text-sm font-semibold">{plan.name}</p>
           </div>
-          <div className="md:border-l border-white/10 md:pl-6">
+          <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Billing
             </p>
@@ -199,7 +210,7 @@ export default function BillingPage() {
               {isPaid ? "Monthly via Paddle" : "Free"}
             </p>
           </div>
-          <div className="md:border-l border-white/10 md:pl-6">
+          <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Monthly Amount
             </p>
@@ -208,10 +219,10 @@ export default function BillingPage() {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {!billingCustomerId && (
-        <div className="liquid-glass rounded-2xl p-6">
+        <motion.div {...cardHover} className="liquid-glass rounded-2xl p-5">
           <h3 className="text-[#E6EDF3] text-lg font-semibold">
             No Active Subscription
           </h3>
@@ -220,22 +231,25 @@ export default function BillingPage() {
           </p>
           <motion.button
             onClick={() => router.push("/pricing")}
-            whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(45,212,191,0.4)" }}
+            whileHover={{
+              scale: 1.03,
+              boxShadow: "0 0 20px rgba(45,212,191,0.4)",
+            }}
             whileTap={{ scale: 0.96 }}
             className="rounded-full px-5 py-2 text-sm font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)]"
           >
             Upgrade Your Plan
           </motion.button>
-        </div>
+        </motion.div>
       )}
 
       {/* Usage Section */}
-      <div className="liquid-glass rounded-xl p-6">
+      <motion.div {...cardHover} className="liquid-glass rounded-xl p-5">
         <h3 className="text-[#e6edf3] text-sm font-semibold mb-6">
           Plan Limits
         </h3>
-        <div className="space-y-6">
-          <div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="rounded-lg border border-white/10 bg-black/20 p-3">
             <div className="flex justify-between text-xs font-medium mb-2">
               <span className="text-[#8b949e]">Daily Scans</span>
               <span className="text-[#e6edf3]">
@@ -254,7 +268,7 @@ export default function BillingPage() {
             </div>
           </div>
 
-          <div>
+          <div className="rounded-lg border border-white/10 bg-black/20 p-3">
             <div className="flex justify-between text-xs font-medium mb-2">
               <span className="text-[#8b949e]">Fleet Agent Slots</span>
               <span className="text-[#e6edf3]">
@@ -273,7 +287,7 @@ export default function BillingPage() {
             </div>
           </div>
 
-          <div>
+          <div className="rounded-lg border border-white/10 bg-black/20 p-3">
             <div className="flex justify-between text-xs font-medium mb-2">
               <span className="text-[#8b949e]">API Access</span>
               <span className="text-[#e6edf3]">
@@ -292,10 +306,13 @@ export default function BillingPage() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Invoice History */}
-      <div className="liquid-glass rounded-xl overflow-hidden">
+      <motion.div
+        {...cardHover}
+        className="liquid-glass rounded-xl overflow-hidden"
+      >
         <div className="bg-[#1c2128] border-b border-white/10 px-5 py-3">
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-[#6e7681]" />
@@ -338,8 +355,7 @@ export default function BillingPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
-

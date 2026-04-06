@@ -11,16 +11,13 @@ import {
   Database,
   FileText,
   LayoutDashboard,
+  Link as LinkIcon,
   Menu,
   Monitor,
-  Radar,
   ScanLine,
   Settings,
   Shield,
-  ShieldCheck,
   Terminal,
-  User,
-  Users,
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -34,26 +31,12 @@ type SidebarItemProps = {
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Users, label: "User Management", href: "/dashboard/admin" },
-  { icon: Terminal, label: "Endpoint Agent", href: "/dashboard/agent" },
-  { icon: Monitor, label: "Agents", href: "/dashboard/agents" },
-  { icon: ShieldCheck, label: "API Keys", href: "/dashboard/apikeys" },
-  { icon: FileText, label: "Audit Log", href: "/dashboard/audit" },
   { icon: ScanLine, label: "Threat Scanner", href: "/dashboard/scans" },
-  { icon: Monitor, label: "Endpoint Fleet", href: "/dashboard/fleet" },
-  { icon: Activity, label: "Identity", href: "/dashboard/identity" },
-  {
-    icon: AlertTriangle,
-    label: "Incident Reports",
-    href: "/dashboard/incidents",
-  },
+  { icon: Monitor, label: "Agents & Fleet", href: "/dashboard/agents" },
+  { icon: AlertTriangle, label: "Incident Reports", href: "/dashboard/incidents" },
   { icon: Database, label: "Intel Vault", href: "/dashboard/intel" },
+  { icon: LinkIcon, label: "Identity Chain", href: "/dashboard/identity" },
   { icon: Activity, label: "MTTR", href: "/dashboard/mttr" },
-  { icon: User, label: "Profile", href: "/dashboard/profile" },
-  { icon: Shield, label: "Protocols", href: "/dashboard/protocols" },
-  { icon: Radar, label: "Sandbox", href: "/dashboard/sandbox" },
-  { icon: AlertTriangle, label: "Threat Intel", href: "/dashboard/threats" },
-  { icon: Terminal, label: "Support", href: "/dashboard/support" },
   { icon: Terminal, label: "AI Terminal", href: "/dashboard/terminal" },
   { icon: FileText, label: "Reports", href: "/dashboard/reports" },
   { icon: CreditCard, label: "Billing", href: "/dashboard/billing" },
@@ -72,17 +55,17 @@ function SidebarItem({
   if (!expanded) {
     return (
       <motion.div
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        className="my-[2px] flex w-16 items-center justify-center"
+        whileHover={{ background: "rgba(255,255,255,0.1)", scale: 1.08 }}
+        whileTap={{ scale: 0.93 }}
+        className={`my-[1px] mx-auto flex h-10 w-10 items-center justify-center rounded-full ${baseTransition} ${
+          active
+            ? "[background:linear-gradient(135deg,rgba(45,212,191,0.2),rgba(167,139,250,0.15))] text-[#2DD4BF] shadow-[0_0_16px_rgba(45,212,191,0.2)]"
+            : "bg-transparent text-[rgba(255,255,255,0.75)]"
+        }`}
       >
         <Link
           href={href}
-          className={`m-auto flex h-10 w-10 items-center justify-center rounded-full ${baseTransition} ${
-            active
-              ? "bg-[rgba(45,212,191,0.2)] text-[#2DD4BF] shadow-[0_0_12px_rgba(45,212,191,0.25)]"
-              : "bg-transparent text-[rgba(255,255,255,0.7)] hover:bg-[rgba(255,255,255,0.1)]"
-          }`}
+          className="flex h-10 w-10 items-center justify-center rounded-full"
         >
           <Icon className="h-[18px] w-[18px]" />
         </Link>
@@ -91,13 +74,13 @@ function SidebarItem({
   }
 
   return (
-    <motion.div whileHover={{ x: 2 }} whileTap={{ scale: 0.98 }} className="my-px">
+    <motion.div whileHover={{ background: "rgba(255,255,255,0.08)", x: 3 }} whileTap={{ scale: 0.97 }} className="my-[1px] rounded-full">
       <Link
         href={href}
-        className={`flex h-[38px] w-full items-center gap-3 rounded-full px-4 text-left text-sm ${baseTransition} ${
+        className={`flex h-10 w-full items-center gap-[10px] rounded-full px-3 text-left ${baseTransition} ${
           active
-            ? "font-semibold text-[#2DD4BF] [background:linear-gradient(135deg,rgba(45,212,191,0.25),rgba(167,139,250,0.2))] shadow-[0_0_16px_rgba(45,212,191,0.25)]"
-            : "bg-transparent text-[rgba(255,255,255,0.6)]"
+            ? "[background:linear-gradient(135deg,rgba(45,212,191,0.2),rgba(167,139,250,0.15))] shadow-[0_0_16px_rgba(45,212,191,0.2)] text-[#2DD4BF]"
+            : "bg-transparent text-[rgba(255,255,255,0.75)]"
         }`}
       >
         <Icon
@@ -105,7 +88,7 @@ function SidebarItem({
             active ? "text-[#2DD4BF]" : "text-[rgba(255,255,255,0.6)]"
           }`}
         />
-        <span className="overflow-hidden whitespace-nowrap text-sm opacity-100 [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]">
+        <span className="block overflow-hidden whitespace-nowrap text-[13px] text-[rgba(255,255,255,0.85)] font-medium [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]">
           {label}
         </span>
       </Link>
@@ -175,7 +158,7 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setMobileOpen((v) => !v)}
-        className="fixed left-3 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-[rgba(30,20,60,0.85)] text-white backdrop-blur-[12px] md:hidden"
+        className="fixed left-3 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-[rgba(255,255,255,0.08)] text-white backdrop-blur-[20px] md:hidden"
         aria-label="Toggle sidebar"
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -184,23 +167,32 @@ export default function Sidebar() {
       <aside
         onMouseEnter={() => setExpanded(true)}
         onMouseLeave={() => setExpanded(false)}
-        className={`z-30 flex h-screen shrink-0 flex-col border-r border-white/10 backdrop-blur-[12px] [transition:width_0.25s_cubic-bezier(0.4,0,0.2,1)] md:relative ${mobileOpen ? "fixed inset-y-0 left-0 w-64" : "fixed inset-y-0 left-0 w-0 md:w-16"} ${expanded ? "md:w-64" : "md:w-16"}`}
-        style={{ background: "rgba(30, 20, 60, 0.85)", overflow: "hidden" }}
+        className={`z-30 flex shrink-0 flex-col [transition:width_0.25s_cubic-bezier(0.4,0,0.2,1)] md:relative ${mobileOpen ? "fixed inset-y-3 left-3 w-[240px]" : "fixed inset-y-3 left-3 w-0 md:w-16"} ${expanded ? "md:w-[240px]" : "md:w-16"}`}
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "20px",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+          height: "calc(100vh - 24px)",
+          overflow: "hidden",
+        }}
       >
         {showExpanded ? (
-          <div className="flex h-14 items-center gap-3 border-b border-white/10 px-4">
+          <div className="flex h-[60px] items-center gap-3 border-b border-white/10 px-4">
             <Shield className="h-[22px] w-[22px] shrink-0 text-[#2DD4BF]" />
             <span className="font-space-grotesk overflow-hidden whitespace-nowrap text-xl font-bold tracking-tight opacity-100 [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]">
               Phish-Slayer
             </span>
           </div>
         ) : (
-          <div className="flex h-14 w-16 items-center justify-center border-b border-white/10 p-0">
+          <div className="flex h-[60px] w-16 items-center justify-center border-b border-white/10 p-0">
             <Shield className="h-[22px] w-[22px] text-[#2DD4BF]" />
           </div>
         )}
 
-        <nav className={`flex-1 ${showExpanded ? "px-2 py-1" : "p-0"}`}>
+        <nav className="flex-1 px-2 py-2 overflow-hidden">
           <div className="flex flex-col">
             {navItems.map((item) => {
               const active =
@@ -223,7 +215,7 @@ export default function Sidebar() {
 
         <div className="border-t border-white/10">
           {showExpanded ? (
-            <div className="flex items-center gap-3 px-4 py-2">
+            <div className="flex items-center gap-3 px-2 py-2">
               {profile.avatarUrl ? (
                 <img
                   src={profile.avatarUrl}
@@ -235,7 +227,7 @@ export default function Sidebar() {
                   {initials}
                 </div>
               )}
-              <div className="min-w-0 overflow-hidden whitespace-nowrap opacity-100 [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]">
+              <div className="min-w-0 overflow-hidden whitespace-nowrap px-2 opacity-100 [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]">
                 <span className="block truncate text-sm font-medium">
                   {profile.fullName}
                 </span>
@@ -264,4 +256,3 @@ export default function Sidebar() {
     </>
   );
 }
-

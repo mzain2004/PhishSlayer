@@ -598,10 +598,7 @@ export default function PricingPage() {
           </h2>
           <div className="space-y-4">
             {faqs.map((f, i) => (
-              <div
-                key={i}
-                className="liquid-glass rounded-xl p-6"
-              >
+              <div key={i} className="liquid-glass rounded-xl p-6">
                 <h4 className="text-[#e6edf3] font-semibold mb-2">{f.q}</h4>
                 <p className="text-[#8b949e] text-sm leading-relaxed">{f.a}</p>
               </div>
@@ -616,4 +613,3 @@ export default function PricingPage() {
     </div>
   );
 }
-

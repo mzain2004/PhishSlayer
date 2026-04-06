@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   User,
@@ -150,6 +151,13 @@ export default function UserProfilePage() {
   }
 
   const displayAvatar = previewImage || formData.avatar_url;
+  const cardHover = {
+    whileHover: {
+      scale: 1.01,
+      boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+    },
+    transition: { type: "spring" as const, stiffness: 300, damping: 20 },
+  };
 
   return (
     <div className="px-8 py-6 space-y-8 max-w-7xl mx-auto w-full">
@@ -173,7 +181,7 @@ export default function UserProfilePage() {
         {/* Left: Avatar & Personal Info */}
         <div className="lg:col-span-2 space-y-8">
           {/* Avatar Card */}
-          <div className="liquid-glass rounded-xl p-6">
+          <motion.div {...cardHover} className="liquid-glass rounded-xl p-6">
             <h3 className="text-[#e6edf3] text-sm font-semibold mb-6">Profile Picture</h3>
             <div className="flex items-center gap-6">
               <div className="relative group">
@@ -199,10 +207,10 @@ export default function UserProfilePage() {
                 <p className="text-[#8b949e] text-xs mt-1">JPG, GIF or PNG. Max size of 2MB.</p>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Personal Info Card */}
-          <div className="liquid-glass rounded-xl p-6">
+          <motion.div {...cardHover} className="liquid-glass rounded-xl p-6">
             <div className="flex items-center gap-2 mb-6">
               <User className="w-4 h-4 text-[#6e7681]" />
               <h3 className="text-[#e6edf3] text-sm font-semibold">Personal Information</h3>
@@ -267,7 +275,7 @@ export default function UserProfilePage() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Right: Security & Sessions */}

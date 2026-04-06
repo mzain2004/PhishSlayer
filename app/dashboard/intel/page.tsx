@@ -37,9 +37,11 @@ function SeverityBadge({ severity }: { severity: string }) {
   const s = severity?.toLowerCase() ?? "";
   let bg = "bg-white/10 text-[#E6EDF3] border border-white/10";
   if (s === "critical") {
-    bg = "bg-[rgba(248,81,73,0.2)] text-[#F85149] border border-[rgba(248,81,73,0.35)]";
+    bg =
+      "bg-[rgba(248,81,73,0.2)] text-[#F85149] border border-[rgba(248,81,73,0.35)]";
   } else if (s === "high") {
-    bg = "bg-[rgba(227,179,65,0.2)] text-[#E3B341] border border-[rgba(227,179,65,0.35)]";
+    bg =
+      "bg-[rgba(227,179,65,0.2)] text-[#E3B341] border border-[rgba(227,179,65,0.35)]";
   }
 
   return (

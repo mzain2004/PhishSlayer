@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   Users,
@@ -150,8 +151,16 @@ export default function UserManagementPage() {
     viewer: "bg-slate-500/10 text-[#8B949E] border-slate-500/20",
   };
 
+  const cardHover = {
+    whileHover: {
+      scale: 1.02,
+      boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+    },
+    transition: { type: "spring" as const, stiffness: 300, damping: 20 },
+  };
+
   return (
-    <div className="bg-black text-white font-sans min-h-screen flex flex-col w-full">
+    <div className="text-white font-sans min-h-screen flex flex-col w-full">
       <main className="flex-1 px-4 sm:px-8 py-8 w-full max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
@@ -175,32 +184,32 @@ export default function UserManagementPage() {
 
         {/* KPI Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+          <motion.div {...cardHover} className="bg-white/5 border border-white/10 rounded-xl p-5">
             <p className="text-sm font-medium text-[#8B949E]">Total Users</p>
             <p className="text-3xl font-bold text-white mt-1">{users.length}</p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+          </motion.div>
+          <motion.div {...cardHover} className="bg-white/5 border border-white/10 rounded-xl p-5">
             <p className="text-sm font-medium text-[#8B949E]">
               Active Analysts
             </p>
             <p className="text-3xl font-bold text-teal-400 mt-1">
               {activeAnalysts}
             </p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+          </motion.div>
+          <motion.div {...cardHover} className="bg-white/5 border border-white/10 rounded-xl p-5">
             <p className="text-sm font-medium text-[#8B949E]">Managers</p>
             <p className="text-3xl font-bold text-indigo-400 mt-1">
               {managers}
             </p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+          </motion.div>
+          <motion.div {...cardHover} className="bg-white/5 border border-white/10 rounded-xl p-5">
             <p className="text-sm font-medium text-[#8B949E]">Exec Viewers</p>
             <p className="text-3xl font-bold text-slate-300 mt-1">{viewers}</p>
-          </div>
+          </motion.div>
         </div>
 
         {/* Users Table */}
-        <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+        <motion.div {...cardHover} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -320,7 +329,7 @@ export default function UserManagementPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
       </main>
 
       {/* Invite Modal */}

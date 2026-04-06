@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import type { IdentityChain } from "@/lib/microsoft/types";
 
 type ChainSummary = {
@@ -251,7 +252,6 @@ export default function IdentityDashboardPage() {
     <div
       style={{
         padding: "24px",
-        background: "#0D1117",
         minHeight: "100vh",
         fontFamily: "Inter, sans-serif",
       }}
@@ -326,7 +326,7 @@ export default function IdentityDashboardPage() {
             padding: "8px 12px",
             cursor: "pointer",
             background: activeTab === "chains" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
-            color: activeTab === "chains" ? "#0D1117" : "#E6EDF3",
+            color: activeTab === "chains" ? "#09121E" : "#E6EDF3",
             fontWeight: 700,
           }}
         >
@@ -341,7 +341,7 @@ export default function IdentityDashboardPage() {
             padding: "8px 12px",
             cursor: "pointer",
             background: activeTab === "anomalies" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
-            color: activeTab === "anomalies" ? "#0D1117" : "#E6EDF3",
+            color: activeTab === "anomalies" ? "#09121E" : "#E6EDF3",
             fontWeight: 700,
           }}
         >
@@ -356,7 +356,7 @@ export default function IdentityDashboardPage() {
             padding: "8px 12px",
             cursor: "pointer",
             background: activeTab === "lifecycle" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
-            color: activeTab === "lifecycle" ? "#0D1117" : "#E6EDF3",
+            color: activeTab === "lifecycle" ? "#09121E" : "#E6EDF3",
             fontWeight: 700,
           }}
         >
@@ -391,8 +391,10 @@ export default function IdentityDashboardPage() {
               color: "#3FB950",
             },
           ].map((stat) => (
-            <div
+            <motion.div
               key={stat.label}
+              whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
               style={{
                 background: "rgba(255,255,255,0.05)",
                 border: "1px solid rgba(255,255,255,0.1)",
@@ -420,7 +422,7 @@ export default function IdentityDashboardPage() {
               >
                 {stat.value}
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
       ) : null}
@@ -443,8 +445,10 @@ export default function IdentityDashboardPage() {
             { label: "High", value: anomalyCounts.high, color: "#E3B341" },
             { label: "Medium", value: anomalyCounts.medium, color: "#C8A94A" },
           ].map((stat) => (
-            <div
+            <motion.div
               key={stat.label}
+              whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
               style={{
                 background: "rgba(255,255,255,0.05)",
                 border: `1px solid ${stat.color}`,
@@ -472,7 +476,7 @@ export default function IdentityDashboardPage() {
               >
                 {stat.value}
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
       ) : null}
@@ -503,8 +507,10 @@ export default function IdentityDashboardPage() {
               color: "#2DD4BF",
             },
           ].map((stat) => (
-            <div
+            <motion.div
               key={stat.label}
+              whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
               style={{
                 background: "rgba(255,255,255,0.05)",
                 border: `1px solid ${stat.color}`,
@@ -532,7 +538,7 @@ export default function IdentityDashboardPage() {
               >
                 {stat.value}
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
       ) : null}
@@ -673,7 +679,7 @@ export default function IdentityDashboardPage() {
                     >
                       <div
                         style={{
-                          background: "#0D1117",
+                          background: "#09121E",
                           border: `1px solid ${getConfidenceColor(link.confidenceScore)}`,
                           borderRadius: "6px",
                           padding: "8px 12px",
@@ -897,7 +903,7 @@ export default function IdentityDashboardPage() {
                     }
                     style={{
                       border: "1px solid rgba(255,255,255,0.1)",
-                      background: "#0D1117",
+                      background: "#09121E",
                       color: "#E6EDF3",
                       borderRadius: "6px",
                       padding: "6px 10px",
@@ -966,7 +972,7 @@ export default function IdentityDashboardPage() {
                         <div
                           key={`${summaryItem.identityId}-${eventItem.timestamp}-${eventIndex}`}
                           style={{
-                            background: "#0D1117",
+                            background: "#09121E",
                             border: "1px solid rgba(255,255,255,0.1)",
                             borderRadius: "6px",
                             padding: "10px 12px",
@@ -1023,4 +1029,5 @@ export default function IdentityDashboardPage() {
     </div>
   );
 }
+
 

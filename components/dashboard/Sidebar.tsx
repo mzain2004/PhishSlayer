@@ -50,24 +50,34 @@ function SidebarItem({
   active,
   expanded,
 }: SidebarItemProps & { expanded: boolean }) {
+  const baseTransition = "[transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]";
+
+  if (!expanded) {
+    return (
+      <div className="my-[2px] flex h-11 w-16 items-center justify-center p-0">
+        <Link
+          href={href}
+          className={`flex h-11 w-11 items-center justify-center ${baseTransition} ${
+            active
+              ? "rounded-lg bg-[rgba(45,212,191,0.2)] text-[#2DD4BF]"
+              : "rounded-lg text-[rgba(255,255,255,0.65)]"
+          }`}
+        >
+          <Icon className="h-5 w-5" />
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <motion.div
-      whileHover={{ x: 4, backgroundColor: "rgba(45,212,191,0.12)" }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ duration: 0.2 }}
-      className="rounded-full"
-    >
+    <motion.div whileHover={{ x: 2 }} whileTap={{ scale: 0.98 }} className="my-[2px]">
       <Link
         href={href}
-        className={`flex w-full items-center gap-3 rounded-full px-3 py-2.5 text-left text-sm [transition:all_0.2s_ease] ${
+        className={`flex h-11 w-full items-center gap-3 rounded-full px-4 text-left text-sm ${baseTransition} ${
           active
             ? "font-semibold text-[#2DD4BF] [background:linear-gradient(135deg,rgba(45,212,191,0.25),rgba(167,139,250,0.2))] shadow-[0_0_16px_rgba(45,212,191,0.25)]"
             : "bg-transparent text-[rgba(255,255,255,0.6)]"
         }`}
-        style={{
-          justifyContent: expanded ? "flex-start" : "center",
-          boxShadow: active ? undefined : "none",
-        }}
       >
         <Icon
           className={`h-5 w-5 shrink-0 ${
@@ -75,9 +85,7 @@ function SidebarItem({
           }`}
         />
         <span
-          className={`ml-3 overflow-hidden whitespace-nowrap text-sm [transition:all_0.2s_ease] ${
-            expanded ? "max-w-[160px] opacity-100" : "max-w-0 opacity-0"
-          }`}
+          className="overflow-hidden whitespace-nowrap text-sm opacity-100 [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]"
         >
           {label}
         </span>
@@ -160,21 +168,21 @@ export default function Sidebar() {
         className={`z-30 flex h-screen shrink-0 flex-col border-r border-white/10 backdrop-blur-[12px] [transition:width_0.25s_cubic-bezier(0.4,0,0.2,1)] md:relative ${mobileOpen ? "fixed inset-y-0 left-0 w-64" : "fixed inset-y-0 left-0 w-0 md:w-16"} ${expanded ? "md:w-64" : "md:w-16"}`}
         style={{ background: "rgba(30, 20, 60, 0.85)", overflow: "hidden" }}
       >
-        <div className="flex items-center gap-3 border-b border-white/10 p-4">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#A78BFA] to-[#2DD4BF]">
-            <Shield className="h-4 w-4 text-black" />
+        {showExpanded ? (
+          <div className="flex h-16 items-center gap-3 border-b border-white/10 px-4">
+            <Shield className="h-6 w-6 shrink-0 text-[#2DD4BF]" />
+            <span className="font-space-grotesk overflow-hidden whitespace-nowrap text-xl font-bold tracking-tight opacity-100 [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]">
+              Phish-Slayer
+            </span>
           </div>
-          <span
-            className={`font-space-grotesk overflow-hidden whitespace-nowrap text-xl font-bold tracking-tight [transition:all_0.2s_ease] ${
-              showExpanded ? "max-w-[170px] opacity-100" : "max-w-0 opacity-0"
-            }`}
-          >
-            Phish-Slayer
-          </span>
-        </div>
+        ) : (
+          <div className="flex h-16 w-16 items-center justify-center border-b border-white/10 p-0">
+            <Shield className="h-6 w-6 text-[#2DD4BF]" />
+          </div>
+        )}
 
-        <nav className="max-h-[100vh] flex-1 overflow-y-auto p-2">
-          <div className="flex flex-col gap-2">
+        <nav className={`max-h-[100vh] flex-1 overflow-y-auto ${showExpanded ? "px-2 py-2" : "p-0"}`}>
+          <div className={`flex flex-col ${showExpanded ? "gap-1" : "gap-0"}`}>
             {navItems.map((item) => {
               const active =
                 pathname === item.href ||
@@ -194,35 +202,44 @@ export default function Sidebar() {
           </div>
         </nav>
 
-        <div className="p-4 border-t border-white/10">
-          <div
-            className="flex items-center rounded-full px-2 py-2"
-            style={{ justifyContent: showExpanded ? "flex-start" : "center" }}
-          >
-            {profile.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt="Profile avatar"
-                className="h-8 w-8 rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-500 text-sm font-bold text-black">
-                {initials}
+        <div className="border-t border-white/10">
+          {showExpanded ? (
+            <div className="flex items-center gap-3 px-4 py-3">
+              {profile.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt="Profile avatar"
+                  className="block h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2DD4BF] text-[13px] font-bold text-black">
+                  {initials}
+                </div>
+              )}
+              <div className="min-w-0 overflow-hidden whitespace-nowrap opacity-100 [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]">
+                <span className="block truncate text-sm font-medium">
+                  {profile.fullName}
+                </span>
+                <span className="block truncate text-xs text-white/50">
+                  {profile.email}
+                </span>
               </div>
-            )}
-            <div
-              className={`ml-3 min-w-0 overflow-hidden whitespace-nowrap [transition:all_0.2s_ease] ${
-                showExpanded ? "max-w-[150px] opacity-100" : "max-w-0 opacity-0"
-              }`}
-            >
-              <span className="block truncate text-sm font-medium">
-                {profile.fullName}
-              </span>
-              <span className="block truncate text-xs text-white/50">
-                {profile.email}
-              </span>
             </div>
-          </div>
+          ) : (
+            <div className="flex w-16 items-center justify-center py-3">
+              {profile.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt="Profile avatar"
+                  className="m-auto block h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2DD4BF] text-[13px] font-bold text-black">
+                  {initials}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </aside>
     </>

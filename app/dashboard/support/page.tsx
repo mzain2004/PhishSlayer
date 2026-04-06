@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   CheckCircle2,
@@ -226,44 +227,50 @@ export default function SupportPage() {
 
       {/* Contact Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <a
-          href="mailto:support@phishslayer.tech"
-          className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-teal-500/50 transition-colors cursor-pointer block group"
-        >
-          <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center mb-4 group-hover:bg-teal-500/20 transition-colors">
-            <Mail className="w-5 h-5 text-teal-400" />
-          </div>
-          <h3 className="text-white font-semibold flex items-center gap-2">
-            Email Support
-          </h3>
-          <p className="text-[#8B949E] text-sm mt-1">
-            support@phishslayer.tech
-          </p>
-        </a>
-        <a
-          href="https://discord.com/invite/phishslayer"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-[#5865F2]/50 transition-colors cursor-pointer block group"
-        >
-          <div className="w-10 h-10 rounded-lg bg-[#5865F2]/10 flex items-center justify-center mb-4 group-hover:bg-[#5865F2]/20 transition-colors">
-            <MessageSquare className="w-5 h-5 text-[#5865F2]" />
-          </div>
-          <h3 className="text-white font-semibold">Community Discord</h3>
-          <p className="text-[#8B949E] text-sm mt-1">Join the conversation</p>
-        </a>
-        <Link
-          href="/dashboard/intel"
-          className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-indigo-500/50 transition-colors cursor-pointer block group"
-        >
-          <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4 group-hover:bg-indigo-500/20 transition-colors">
-            <BookOpen className="w-5 h-5 text-indigo-400" />
-          </div>
-          <h3 className="text-white font-semibold">Documentation</h3>
-          <p className="text-[#8B949E] text-sm mt-1">
-            Read the technical guides
-          </p>
-        </Link>
+        <motion.div whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+          <a
+            href="mailto:support@phishslayer.tech"
+            className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-teal-500/50 transition-colors cursor-pointer block group"
+          >
+            <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center mb-4 group-hover:bg-teal-500/20 transition-colors">
+              <Mail className="w-5 h-5 text-teal-400" />
+            </div>
+            <h3 className="text-white font-semibold flex items-center gap-2">
+              Email Support
+            </h3>
+            <p className="text-[#8B949E] text-sm mt-1">
+              support@phishslayer.tech
+            </p>
+          </a>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+          <a
+            href="https://discord.com/invite/phishslayer"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-[#5865F2]/50 transition-colors cursor-pointer block group"
+          >
+            <div className="w-10 h-10 rounded-lg bg-[#5865F2]/10 flex items-center justify-center mb-4 group-hover:bg-[#5865F2]/20 transition-colors">
+              <MessageSquare className="w-5 h-5 text-[#5865F2]" />
+            </div>
+            <h3 className="text-white font-semibold">Community Discord</h3>
+            <p className="text-[#8B949E] text-sm mt-1">Join the conversation</p>
+          </a>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+          <Link
+            href="/dashboard/intel"
+            className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-indigo-500/50 transition-colors cursor-pointer block group"
+          >
+            <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4 group-hover:bg-indigo-500/20 transition-colors">
+              <BookOpen className="w-5 h-5 text-indigo-400" />
+            </div>
+            <h3 className="text-white font-semibold">Documentation</h3>
+            <p className="text-[#8B949E] text-sm mt-1">
+              Read the technical guides
+            </p>
+          </Link>
+        </motion.div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
@@ -473,24 +480,29 @@ export default function SupportPage() {
 
       {/* Enterprise CTA */}
       {(tier === "free" || tier === "pro") && (
-        <div className="bg-gradient-to-r from-teal-500/10 to-indigo-500/10 border border-teal-500/20 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div>
-            <h3 className="text-xl font-bold text-white tracking-tight">
-              Need priority support?
-            </h3>
-            <p className="text-[#8B949E] text-sm mt-1">
-              Enterprise plan includes a dedicated account manager and
-              guaranteed response times.
-            </p>
+        <motion.div
+          whileHover={{ scale: 1.01, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="bg-gradient-to-r from-teal-500/10 to-indigo-500/10 border border-teal-500/20 rounded-xl p-6"
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-white text-lg font-semibold">
+                Need Enterprise-Grade Support?
+              </h3>
+              <p className="text-[#8B949E] text-sm mt-1">
+                Upgrade for priority response times, onboarding, and SOC guidance.
+              </p>
+            </div>
+            <a
+              href="mailto:support@phishslayer.tech?subject=Enterprise%20Support%20Inquiry"
+              className="inline-flex items-center gap-2 rounded-full px-5 py-2 font-semibold text-black [background:linear-gradient(135deg,#2DD4BF,#22c55e)]"
+            >
+              Contact Enterprise Support
+              <ArrowRight className="w-4 h-4" />
+            </a>
           </div>
-          <Link
-            href="/pricing"
-            className="flex items-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-400 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-teal-500/20 whitespace-nowrap"
-          >
-            Upgrade to Enterprise
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
+        </motion.div>
       )}
     </div>
   );

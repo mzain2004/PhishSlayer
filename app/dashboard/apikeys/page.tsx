@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   Key,
@@ -73,6 +74,14 @@ export default function ApiKeysPage() {
     });
   };
 
+  const cardHover = {
+    whileHover: {
+      scale: 1.02,
+      boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+    },
+    transition: { type: "spring" as const, stiffness: 300, damping: 20 },
+  };
+
   if (!loaded || tierLoading)
     return (
       <div className="flex justify-center py-20">
@@ -82,7 +91,7 @@ export default function ApiKeysPage() {
 
   if (!limits.canUsePublicAPI && !isSuperAdmin) {
     return (
-      <div className="text-white font-sans min-h-screen pt-20 bg-black">
+      <div className="text-white font-sans min-h-screen pt-20">
         <UpgradeBanner feature="Public REST API Access" requiredTier="SOC Pro" />
       </div>
     );
@@ -100,7 +109,7 @@ export default function ApiKeysPage() {
         </p>
       </div>
 
-      <div className="bg-black rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden mb-8">
+      <motion.div {...cardHover} className="bg-black rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden mb-8">
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-[#e6edf3]">
             Production Key
@@ -210,9 +219,9 @@ export default function ApiKeysPage() {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
-      <div className="bg-white/5 rounded-xl shadow-sm border border-white/10 overflow-hidden text-slate-300 p-6 md:p-8">
+      <motion.div {...cardHover} className="bg-white/5 rounded-xl shadow-sm border border-white/10 overflow-hidden text-slate-300 p-6 md:p-8">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <Terminal className="w-5 h-5 text-teal-400" /> Usage Examples
         </h3>
@@ -237,7 +246,7 @@ export default function ApiKeysPage() {
             </code>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

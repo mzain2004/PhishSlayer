@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { useRole } from "@/lib/rbac/useRole";
 import {
@@ -121,8 +122,16 @@ export default function AuditLogPage() {
       .join(" ");
   };
 
+  const cardHover = {
+    whileHover: {
+      scale: 1.01,
+      boxShadow: "0 8px 32px rgba(45,212,191,0.12)",
+    },
+    transition: { type: "spring" as const, stiffness: 300, damping: 20 },
+  };
+
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full flex flex-col min-h-screen bg-black">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full flex flex-col min-h-screen">
       <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
@@ -136,7 +145,10 @@ export default function AuditLogPage() {
         </div>
       </div>
 
-      <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col flex-1">
+      <motion.div
+        {...cardHover}
+        className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col flex-1"
+      >
         {/* Toolbar */}
         <div className="p-4 border-b border-white/10 bg-white/5 flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
@@ -334,7 +346,7 @@ export default function AuditLogPage() {
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   ShieldAlert,
@@ -621,10 +622,14 @@ export default function ThreatIntelligencePage() {
   const allRiskFlags = deepScanData?.allRiskFlags || [];
 
   return (
-    <div className="bg-black text-white font-sans min-h-screen flex flex-col w-full">
+    <div className="text-white font-sans min-h-screen flex flex-col w-full">
       {/* Threat Header */}
       <div className="sticky top-4 sm:top-6 z-40 w-full max-w-7xl mx-auto px-4 sm:px-6 pointer-events-none">
-        <section className="liquid-glass bg-white/5 backdrop-blur shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] border border-white/10 rounded-2xl px-6 py-4 pointer-events-auto">
+        <motion.section
+          whileHover={{ scale: 1.005, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="liquid-glass bg-white/5 backdrop-blur shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] border border-white/10 rounded-2xl px-6 py-4 pointer-events-auto"
+        >
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-6 w-full lg:w-auto">
               <div className="flex flex-col">
@@ -760,7 +765,7 @@ export default function ThreatIntelligencePage() {
               </button>
             </div>
           </div>
-        </section>
+        </motion.section>
       </div>
 
       {/* Main Grid Content */}

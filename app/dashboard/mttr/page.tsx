@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import type { TimelineEvent } from "@/lib/microsoft/timelineBuilder";
 
 type MttrStats = {
@@ -97,15 +98,15 @@ export default function MTTRDashboardPage() {
   function getTypeIcon(type: string): string {
     switch (type) {
       case "signin":
-        return "ðŸ”";
+        return "🔐";
       case "privilege":
-        return "âš¡";
+        return "⚡";
       case "action":
-        return "ðŸŽ¯";
+        return "🎯";
       case "alert":
-        return "ðŸš¨";
+        return "🚨";
       default:
-        return "ðŸ“‹";
+        return "📋";
     }
   }
 
@@ -129,7 +130,6 @@ export default function MTTRDashboardPage() {
     <div
       style={{
         padding: "24px",
-        background: "#0D1117",
         minHeight: "100vh",
         fontFamily: "Inter, sans-serif",
       }}
@@ -194,7 +194,7 @@ export default function MTTRDashboardPage() {
               opacity: downloading ? 0.7 : 1,
             }}
           >
-            {downloading ? "Generating..." : "ðŸ“„ Export PDF"}
+            {downloading ? "Generating..." : "📄 Export PDF"}
           </button>
         </div>
       </div>
@@ -234,8 +234,10 @@ export default function MTTRDashboardPage() {
               sub: "total events tracked",
             },
           ].map((card) => (
-            <div
+            <motion.div
               key={card.label}
+              whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
               style={{
                 background: "rgba(255,255,255,0.05)",
                 border: "1px solid rgba(255,255,255,0.1)",
@@ -273,7 +275,7 @@ export default function MTTRDashboardPage() {
               >
                 {card.sub}
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
       ) : null}
@@ -368,7 +370,7 @@ export default function MTTRDashboardPage() {
                 <div
                   title={event.explanation?.summary || ""}
                   style={{
-                    background: "#0D1117",
+                    background: "#09121E",
                     border: `1px solid ${getSeverityColor(event.severity)}33`,
                     borderRadius: "6px",
                     padding: "12px 16px",
@@ -418,7 +420,7 @@ export default function MTTRDashboardPage() {
                             fontSize: "10px",
                           }}
                         >
-                          âš  Partial
+                          ⚠ Partial
                         </span>
                       ) : null}
                     </div>
@@ -516,4 +518,5 @@ export default function MTTRDashboardPage() {
     </div>
   );
 }
+
 

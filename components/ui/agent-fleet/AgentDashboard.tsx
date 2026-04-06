@@ -197,7 +197,7 @@ export default function AgentDashboard() {
                   </span>
                 </div>
                 <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[11px] text-teal-400 overflow-x-auto whitespace-nowrap border border-white/10">
-                  curl -sSL https://phishslayer.tech/install | bash
+                  curl -sSL https://phishslayer.tech/install-agent.sh | bash
                 </div>
               </div>
 
@@ -212,7 +212,7 @@ export default function AgentDashboard() {
                   </span>
                 </div>
                 <div className="bg-[#0d1117] rounded-lg p-3 font-mono text-[11px] text-indigo-400 overflow-x-auto whitespace-nowrap border border-white/10">
-                  iwr https://phishslayer.tech/install.ps1 | iex
+                  iwr https://phishslayer.tech/install-agent.ps1 | iex
                 </div>
               </div>
             </div>

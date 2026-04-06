@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   Loader2,
@@ -20,7 +20,7 @@ function Spinner() {
     <div className="flex items-center justify-center py-16">
       <Loader2 className="w-7 h-7 animate-spin text-teal-500" />
       <span className="ml-3 text-sm text-[#8B949E] font-medium">
-        Running deep scanâ€¦
+        Running deep scan…
       </span>
     </div>
   );
@@ -48,7 +48,7 @@ function MonoRow({
         {label}
       </span>
       <span className="font-mono text-xs text-slate-300 text-right max-w-[60%] truncate">
-        {value || "â€”"}
+        {value || "—"}
       </span>
     </div>
   );
@@ -71,7 +71,7 @@ function RiskFlagList({ flags }: { flags: string[] }) {
   );
 }
 
-// â”€â”€â”€ WHOIS Panel â”€â”€â”€
+// ─── WHOIS Panel ───
 export function WhoisPanel({
   data,
   loading,
@@ -113,7 +113,7 @@ export function WhoisPanel({
   }
 
   return (
-    <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+    <div className="bg-[rgba(22,27,34,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
       <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Globe className="w-4 h-4 text-teal-400" />
@@ -141,7 +141,7 @@ export function WhoisPanel({
               </div>
             ))
           ) : (
-            <span className="font-mono text-xs text-slate-600">â€”</span>
+            <span className="font-mono text-xs text-slate-600">—</span>
           )}
         </div>
       </div>
@@ -149,7 +149,7 @@ export function WhoisPanel({
   );
 }
 
-// â”€â”€â”€ Ghost Mail Panel â”€â”€â”€
+// ─── Ghost Mail Panel ───
 export function GhostMailPanel({
   data,
   loading,
@@ -164,7 +164,7 @@ export function GhostMailPanel({
   const isGhost = d.ghostMailFlag;
 
   return (
-    <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+    <div className="bg-[rgba(22,27,34,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
       {/* Status Banner */}
       <div
         className={`px-4 py-4 ${isGhost ? "bg-red-950 border-b border-red-900" : "bg-emerald-950 border-b border-emerald-900"}`}
@@ -178,13 +178,13 @@ export function GhostMailPanel({
               className={`font-black text-sm ${isGhost ? "text-red-300" : "text-emerald-300"}`}
             >
               {isGhost
-                ? "ðŸš¨ NO EMAIL INFRASTRUCTURE DETECTED"
-                : "âœ“ Mail Infrastructure Present"}
+                ? "🚨 NO EMAIL INFRASTRUCTURE DETECTED"
+                : "✓ Mail Infrastructure Present"}
             </h4>
             <p className="text-[11px] text-[#8B949E] mt-0.5">
               {isGhost
-                ? "Domain cannot receive email â€” common in disposable phishing domains"
-                : "MX records found â€” domain has active mail routing"}
+                ? "Domain cannot receive email — common in disposable phishing domains"
+                : "MX records found — domain has active mail routing"}
             </p>
           </div>
         </div>
@@ -248,7 +248,7 @@ export function GhostMailPanel({
   );
 }
 
-// â”€â”€â”€ SSL Panel â”€â”€â”€
+// ─── SSL Panel ───
 export function SslPanel({
   data,
   loading,
@@ -279,7 +279,7 @@ export function SslPanel({
           : "bg-red-950";
 
   return (
-    <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+    <div className="bg-[rgba(22,27,34,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
       <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
         <Lock className="w-4 h-4 text-teal-400" />
         <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
@@ -333,7 +333,7 @@ export function SslPanel({
   );
 }
 
-// â”€â”€â”€ Typosquat Panel â”€â”€â”€
+// ─── Typosquat Panel ───
 export function TyposquatPanel({
   data,
   loading,
@@ -393,14 +393,14 @@ export function TyposquatPanel({
   };
 
   return (
-    <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+    <div className="bg-[rgba(22,27,34,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
       {t.isTyposquat ? (
         <div className="px-4 py-4 bg-red-950 border-b border-red-900">
           <div className="flex items-center gap-3">
             <Eye className="w-6 h-6 text-red-400" />
             <div>
               <h4 className="font-black text-sm text-red-300">
-                âš  TYPOSQUATTING DETECTED
+                ⚠ TYPOSQUATTING DETECTED
               </h4>
               <p className="text-[11px] text-red-400 mt-0.5">
                 Attempting to impersonate{" "}
@@ -415,7 +415,7 @@ export function TyposquatPanel({
             <CheckCircle2 className="w-6 h-6 text-emerald-400" />
             <div>
               <h4 className="font-black text-sm text-emerald-300">
-                âœ“ No brand impersonation detected
+                ✓ No brand impersonation detected
               </h4>
               <p className="text-[11px] text-[#8B949E] mt-0.5">
                 Domain does not closely match any monitored brands
@@ -446,7 +446,7 @@ export function TyposquatPanel({
   );
 }
 
-// â”€â”€â”€ DOM Tree Panel â”€â”€â”€
+// ─── DOM Tree Panel ───
 export function DomTreePanel({
   data,
   loading,
@@ -459,7 +459,7 @@ export function DomTreePanel({
   if (!d) return <Unavailable label="DOM Tree" />;
 
   return (
-    <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+    <div className="bg-[rgba(22,27,34,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
       <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
         <Eye className="w-4 h-4 text-teal-400" />
         <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
@@ -541,4 +541,5 @@ export function DomTreePanel({
     </div>
   );
 }
+
 

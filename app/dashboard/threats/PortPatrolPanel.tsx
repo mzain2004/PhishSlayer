@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import {
@@ -113,17 +113,17 @@ export default function PortPatrolPanel({
       case "critical":
         return {
           color: "bg-red-500/10 text-red-500 border-red-500/20",
-          label: "ðŸ”´ CRITICAL",
+          label: "🔴 CRITICAL",
         };
       case "suspicious":
         return {
           color: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-          label: "ðŸŸ  SUSPICIOUS",
+          label: "🟠 SUSPICIOUS",
         };
       default:
         return {
           color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-          label: "ðŸŸ¢ CLEAN",
+          label: "🟢 CLEAN",
         };
     }
   };
@@ -172,7 +172,7 @@ export default function PortPatrolPanel({
         <p className="text-sm font-semibold text-red-400">{error}</p>
         <button
           onClick={runScan}
-          className="px-4 py-2 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-400 transition-colors"
+          className="rounded-full px-4 py-2 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-400 transition-colors"
         >
           Retry Scan
         </button>
@@ -190,7 +190,7 @@ export default function PortPatrolPanel({
         <div className="text-center">
           <h3 className="text-lg font-bold text-white">Port Patrol</h3>
           <p className="text-sm text-[#8B949E] mt-1 max-w-xs">
-            Active reconnaissance â€” scans 16 high-risk ports for open services
+            Active reconnaissance — scans 16 high-risk ports for open services
           </p>
         </div>
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 max-w-sm">
@@ -204,7 +204,7 @@ export default function PortPatrolPanel({
         </div>
         <button
           onClick={runScan}
-          className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-bold text-sm rounded-xl hover:bg-orange-500 transition-all shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5"
+          className="rounded-full flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-bold text-sm rounded-xl hover:bg-orange-500 transition-all shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5"
         >
           <Radar className="w-4 h-4" />
           Launch Port Patrol
@@ -228,7 +228,7 @@ export default function PortPatrolPanel({
         </div>
         <button
           onClick={runScan}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-orange-400 bg-orange-500/10 rounded-lg hover:bg-orange-500/20 border border-orange-500/20 transition-colors"
+          className="rounded-full flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-orange-400 bg-orange-500/10 rounded-lg hover:bg-orange-500/20 border border-orange-500/20 transition-colors"
         >
           Re-scan
         </button>
@@ -236,7 +236,7 @@ export default function PortPatrolPanel({
 
       {/* Info cards grid */}
       <div className="grid grid-cols-4 gap-3">
-        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <Globe className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -247,7 +247,7 @@ export default function PortPatrolPanel({
             {report.resolvedIp}
           </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <Timer className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -258,7 +258,7 @@ export default function PortPatrolPanel({
             {(report.scanDurationMs / 1000).toFixed(1)}s
           </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <Wifi className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -269,7 +269,7 @@ export default function PortPatrolPanel({
             {report.openPorts.length}
           </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <ShieldAlert className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -286,10 +286,10 @@ export default function PortPatrolPanel({
 
       {/* Open ports table or clean state */}
       {report.openPorts.length > 0 ? (
-        <div className="rounded-xl border border-white/10 overflow-hidden">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-white/5 border-b border-white/10">
+              <tr className="bg-[rgba(22,27,34,0.85)] border-b border-white/10">
                 <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
                   Port
                 </th>
@@ -341,7 +341,7 @@ export default function PortPatrolPanel({
       )}
 
       {/* Summary */}
-      <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+      <div className="rounded-xl bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] p-4">
         <p className="text-sm text-slate-300">{report.riskSummary}</p>
         <p className="text-[10px] text-[#8B949E] mt-2">
           Scanned at: {new Date(report.scannedAt).toLocaleString()}
@@ -350,4 +350,5 @@ export default function PortPatrolPanel({
     </div>
   );
 }
+
 

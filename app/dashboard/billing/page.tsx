@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -174,7 +174,7 @@ export default function BillingPage() {
                 onClick={handleManageSubscription}
                 whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
                 whileTap={{ scale: 0.96 }}
-                className="flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-sm font-semibold text-white [transition:all_0.2s_ease] disabled:opacity-50"
+                className="rounded-full flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-sm font-semibold text-white [transition:all_0.2s_ease] disabled:opacity-50"
               >
                 {isPortalLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
@@ -196,13 +196,13 @@ export default function BillingPage() {
         </div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-3 border-t border-white/10 pt-4 gap-3">
-          <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
+          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] px-3 py-2.5">
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Current Tier
             </p>
             <p className="text-[#e6edf3] text-sm font-semibold">{plan.name}</p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
+          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] px-3 py-2.5">
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Billing
             </p>
@@ -210,7 +210,7 @@ export default function BillingPage() {
               {isPaid ? "Monthly via Paddle" : "Free"}
             </p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
+          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] px-3 py-2.5">
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Monthly Amount
             </p>
@@ -249,7 +249,7 @@ export default function BillingPage() {
           Plan Limits
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3">
             <div className="flex justify-between text-xs font-medium mb-2">
               <span className="text-[#8b949e]">Daily Scans</span>
               <span className="text-[#e6edf3]">
@@ -268,7 +268,7 @@ export default function BillingPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3">
             <div className="flex justify-between text-xs font-medium mb-2">
               <span className="text-[#8b949e]">Fleet Agent Slots</span>
               <span className="text-[#e6edf3]">
@@ -287,7 +287,7 @@ export default function BillingPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3">
             <div className="flex justify-between text-xs font-medium mb-2">
               <span className="text-[#8b949e]">API Access</span>
               <span className="text-[#e6edf3]">
@@ -359,3 +359,5 @@ export default function BillingPage() {
     </div>
   );
 }
+
+

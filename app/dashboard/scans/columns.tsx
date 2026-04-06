@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -98,7 +98,7 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
     header: "Category",
     cell: ({ row }) => (
       <span className="text-[#8B949E] text-sm">
-        {row.getValue("threat_category") || "â€”"}
+        {row.getValue("threat_category") || "—"}
       </span>
     ),
   },
@@ -118,7 +118,7 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
       const date = row.getValue("created_at") as string;
       return (
         <span className="text-[#8B949E] text-sm">
-          {date ? new Date(date).toLocaleString() : "â€”"}
+          {date ? new Date(date).toLocaleString() : "—"}
         </span>
       );
     },
@@ -139,4 +139,5 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
     ),
   },
 ];
+
 

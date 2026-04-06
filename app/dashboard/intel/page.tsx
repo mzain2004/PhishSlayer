@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useTransition } from "react";
 import { motion } from "framer-motion";
@@ -32,10 +32,10 @@ const cardHover = {
   transition: { type: "spring" as const, stiffness: 300, damping: 20 },
 };
 
-/* â”€â”€ Severity Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Severity Badge ───────────────────────────────────────────────── */
 function SeverityBadge({ severity }: { severity: string }) {
   const s = severity?.toLowerCase() ?? "";
-  let bg = "bg-white/10 text-[#E6EDF3] border border-white/10";
+  let bg = "bg-white/10 text-[#E6EDF3] border border-[rgba(48,54,61,0.9)]";
   if (s === "critical") {
     bg =
       "bg-[rgba(248,81,73,0.2)] text-[#F85149] border border-[rgba(248,81,73,0.35)]";
@@ -61,7 +61,7 @@ function TypeBadge({ value }: { value: string | null }) {
       className={`inline-flex items-center rounded-full px-[10px] py-[2px] text-[11px] font-bold uppercase tracking-wider ${
         isKnownType
           ? "bg-[rgba(45,212,191,0.15)] text-[#2DD4BF] border border-[rgba(45,212,191,0.35)]"
-          : "bg-white/10 text-[#E6EDF3] border border-white/10"
+          : "bg-white/10 text-[#E6EDF3] border border-[rgba(48,54,61,0.9)]"
       }`}
     >
       {value || "N/A"}
@@ -69,7 +69,7 @@ function TypeBadge({ value }: { value: string | null }) {
   );
 }
 
-/* â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Main Page ────────────────────────────────────────────────────── */
 export default function IntelVaultPage() {
   const [whitelist, setWhitelist] = useState<any[]>([]);
   const [indicators, setIndicators] = useState<any[]>([]);
@@ -114,7 +114,7 @@ export default function IntelVaultPage() {
 
   const { limits, isSuperAdmin, loading: tierLoading } = useTier();
 
-  /* â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* ── Loading ─────────────────────────────────────────────────────── */
   if (!loaded || roleLoading || tierLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -134,7 +134,7 @@ export default function IntelVaultPage() {
     );
   }
 
-  /* â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* ── Page ─────────────────────────────────────────────────────────── */
   return (
     <div className="text-white font-sans min-h-screen flex flex-col w-full overflow-x-hidden">
       <main className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10">
@@ -195,7 +195,7 @@ export default function IntelVaultPage() {
             <motion.div
               {...cardHover}
               key={kpi.label}
-              className={`rounded-[12px] border bg-[rgba(255,255,255,0.06)] border-[rgba(255,255,255,0.1)] p-4 flex items-center gap-4 backdrop-blur-[8px] ${kpi.color}`}
+              className={`rounded-[12px] border bg-[rgba(22,27,34,0.88)] border-[rgba(48,54,61,0.9)] p-4 flex items-center gap-4 backdrop-blur-[8px] ${kpi.color}`}
             >
               <kpi.icon className="w-6 h-6 shrink-0 opacity-80" />
               <div>
@@ -209,7 +209,7 @@ export default function IntelVaultPage() {
         </div>
 
         <div className="flex flex-col xl:flex-row gap-8 items-start">
-          {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Whitelist Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          {/* ────────────── Whitelist Table ────────────── */}
           <motion.div
             {...cardHover}
             className="w-full xl:w-[380px] xl:min-w-[340px] bg-[rgba(255,255,255,0.04)] rounded-2xl border border-[rgba(255,255,255,0.08)] backdrop-blur-[8px] overflow-hidden flex flex-col"
@@ -220,13 +220,13 @@ export default function IntelVaultPage() {
               <h2 className="text-base font-semibold text-white">
                 Target Whitelist
               </h2>
-              <span className="ml-auto text-xs font-bold text-[#8B949E] bg-white/5 rounded-full px-2.5 py-0.5 border border-white/10">
+              <span className="ml-auto text-xs font-bold text-[#8B949E] bg-[rgba(22,27,34,0.85)] rounded-full px-2.5 py-0.5 border border-[rgba(48,54,61,0.9)]">
                 {whitelist.length}
               </span>
             </div>
 
             {/* Table header */}
-            <div className="bg-[rgba(255,255,255,0.05)] px-5 py-2 border-b border-white/10 flex items-center justify-between">
+            <div className="bg-[rgba(22,27,34,0.85)] px-5 py-2 border-b border-white/10 flex items-center justify-between">
               <span className="text-[11px] font-bold text-[#E6EDF3] uppercase tracking-wider">
                 Target
               </span>
@@ -282,7 +282,7 @@ export default function IntelVaultPage() {
             )}
           </motion.div>
 
-          {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Intel Vault Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          {/* ────────────── Intel Vault Table ────────────── */}
           <motion.div
             {...cardHover}
             className="flex-1 w-full bg-[rgba(255,255,255,0.04)] rounded-2xl border border-[rgba(255,255,255,0.08)] backdrop-blur-[8px] overflow-hidden flex flex-col"
@@ -293,13 +293,13 @@ export default function IntelVaultPage() {
               <h2 className="text-base font-semibold text-white">
                 Proprietary Intel Vault
               </h2>
-              <span className="ml-auto text-xs font-bold text-[#8B949E] bg-white/5 border border-white/10 rounded-full px-2.5 py-0.5">
+              <span className="ml-auto text-xs font-bold text-[#8B949E] bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-full px-2.5 py-0.5">
                 {indicators.length}
               </span>
             </div>
 
             {/* Table header */}
-            <div className="bg-[rgba(255,255,255,0.05)] px-5 py-2 border-b border-white/10 grid grid-cols-12 gap-3 items-center">
+            <div className="bg-[rgba(22,27,34,0.85)] px-5 py-2 border-b border-white/10 grid grid-cols-12 gap-3 items-center">
               <span className="col-span-5 text-[11px] font-bold text-[#E6EDF3] uppercase tracking-wider">
                 Indicator
               </span>
@@ -357,7 +357,7 @@ export default function IntelVaultPage() {
                     {/* Source */}
                     <div className="col-span-2">
                       <span className="text-xs font-medium text-[#E6EDF3] truncate block">
-                        {item.source || "â€”"}
+                        {item.source || "—"}
                       </span>
                     </div>
 
@@ -381,12 +381,12 @@ export default function IntelVaultPage() {
           </motion.div>
         </div>
 
-        {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ API Documentation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ────────────── API Documentation ────────────── */}
         <motion.div
           {...cardHover}
           className="mt-10 bg-[rgba(15,23,42,0.58)] rounded-xl border border-[rgba(45,212,191,0.16)] overflow-hidden"
         >
-          <div className="px-5 py-4 border-b border-white/10 bg-white/5 flex items-center gap-3">
+          <div className="px-5 py-4 border-b border-white/10 bg-[rgba(22,27,34,0.85)] flex items-center gap-3">
             <Code className="w-5 h-5 text-teal-400" />
             <h2 className="text-base font-semibold text-white">
               Public API v1
@@ -402,7 +402,7 @@ export default function IntelVaultPage() {
               <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wide">
                 Endpoint
               </h3>
-              <div className="bg-black border border-white/10 rounded-lg px-4 py-3 font-mono text-sm text-green-400 flex items-center justify-between gap-4">
+              <div className="bg-black border border-[rgba(48,54,61,0.9)] rounded-lg px-4 py-3 font-mono text-sm text-green-400 flex items-center justify-between gap-4">
                 <span>
                   <span className="text-teal-400 font-bold">GET</span>{" "}
                   <span className="text-slate-300">/api/v1/scan</span>
@@ -418,11 +418,11 @@ export default function IntelVaultPage() {
               </h3>
               <p className="text-sm text-[#8B949E] mb-3">
                 Include your API key in the{" "}
-                <code className="text-xs bg-black px-1.5 py-0.5 rounded font-mono text-teal-400 border border-white/10">
+                <code className="text-xs bg-black px-1.5 py-0.5 rounded font-mono text-teal-400 border border-[rgba(48,54,61,0.9)]">
                   x-api-key
                 </code>{" "}
                 header. Set{" "}
-                <code className="text-xs bg-black px-1.5 py-0.5 rounded font-mono text-teal-400 border border-white/10">
+                <code className="text-xs bg-black px-1.5 py-0.5 rounded font-mono text-teal-400 border border-[rgba(48,54,61,0.9)]">
                   PHISH_SLAYER_API_KEY
                 </code>{" "}
                 in your environment.
@@ -447,7 +447,7 @@ export default function IntelVaultPage() {
                   <Copy className="w-3.5 h-3.5" /> Copy
                 </button>
               </div>
-              <pre className="bg-black text-slate-300 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-white/10">
+              <pre className="bg-black text-slate-300 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-[rgba(48,54,61,0.9)]">
                 {`curl -X GET \\
   "https://your-domain.com/api/v1/scan?target=example.com" \\
   -H "x-api-key: YOUR_API_KEY"`}
@@ -459,7 +459,7 @@ export default function IntelVaultPage() {
               <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wide">
                 POST Example
               </h3>
-              <pre className="bg-black text-slate-300 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-white/10">
+              <pre className="bg-black text-slate-300 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-[rgba(48,54,61,0.9)]">
                 {`curl -X POST "https://your-domain.com/api/v1/scan" \\
   -H "x-api-key: YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
@@ -472,7 +472,7 @@ export default function IntelVaultPage() {
               <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-wide">
                 Response Format
               </h3>
-              <pre className="bg-black text-green-400 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-white/10">
+              <pre className="bg-black text-green-400 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-[rgba(48,54,61,0.9)]">
                 {`{
   "success": true,
   "data": {
@@ -495,3 +495,5 @@ export default function IntelVaultPage() {
     </div>
   );
 }
+
+

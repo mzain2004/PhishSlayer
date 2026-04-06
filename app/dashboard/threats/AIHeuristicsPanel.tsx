@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useHeuristicStore } from "@/lib/stores/heuristicStore";
@@ -54,7 +54,7 @@ export default function AIHeuristicsPanel({
       }
 
       if (!domText || domText.length < 10) {
-        domText = `Target domain: ${target}. No DOM text available â€” analyze based on domain name patterns and known threat intelligence.`;
+        domText = `Target domain: ${target}. No DOM text available — analyze based on domain name patterns and known threat intelligence.`;
       }
 
       const res = await fetch("/api/threat/ai-analysis", {
@@ -139,7 +139,7 @@ export default function AIHeuristicsPanel({
         <p className="text-sm font-semibold text-red-400">{error}</p>
         <button
           onClick={runAnalysis}
-          className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-400 text-white text-xs font-bold rounded-lg transition-colors"
+          className="rounded-full flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-400 text-white text-xs font-bold rounded-lg transition-colors"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           Retry Analysis
@@ -163,7 +163,7 @@ export default function AIHeuristicsPanel({
         </div>
         <button
           onClick={runAnalysis}
-          className="flex items-center gap-2 px-6 py-3 bg-violet-600 text-white font-bold text-sm rounded-xl hover:bg-violet-500 transition-all shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 hover:-translate-y-0.5"
+          className="rounded-full flex items-center gap-2 px-6 py-3 bg-violet-600 text-white font-bold text-sm rounded-xl hover:bg-violet-500 transition-all shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 hover:-translate-y-0.5"
         >
           <Sparkles className="w-4 h-4" />
           Run AI Analysis
@@ -188,7 +188,7 @@ export default function AIHeuristicsPanel({
         </div>
         <button
           onClick={runAnalysis}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-violet-400 bg-violet-500/10 rounded-lg hover:bg-violet-500/20 border border-violet-500/20 transition-colors"
+          className="rounded-full flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-violet-400 bg-violet-500/10 rounded-lg hover:bg-violet-500/20 border border-violet-500/20 transition-colors"
         >
           <RefreshCw className="w-3 h-3" />
           Re-analyze
@@ -219,7 +219,7 @@ export default function AIHeuristicsPanel({
             <span className="text-lg">/100</span>
           </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
             Confidence
           </p>
@@ -234,7 +234,7 @@ export default function AIHeuristicsPanel({
       </div>
 
       {/* Manipulation Tactics */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-4">
         <div className="flex items-center gap-2 mb-3">
           <Eye className="w-4 h-4 text-orange-400" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -248,19 +248,19 @@ export default function AIHeuristicsPanel({
                 key={i}
                 className="text-xs font-semibold px-2.5 py-1 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full"
               >
-                âš ï¸ {t}
+                ⚠️ {t}
               </span>
             ))}
           </div>
         ) : (
           <p className="text-sm text-emerald-400 font-medium">
-            âœ“ No manipulation tactics detected
+            ✓ No manipulation tactics detected
           </p>
         )}
       </div>
 
       {/* Credential Harvesting */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-4">
         <div className="flex items-center gap-2 mb-3">
           <Lock className="w-4 h-4 text-red-400" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -274,19 +274,19 @@ export default function AIHeuristicsPanel({
                 key={i}
                 className="text-xs font-semibold px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full"
               >
-                ðŸ”´ {s}
+                🔴 {s}
               </span>
             ))}
           </div>
         ) : (
           <p className="text-sm text-emerald-400 font-medium">
-            âœ“ No credential harvesting signals detected
+            ✓ No credential harvesting signals detected
           </p>
         )}
       </div>
 
       {/* Key Indicators */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-4">
         <div className="flex items-center gap-2 mb-3">
           <ShieldAlert className="w-4 h-4 text-[#8B949E]" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -307,13 +307,13 @@ export default function AIHeuristicsPanel({
           </ul>
         ) : (
           <p className="text-sm text-emerald-400 font-medium">
-            âœ“ No suspicious indicators found
+            ✓ No suspicious indicators found
           </p>
         )}
       </div>
 
       {/* AI Summary */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-4">
         <h4 className="text-xs font-bold uppercase tracking-wider text-[#8B949E] mb-2">
           AI Threat Summary
         </h4>
@@ -327,4 +327,5 @@ export default function AIHeuristicsPanel({
     </div>
   );
 }
+
 

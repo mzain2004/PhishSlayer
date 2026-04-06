@@ -35,7 +35,7 @@ type NavItem = {
 };
 
 const glassCard =
-  "bg-white/5 backdrop-blur-3xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl";
+  "bg-[rgba(22,27,34,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl";
 
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -140,7 +140,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                 className={`group relative flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 w-full text-left overflow-hidden ${
                   isActive
                     ? "bg-[#2DD4BF]/10 text-[#2DD4BF] border border-[#2DD4BF]/20"
-                    : "text-white/70 hover:text-white hover:bg-white/5"
+                    : "text-white/70 hover:text-white hover:bg-[rgba(22,27,34,0.85)]"
                 }`}
               >
                 <item.icon className="w-5 h-5 z-10" />
@@ -151,7 +151,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
         </nav>
 
         <div className="p-4 border-t border-white/10">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[rgba(22,27,34,0.85)] transition-colors">
             {profile.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -160,7 +160,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                 className="w-8 h-8 rounded-full object-cover"
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs font-semibold">
+              <div className="w-8 h-8 rounded-full bg-white/10 border border-[rgba(48,54,61,0.9)] flex items-center justify-center text-xs font-semibold">
                 {displayInitials(profile.fullName || profile.email)}
               </div>
             )}
@@ -193,11 +193,11 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-black/50 border border-white/10 rounded-full pl-9 pr-4 py-1.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#2DD4BF]/50 transition-colors w-64"
+                className="bg-black/50 border border-[rgba(48,54,61,0.9)] rounded-full pl-9 pr-4 py-1.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#2DD4BF]/50 transition-colors w-64"
               />
             </div>
 
-            <button className="relative text-white/70 hover:text-white transition-colors">
+            <button className="rounded-full relative text-white/70 hover:text-white transition-colors">
               <Bell className="w-5 h-5" />
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#2DD4BF] rounded-full" />
             </button>
@@ -216,3 +216,4 @@ export default function DashboardShell({ children }: DashboardShellProps) {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useTransition } from "react";
 import { motion } from "framer-motion";
@@ -184,11 +184,17 @@ export default function UserManagementPage() {
 
         {/* KPI Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <motion.div {...cardHover} className="bg-white/5 border border-white/10 rounded-xl p-5">
+          <motion.div
+            {...cardHover}
+            className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
+          >
             <p className="text-sm font-medium text-[#8B949E]">Total Users</p>
             <p className="text-3xl font-bold text-white mt-1">{users.length}</p>
           </motion.div>
-          <motion.div {...cardHover} className="bg-white/5 border border-white/10 rounded-xl p-5">
+          <motion.div
+            {...cardHover}
+            className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
+          >
             <p className="text-sm font-medium text-[#8B949E]">
               Active Analysts
             </p>
@@ -196,24 +202,33 @@ export default function UserManagementPage() {
               {activeAnalysts}
             </p>
           </motion.div>
-          <motion.div {...cardHover} className="bg-white/5 border border-white/10 rounded-xl p-5">
+          <motion.div
+            {...cardHover}
+            className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
+          >
             <p className="text-sm font-medium text-[#8B949E]">Managers</p>
             <p className="text-3xl font-bold text-indigo-400 mt-1">
               {managers}
             </p>
           </motion.div>
-          <motion.div {...cardHover} className="bg-white/5 border border-white/10 rounded-xl p-5">
+          <motion.div
+            {...cardHover}
+            className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
+          >
             <p className="text-sm font-medium text-[#8B949E]">Exec Viewers</p>
             <p className="text-3xl font-bold text-slate-300 mt-1">{viewers}</p>
           </motion.div>
         </div>
 
         {/* Users Table */}
-        <motion.div {...cardHover} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+        <motion.div
+          {...cardHover}
+          className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl overflow-hidden"
+        >
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-white/5 border-b border-white/10">
+                <tr className="bg-[rgba(22,27,34,0.85)] border-b border-white/10">
                   <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                     User
                   </th>
@@ -242,7 +257,7 @@ export default function UserManagementPage() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-[rgba(48,54,61,0.9)]">
                           {u.avatar_url ? (
                             <div
                               className="w-full h-full rounded-full bg-cover bg-center"
@@ -290,7 +305,7 @@ export default function UserManagementPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-slate-300">
-                        {u.department || "â€”"}
+                        {u.department || "—"}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -299,7 +314,7 @@ export default function UserManagementPage() {
                           <CheckCircle2 className="w-3.5 h-3.5" /> Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8B949E] bg-white/10 border border-white/10 px-2.5 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8B949E] bg-white/10 border border-[rgba(48,54,61,0.9)] px-2.5 py-0.5 rounded-full">
                           <XCircle className="w-3.5 h-3.5" /> Inactive
                         </span>
                       )}
@@ -335,7 +350,7 @@ export default function UserManagementPage() {
       {/* Invite Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white/5 rounded-2xl border border-white/10 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-[rgba(22,27,34,0.85)] rounded-2xl border border-[rgba(48,54,61,0.9)] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-teal-400" />
@@ -358,7 +373,7 @@ export default function UserManagementPage() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="colleague@company.com"
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                  className="w-full px-3 py-2 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
                 />
               </div>
               <div>
@@ -368,7 +383,7 @@ export default function UserManagementPage() {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as UserRole)}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all appearance-none outline-none"
+                  className="w-full px-3 py-2 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all appearance-none outline-none"
                 >
                   <option value="super_admin">Super Admin</option>
                   <option value="manager">SOC Manager</option>
@@ -377,7 +392,7 @@ export default function UserManagementPage() {
                 </select>
               </div>
             </div>
-            <div className="p-6 bg-white/5 border-t border-white/10 flex justify-end gap-3">
+            <div className="p-6 bg-[rgba(22,27,34,0.85)] border-t border-white/10 flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 text-sm font-semibold text-[#8B949E] hover:text-white transition-colors"
@@ -387,7 +402,7 @@ export default function UserManagementPage() {
               <button
                 onClick={handleInvite}
                 disabled={isPending || !inviteEmail}
-                className="flex items-center gap-2 px-5 py-2 bg-teal-500 hover:bg-teal-400 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+                className="rounded-full flex items-center gap-2 px-5 py-2 bg-teal-500 hover:bg-teal-400 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
               >
                 {isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -403,4 +418,5 @@ export default function UserManagementPage() {
     </div>
   );
 }
+
 

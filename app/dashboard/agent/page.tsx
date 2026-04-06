@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useTransition, useMemo } from "react";
 import { motion } from "framer-motion";
@@ -45,7 +45,7 @@ const cardHover = {
 };
 
 function countryFlag(code: string | null): string {
-  if (!code || code.length !== 2) return "ðŸŒ";
+  if (!code || code.length !== 2) return "🌐";
   return String.fromCodePoint(
     ...code
       .toUpperCase()
@@ -252,7 +252,7 @@ export default function AgentDashboardPage() {
                     setFilter(e.target.value);
                     setPage(0);
                   }}
-                  placeholder="Filter by process, IP, levelâ€¦"
+                  placeholder="Filter by process, IP, level…"
                   className="w-56 py-2.5 pl-10 pr-5 rounded-full bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.15)] text-sm text-[#E6EDF3] placeholder:text-white/50 focus:outline-none focus:border-[#2DD4BF] focus:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]"
                 />
               </div>
@@ -260,7 +260,7 @@ export default function AgentDashboardPage() {
                 onClick={handleRefresh}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
+                className="rounded-full flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
               >
                 <RefreshCw
                   className={`w-4 h-4 ${!loaded ? "animate-spin" : ""}`}
@@ -271,7 +271,7 @@ export default function AgentDashboardPage() {
                 onClick={exportCsv}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
+                className="rounded-full flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
               >
                 <Download className="w-4 h-4" />
                 Export CSV
@@ -284,7 +284,7 @@ export default function AgentDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <motion.div
             {...cardHover}
-            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(255,255,255,0.06)] p-5 border border-[rgba(255,255,255,0.1)] backdrop-blur-[8px]"
+            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(22,27,34,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
           >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">Total Events</p>
@@ -296,7 +296,7 @@ export default function AgentDashboardPage() {
           </motion.div>
           <motion.div
             {...cardHover}
-            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(255,255,255,0.06)] p-5 border border-[rgba(255,255,255,0.1)] backdrop-blur-[8px]"
+            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(22,27,34,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
           >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">
@@ -310,7 +310,7 @@ export default function AgentDashboardPage() {
           </motion.div>
           <motion.div
             {...cardHover}
-            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(255,255,255,0.06)] p-5 border border-[rgba(255,255,255,0.1)] backdrop-blur-[8px]"
+            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(22,27,34,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
           >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">Unique IPs</p>
@@ -322,7 +322,7 @@ export default function AgentDashboardPage() {
           </motion.div>
           <motion.div
             {...cardHover}
-            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(255,255,255,0.06)] p-5 border border-[rgba(255,255,255,0.1)] backdrop-blur-[8px]"
+            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(22,27,34,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
           >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">
@@ -341,7 +341,7 @@ export default function AgentDashboardPage() {
           {/* Bar Chart */}
           <motion.div
             {...cardHover}
-            className="lg:col-span-2 bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-2xl p-6 backdrop-blur-[8px]"
+            className="lg:col-span-2 bg-[rgba(22,27,34,0.88)] border border-[rgba(48,54,61,0.9)] rounded-2xl p-6 backdrop-blur-[8px]"
           >
             <div className="flex items-center gap-2 mb-4">
               <Activity className="w-5 h-5 text-teal-400" />
@@ -404,7 +404,7 @@ export default function AgentDashboardPage() {
           {/* Beaconing Alert */}
           <motion.div
             {...cardHover}
-            className="bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-2xl p-6 backdrop-blur-[8px] flex flex-col"
+            className="bg-[rgba(22,27,34,0.88)] border border-[rgba(48,54,61,0.9)] rounded-2xl p-6 backdrop-blur-[8px] flex flex-col"
           >
             <div className="flex items-center gap-2 mb-4">
               <AlertTriangle className="w-5 h-5 text-orange-500" />
@@ -426,19 +426,19 @@ export default function AgentDashboardPage() {
               <div className="flex-1 flex flex-col gap-3">
                 <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
                   <p className="text-xs font-black text-red-400 uppercase">
-                    âš ï¸ BEACONING DETECTED â€” Possible C2 Communication
+                    ⚠️ BEACONING DETECTED — Possible C2 Communication
                   </p>
                 </div>
                 <ul className="space-y-2 overflow-y-auto max-h-40">
                   {beaconingEvents.map((e, i) => (
                     <li
                       key={i}
-                      className="text-xs bg-white/5 rounded p-2 border border-white/10"
+                      className="text-xs bg-[rgba(22,27,34,0.85)] rounded p-2 border border-[rgba(48,54,61,0.9)]"
                     >
                       <span className="font-mono font-bold text-red-400">
                         {e.process_name}
                       </span>
-                      <span className="text-[#8B949E]"> â†’ </span>
+                      <span className="text-[#8B949E]"> → </span>
                       <span className="font-mono text-slate-300">
                         {e.remote_address}:{e.remote_port}
                       </span>
@@ -458,7 +458,7 @@ export default function AgentDashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-white/5 border-b border-white/10">
+                <tr className="bg-[rgba(22,27,34,0.85)] border-b border-white/10">
                   {[
                     "Timestamp",
                     "Process",
@@ -517,11 +517,11 @@ export default function AgentDashboardPage() {
                         {e.remote_port}
                       </td>
                       <td className="px-4 py-3 text-xs text-[#8B949E] whitespace-nowrap">
-                        {countryFlag(e.country_code)} {e.country || "â€”"}
+                        {countryFlag(e.country_code)} {e.country || "—"}
                         {e.city ? `, ${e.city}` : ""}
                       </td>
                       <td className="px-4 py-3 text-xs text-[#8B949E] truncate max-w-[120px]">
-                        {e.isp || "â€”"}
+                        {e.isp || "—"}
                       </td>
                       <td className="px-4 py-3">
                         <span
@@ -569,22 +569,22 @@ export default function AgentDashboardPage() {
           </div>
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 bg-white/5">
+            <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 bg-[rgba(22,27,34,0.85)]">
               <span className="text-xs text-[#8B949E]">
-                {filtered.length} events Â· Page {page + 1} of {totalPages}
+                {filtered.length} events · Page {page + 1} of {totalPages}
               </span>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPage(Math.max(0, page - 1))}
                   disabled={page === 0}
-                  className="px-3 py-1 rounded border border-white/10 text-xs font-semibold text-slate-300 hover:bg-white/10 disabled:opacity-40"
+                  className="px-3 py-1 rounded border border-[rgba(48,54,61,0.9)] text-xs font-semibold text-slate-300 hover:bg-white/10 disabled:opacity-40"
                 >
                   Prev
                 </button>
                 <button
                   onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                   disabled={page >= totalPages - 1}
-                  className="px-3 py-1 rounded border border-white/10 text-xs font-semibold text-slate-300 hover:bg-white/10 disabled:opacity-40"
+                  className="px-3 py-1 rounded border border-[rgba(48,54,61,0.9)] text-xs font-semibold text-slate-300 hover:bg-white/10 disabled:opacity-40"
                 >
                   Next
                 </button>
@@ -594,7 +594,7 @@ export default function AgentDashboardPage() {
         </motion.div>
 
         {/* Agent Configuration */}
-        <div className="rounded-xl bg-white/5 border border-white/10 overflow-hidden shadow-sm">
+        <div className="rounded-xl bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] overflow-hidden shadow-sm">
           <div className="bg-black px-4 py-3 border-b border-white/10 flex items-center gap-2">
             <Terminal className="w-4 h-4 text-teal-400" />
             <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
@@ -654,3 +654,5 @@ WHERE pos.remote_address != ''
     </div>
   );
 }
+
+

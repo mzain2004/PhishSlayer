@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
@@ -62,7 +62,7 @@ const FAQS = [
   },
   {
     q: "Is my threat data secure?",
-    a: "Yes. All data is protected by Supabase Row Level Security (RLS) â€” users can only access their own organization's data. API routes use timing-safe authentication, inputs are sanitized with Zod validation, and no secrets are ever exposed to the client.",
+    a: "Yes. All data is protected by Supabase Row Level Security (RLS) — users can only access their own organization's data. API routes use timing-safe authentication, inputs are sanitized with Zod validation, and no secrets are ever exposed to the client.",
   },
   {
     q: "How does the Takedown Generator work?",
@@ -172,8 +172,10 @@ export default function SupportPage() {
         // Send notification email (legacy bridge)
         try {
           const supabase = createClient();
-          const { data: { user } } = await supabase.auth.getUser();
-          
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+
           await fetch("/api/communications", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -227,10 +229,16 @@ export default function SupportPage() {
 
       {/* Contact Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <motion.div whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+        <motion.div
+          whileHover={{
+            scale: 1.02,
+            boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        >
           <a
             href="mailto:support@phishslayer.tech"
-            className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-teal-500/50 transition-colors cursor-pointer block group"
+            className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-6 hover:border-teal-500/50 transition-colors cursor-pointer block group"
           >
             <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center mb-4 group-hover:bg-teal-500/20 transition-colors">
               <Mail className="w-5 h-5 text-teal-400" />
@@ -243,12 +251,18 @@ export default function SupportPage() {
             </p>
           </a>
         </motion.div>
-        <motion.div whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+        <motion.div
+          whileHover={{
+            scale: 1.02,
+            boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        >
           <a
             href="https://discord.com/invite/phishslayer"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-[#5865F2]/50 transition-colors cursor-pointer block group"
+            className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-6 hover:border-[#5865F2]/50 transition-colors cursor-pointer block group"
           >
             <div className="w-10 h-10 rounded-lg bg-[#5865F2]/10 flex items-center justify-center mb-4 group-hover:bg-[#5865F2]/20 transition-colors">
               <MessageSquare className="w-5 h-5 text-[#5865F2]" />
@@ -257,10 +271,16 @@ export default function SupportPage() {
             <p className="text-[#8B949E] text-sm mt-1">Join the conversation</p>
           </a>
         </motion.div>
-        <motion.div whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+        <motion.div
+          whileHover={{
+            scale: 1.02,
+            boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        >
           <Link
             href="/dashboard/intel"
-            className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-indigo-500/50 transition-colors cursor-pointer block group"
+            className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-6 hover:border-indigo-500/50 transition-colors cursor-pointer block group"
           >
             <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4 group-hover:bg-indigo-500/20 transition-colors">
               <BookOpen className="w-5 h-5 text-indigo-400" />
@@ -276,7 +296,7 @@ export default function SupportPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
         {/* Ticket Form */}
         <div className="xl:col-span-2">
-          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-6">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-white tracking-tight">
                 Submit a Support Ticket
@@ -297,7 +317,7 @@ export default function SupportPage() {
                     required
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none"
+                    className="w-full px-4 py-2.5 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none"
                     placeholder="Brief description of the issue"
                   />
                 </div>
@@ -309,7 +329,7 @@ export default function SupportPage() {
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
+                      className="w-full px-4 py-2.5 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
                     >
                       <option>General Question</option>
                       <option>Bug Report</option>
@@ -331,7 +351,7 @@ export default function SupportPage() {
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
+                    className="w-full px-4 py-2.5 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
                   >
                     <option>Low</option>
                     <option>Medium</option>
@@ -351,7 +371,7 @@ export default function SupportPage() {
                   rows={6}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none resize-none"
+                  className="w-full px-4 py-3 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none resize-none"
                   placeholder="Please describe your issue in detail..."
                 />
               </div>
@@ -368,7 +388,7 @@ export default function SupportPage() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-white/10 text-slate-300 text-sm hover:border-slate-500 hover:text-white transition-colors"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[rgba(48,54,61,0.9)] text-slate-300 text-sm hover:border-slate-500 hover:text-white transition-colors"
                   >
                     <Paperclip className="w-4 h-4" />
                     {attachedFile ? attachedFile.name : "Attach File (Max 5MB)"}
@@ -386,9 +406,13 @@ export default function SupportPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-teal-500 hover:bg-teal-400 text-white rounded-lg text-sm font-bold transition-colors w-full sm:w-auto justify-center disabled:opacity-50"
+                  className="rounded-full flex items-center gap-2 px-6 py-2.5 bg-teal-500 hover:bg-teal-400 text-white rounded-lg text-sm font-bold transition-colors w-full sm:w-auto justify-center disabled:opacity-50"
                 >
-                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {isSubmitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
                   {isSubmitting ? "Submitting..." : "Submit Ticket"}
                 </button>
               </div>
@@ -398,7 +422,7 @@ export default function SupportPage() {
 
         {/* System Status Sidebar */}
         <div className="flex flex-col gap-6">
-          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 System Status
@@ -416,7 +440,7 @@ export default function SupportPage() {
               {SYSTEM_STATUS.map((sys, idx) => (
                 <div
                   key={idx}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white/5 rounded-lg border border-white/10"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-[rgba(22,27,34,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)]"
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500"></div>
@@ -435,7 +459,7 @@ export default function SupportPage() {
               <span className="text-xs text-[#8B949E]">
                 Last checked: {currentTime}
               </span>
-              <button className="text-xs font-semibold text-teal-400 hover:text-teal-300">
+              <button className="rounded-full text-xs font-semibold text-teal-400 hover:text-teal-300">
                 View full status page &rarr;
               </button>
             </div>
@@ -454,7 +478,7 @@ export default function SupportPage() {
             return (
               <div
                 key={idx}
-                className="bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-200"
+                className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl overflow-hidden transition-all duration-200"
               >
                 <button
                   onClick={() => toggleFaq(idx)}
@@ -481,7 +505,10 @@ export default function SupportPage() {
       {/* Enterprise CTA */}
       {(tier === "free" || tier === "pro") && (
         <motion.div
-          whileHover={{ scale: 1.01, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+          whileHover={{
+            scale: 1.01,
+            boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+          }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
           className="bg-gradient-to-r from-teal-500/10 to-indigo-500/10 border border-teal-500/20 rounded-xl p-6"
         >
@@ -491,7 +518,8 @@ export default function SupportPage() {
                 Need Enterprise-Grade Support?
               </h3>
               <p className="text-[#8B949E] text-sm mt-1">
-                Upgrade for priority response times, onboarding, and SOC guidance.
+                Upgrade for priority response times, onboarding, and SOC
+                guidance.
               </p>
             </div>
             <a
@@ -507,4 +535,5 @@ export default function SupportPage() {
     </div>
   );
 }
+
 

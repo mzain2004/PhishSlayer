@@ -27,7 +27,7 @@ export default function KpiCards({
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       <motion.div
         {...hoverProps}
-        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
+        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(48,54,61,0.9)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
       >
         <div className="flex items-start justify-between">
           <span className="font-medium text-white/70">Time to Contain</span>
@@ -39,7 +39,7 @@ export default function KpiCards({
 
       <motion.div
         {...hoverProps}
-        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
+        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(48,54,61,0.9)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
       >
         <div className="flex items-start justify-between">
           <span className="font-medium text-white/70">Active Incidents</span>
@@ -54,7 +54,7 @@ export default function KpiCards({
 
       <motion.div
         {...hoverProps}
-        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
+        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(48,54,61,0.9)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
       >
         <div className="flex items-start justify-between">
           <span className="font-medium text-white/70">API Latency</span>
@@ -64,7 +64,7 @@ export default function KpiCards({
 
       <motion.div
         {...hoverProps}
-        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(255,255,255,0.1)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
+        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(48,54,61,0.9)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
       >
         <div className="flex items-start justify-between">
           <span className="font-medium text-white/70">Global Risk Score</span>
@@ -76,3 +76,4 @@ export default function KpiCards({
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -56,7 +56,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
         className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer text-sm ${
           isActive
             ? "font-semibold bg-teal-400/10 text-teal-400 border-l-2 border-teal-400"
-            : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-white/5"
+            : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[rgba(22,27,34,0.85)]"
         }`}
       >
         <Icon className="w-6 h-6 flex-shrink-0" />
@@ -71,7 +71,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
     super_admin: "bg-red-500/10 text-red-400 border border-red-500/20",
     manager: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
     analyst: "bg-teal-500/10 text-teal-400 border border-teal-500/20",
-    viewer: "bg-white/10 text-[#8B949E] border border-white/10",
+    viewer: "bg-white/10 text-[#8B949E] border border-[rgba(48,54,61,0.9)]",
   };
 
   const getInitials = () => {
@@ -218,9 +218,9 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
       <div className="bg-black border-t border-white/10 px-3 py-3 overflow-hidden">
         <Link
           href="/dashboard/profile"
-          className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors group/profile"
+          className="flex items-center gap-3 p-2 rounded-lg hover:bg-[rgba(22,27,34,0.85)] transition-colors group/profile"
         >
-          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden border border-white/10 flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden border border-[rgba(48,54,61,0.9)] flex-shrink-0">
             {profile?.avatar_url ? (
               <img
                 src={profile.avatar_url}
@@ -250,3 +250,4 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
     </aside>
   );
 }
+

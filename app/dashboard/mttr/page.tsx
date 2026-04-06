@@ -236,7 +236,10 @@ export default function MTTRDashboardPage() {
           ].map((card) => (
             <motion.div
               key={card.label}
-              whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+              whileHover={{
+                scale: 1.02,
+                boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+              }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               style={{
                 background: "rgba(255,255,255,0.05)",

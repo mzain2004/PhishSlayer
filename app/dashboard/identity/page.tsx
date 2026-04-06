@@ -325,7 +325,8 @@ export default function IdentityDashboardPage() {
             borderRadius: "6px",
             padding: "8px 12px",
             cursor: "pointer",
-            background: activeTab === "chains" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
+            background:
+              activeTab === "chains" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
             color: activeTab === "chains" ? "#09121E" : "#E6EDF3",
             fontWeight: 700,
           }}
@@ -340,7 +341,8 @@ export default function IdentityDashboardPage() {
             borderRadius: "6px",
             padding: "8px 12px",
             cursor: "pointer",
-            background: activeTab === "anomalies" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
+            background:
+              activeTab === "anomalies" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
             color: activeTab === "anomalies" ? "#09121E" : "#E6EDF3",
             fontWeight: 700,
           }}
@@ -355,7 +357,8 @@ export default function IdentityDashboardPage() {
             borderRadius: "6px",
             padding: "8px 12px",
             cursor: "pointer",
-            background: activeTab === "lifecycle" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
+            background:
+              activeTab === "lifecycle" ? "#2DD4BF" : "rgba(255,255,255,0.05)",
             color: activeTab === "lifecycle" ? "#09121E" : "#E6EDF3",
             fontWeight: 700,
           }}
@@ -393,7 +396,10 @@ export default function IdentityDashboardPage() {
           ].map((stat) => (
             <motion.div
               key={stat.label}
-              whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+              whileHover={{
+                scale: 1.02,
+                boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+              }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               style={{
                 background: "rgba(255,255,255,0.05)",
@@ -447,7 +453,10 @@ export default function IdentityDashboardPage() {
           ].map((stat) => (
             <motion.div
               key={stat.label}
-              whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+              whileHover={{
+                scale: 1.02,
+                boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+              }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               style={{
                 background: "rgba(255,255,255,0.05)",
@@ -509,7 +518,10 @@ export default function IdentityDashboardPage() {
           ].map((stat) => (
             <motion.div
               key={stat.label}
-              whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+              whileHover={{
+                scale: 1.02,
+                boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+              }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               style={{
                 background: "rgba(255,255,255,0.05)",
@@ -707,7 +719,9 @@ export default function IdentityDashboardPage() {
                         </div>
                       </div>
                       {index < chain.links.length - 1 ? (
-                        <span style={{ color: "rgba(255,255,255,0.1)" }}>-&gt;</span>
+                        <span style={{ color: "rgba(255,255,255,0.1)" }}>
+                          -&gt;
+                        </span>
                       ) : null}
                     </div>
                   ))}

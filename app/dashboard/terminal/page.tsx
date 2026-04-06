@@ -49,9 +49,12 @@ export default function TerminalPage() {
       </div>
 
       <motion.div
-        whileHover={{ scale: 1.005, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+        whileHover={{
+          scale: 1.005,
+          boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+        }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden"
+        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] backdrop-blur-sm overflow-hidden"
       >
         <div className="border-b border-white/10 px-4 py-3 text-xs uppercase tracking-widest text-[#8B949E]">
           Session Output
@@ -82,11 +85,18 @@ export default function TerminalPage() {
           <motion.button
             onClick={submit}
             disabled={running || !input.trim()}
-            whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(45,212,191,0.35)" }}
+            whileHover={{
+              scale: 1.03,
+              boxShadow: "0 0 24px rgba(45,212,191,0.35)",
+            }}
             whileTap={{ scale: 0.97 }}
-            className="rounded-full px-4 py-2 font-semibold text-black [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-50 flex items-center gap-2"
+            className="rounded-full rounded-full px-4 py-2 font-semibold text-black [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-50 flex items-center gap-2"
           >
-            {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            {running ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
             Run
           </motion.button>
         </div>
@@ -94,3 +104,5 @@ export default function TerminalPage() {
     </div>
   );
 }
+
+

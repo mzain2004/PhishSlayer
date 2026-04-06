@@ -28,7 +28,7 @@ type CommandCenterViewProps = {
 };
 
 const glassCard =
-  "liquid-glass bg-white/5 backdrop-blur-3xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl";
+  "liquid-glass bg-[rgba(22,27,34,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl";
 
 const staggerGrid = {
   hidden: { opacity: 0 },
@@ -200,7 +200,7 @@ export default function CommandCenterView({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Link
                 href="/dashboard/scans"
-                className="p-4 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-3 text-center transition-colors hover:bg-white/10"
+                className="p-4 rounded-xl bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] flex flex-col items-center justify-center gap-3 text-center transition-colors hover:bg-white/10"
               >
                 <Activity className="w-6 h-6 text-[#2DD4BF]" />
                 <span className="text-sm font-bold text-white">
@@ -209,7 +209,7 @@ export default function CommandCenterView({
               </Link>
               <Link
                 href="/dashboard/incidents"
-                className="p-4 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-3 text-center transition-colors hover:bg-white/10"
+                className="p-4 rounded-xl bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] flex flex-col items-center justify-center gap-3 text-center transition-colors hover:bg-white/10"
               >
                 <Shield className="w-6 h-6 text-white" />
                 <span className="text-sm font-bold text-white">
@@ -257,7 +257,7 @@ export default function CommandCenterView({
                   <motion.div
                     key={`${scan.target}-${index}`}
                     variants={gridItem}
-                    className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-start gap-3"
+                    className="p-3 rounded-lg bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] flex items-start gap-3"
                   >
                     <div
                       className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
@@ -283,3 +283,4 @@ export default function CommandCenterView({
     </div>
   );
 }
+

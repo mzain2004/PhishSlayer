@@ -42,7 +42,9 @@ export default function ReportsPage() {
       const lines = doc.splitTextToSize(body, width - 28);
       doc.text(lines, 14, 62);
 
-      doc.save(`phish-slayer-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+      doc.save(
+        `phish-slayer-report-${new Date().toISOString().slice(0, 10)}.pdf`,
+      );
       toast.success("PDF exported successfully");
     } catch (err) {
       toast.error("Failed to export PDF");
@@ -64,26 +66,41 @@ export default function ReportsPage() {
       </div>
 
       <motion.div
-        whileHover={{ scale: 1.01, boxShadow: "0 8px 32px rgba(45,212,191,0.15)" }}
+        whileHover={{
+          scale: 1.01,
+          boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+        }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6"
+        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] backdrop-blur-sm p-6"
       >
-        <h2 className="text-lg font-semibold text-[#E6EDF3] mb-2">Executive PDF Export</h2>
+        <h2 className="text-lg font-semibold text-[#E6EDF3] mb-2">
+          Executive PDF Export
+        </h2>
         <p className="text-sm text-[#8B949E] mb-6">
-          Export a clean summary report. For full deep-dive scan reports, use the Threat Intelligence module.
+          Export a clean summary report. For full deep-dive scan reports, use
+          the Threat Intelligence module.
         </p>
 
         <motion.button
           onClick={exportExecutivePdf}
           disabled={isExporting}
-          whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(45,212,191,0.35)" }}
+          whileHover={{
+            scale: 1.03,
+            boxShadow: "0 0 24px rgba(45,212,191,0.35)",
+          }}
           whileTap={{ scale: 0.97 }}
-          className="inline-flex items-center gap-2 rounded-full px-6 py-3 font-bold text-black [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-60"
+          className="rounded-full inline-flex items-center gap-2 rounded-full px-6 py-3 font-bold text-black [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-60"
         >
-          {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+          {isExporting ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Download className="w-4 h-4" />
+          )}
           {isExporting ? "Generating..." : "Export PDF"}
         </motion.button>
       </motion.div>
     </div>
   );
 }
+
+

@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { DashboardErrorBoundary } from "./components/ErrorBoundary";
@@ -32,3 +32,4 @@ export default async function DashboardLayout({
     </div>
   );
 }
+

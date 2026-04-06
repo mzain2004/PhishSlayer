@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
+  Activity,
   AlertTriangle,
   CreditCard,
   Database,
@@ -12,10 +13,14 @@ import {
   LayoutDashboard,
   Menu,
   Monitor,
+  Radar,
   ScanLine,
   Settings,
   Shield,
+  ShieldCheck,
   Terminal,
+  User,
+  Users,
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -29,14 +34,26 @@ type SidebarItemProps = {
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  { icon: Users, label: "User Management", href: "/dashboard/admin" },
+  { icon: Terminal, label: "Endpoint Agent", href: "/dashboard/agent" },
+  { icon: Monitor, label: "Agents", href: "/dashboard/agents" },
+  { icon: ShieldCheck, label: "API Keys", href: "/dashboard/apikeys" },
+  { icon: FileText, label: "Audit Log", href: "/dashboard/audit" },
   { icon: ScanLine, label: "Threat Scanner", href: "/dashboard/scans" },
   { icon: Monitor, label: "Endpoint Fleet", href: "/dashboard/fleet" },
+  { icon: Activity, label: "Identity", href: "/dashboard/identity" },
   {
     icon: AlertTriangle,
     label: "Incident Reports",
     href: "/dashboard/incidents",
   },
   { icon: Database, label: "Intel Vault", href: "/dashboard/intel" },
+  { icon: Activity, label: "MTTR", href: "/dashboard/mttr" },
+  { icon: User, label: "Profile", href: "/dashboard/profile" },
+  { icon: Shield, label: "Protocols", href: "/dashboard/protocols" },
+  { icon: Radar, label: "Sandbox", href: "/dashboard/sandbox" },
+  { icon: AlertTriangle, label: "Threat Intel", href: "/dashboard/threats" },
+  { icon: Terminal, label: "Support", href: "/dashboard/support" },
   { icon: Terminal, label: "AI Terminal", href: "/dashboard/terminal" },
   { icon: FileText, label: "Reports", href: "/dashboard/reports" },
   { icon: CreditCard, label: "Billing", href: "/dashboard/billing" },
@@ -54,39 +71,41 @@ function SidebarItem({
 
   if (!expanded) {
     return (
-      <div className="my-[2px] flex h-11 w-16 items-center justify-center p-0">
+      <motion.div
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        className="my-[2px] flex w-16 items-center justify-center"
+      >
         <Link
           href={href}
-          className={`flex h-11 w-11 items-center justify-center ${baseTransition} ${
+          className={`m-auto flex h-10 w-10 items-center justify-center rounded-full ${baseTransition} ${
             active
-              ? "rounded-lg bg-[rgba(45,212,191,0.2)] text-[#2DD4BF]"
-              : "rounded-lg text-[rgba(255,255,255,0.65)]"
+              ? "bg-[rgba(45,212,191,0.2)] text-[#2DD4BF] shadow-[0_0_12px_rgba(45,212,191,0.25)]"
+              : "bg-transparent text-[rgba(255,255,255,0.7)] hover:bg-[rgba(255,255,255,0.1)]"
           }`}
         >
-          <Icon className="h-5 w-5" />
+          <Icon className="h-[18px] w-[18px]" />
         </Link>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <motion.div whileHover={{ x: 2 }} whileTap={{ scale: 0.98 }} className="my-[2px]">
+    <motion.div whileHover={{ x: 2 }} whileTap={{ scale: 0.98 }} className="my-px">
       <Link
         href={href}
-        className={`flex h-11 w-full items-center gap-3 rounded-full px-4 text-left text-sm ${baseTransition} ${
+        className={`flex h-[38px] w-full items-center gap-3 rounded-full px-4 text-left text-sm ${baseTransition} ${
           active
             ? "font-semibold text-[#2DD4BF] [background:linear-gradient(135deg,rgba(45,212,191,0.25),rgba(167,139,250,0.2))] shadow-[0_0_16px_rgba(45,212,191,0.25)]"
             : "bg-transparent text-[rgba(255,255,255,0.6)]"
         }`}
       >
         <Icon
-          className={`h-5 w-5 shrink-0 ${
+          className={`h-[18px] w-[18px] shrink-0 ${
             active ? "text-[#2DD4BF]" : "text-[rgba(255,255,255,0.6)]"
           }`}
         />
-        <span
-          className="overflow-hidden whitespace-nowrap text-sm opacity-100 [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]"
-        >
+        <span className="overflow-hidden whitespace-nowrap text-sm opacity-100 [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]">
           {label}
         </span>
       </Link>
@@ -156,7 +175,7 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setMobileOpen((v) => !v)}
-        className="fixed left-3 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-lg border border-white/20 bg-[rgba(30,20,60,0.85)] text-white backdrop-blur-[12px] md:hidden"
+        className="fixed left-3 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-[rgba(30,20,60,0.85)] text-white backdrop-blur-[12px] md:hidden"
         aria-label="Toggle sidebar"
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -169,20 +188,20 @@ export default function Sidebar() {
         style={{ background: "rgba(30, 20, 60, 0.85)", overflow: "hidden" }}
       >
         {showExpanded ? (
-          <div className="flex h-16 items-center gap-3 border-b border-white/10 px-4">
-            <Shield className="h-6 w-6 shrink-0 text-[#2DD4BF]" />
+          <div className="flex h-14 items-center gap-3 border-b border-white/10 px-4">
+            <Shield className="h-[22px] w-[22px] shrink-0 text-[#2DD4BF]" />
             <span className="font-space-grotesk overflow-hidden whitespace-nowrap text-xl font-bold tracking-tight opacity-100 [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]">
               Phish-Slayer
             </span>
           </div>
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center border-b border-white/10 p-0">
-            <Shield className="h-6 w-6 text-[#2DD4BF]" />
+          <div className="flex h-14 w-16 items-center justify-center border-b border-white/10 p-0">
+            <Shield className="h-[22px] w-[22px] text-[#2DD4BF]" />
           </div>
         )}
 
-        <nav className={`max-h-[100vh] flex-1 overflow-y-auto ${showExpanded ? "px-2 py-2" : "p-0"}`}>
-          <div className={`flex flex-col ${showExpanded ? "gap-1" : "gap-0"}`}>
+        <nav className={`flex-1 ${showExpanded ? "px-2 py-1" : "p-0"}`}>
+          <div className="flex flex-col">
             {navItems.map((item) => {
               const active =
                 pathname === item.href ||
@@ -204,7 +223,7 @@ export default function Sidebar() {
 
         <div className="border-t border-white/10">
           {showExpanded ? (
-            <div className="flex items-center gap-3 px-4 py-3">
+            <div className="flex items-center gap-3 px-4 py-2">
               {profile.avatarUrl ? (
                 <img
                   src={profile.avatarUrl}
@@ -226,7 +245,7 @@ export default function Sidebar() {
               </div>
             </div>
           ) : (
-            <div className="flex w-16 items-center justify-center py-3">
+            <div className="flex w-16 items-center justify-center py-2">
               {profile.avatarUrl ? (
                 <img
                   src={profile.avatarUrl}
@@ -234,7 +253,7 @@ export default function Sidebar() {
                   className="m-auto block h-8 w-8 rounded-full object-cover"
                 />
               ) : (
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2DD4BF] text-[13px] font-bold text-black">
+                <div className="m-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#2DD4BF] text-[13px] font-bold text-black">
                   {initials}
                 </div>
               )}
@@ -245,3 +264,4 @@ export default function Sidebar() {
     </>
   );
 }
+

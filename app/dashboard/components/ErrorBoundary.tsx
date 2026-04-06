@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Component, type ReactNode } from "react";
 import { ShieldAlert } from "lucide-react";
@@ -58,4 +58,5 @@ export class DashboardErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
 

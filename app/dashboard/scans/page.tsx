@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useTransition, Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -165,7 +165,7 @@ function ScanManagerContent() {
   return (
     <div className="font-sans text-slate-100 antialiased min-h-screen flex flex-col w-full">
       <main className="flex-1 px-4 sm:px-8 py-8 w-full max-w-5xl mx-auto flex flex-col gap-10">
-        <section className="rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.06)] p-1">
+        <section className="rounded-full border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.88)] p-1">
           <div className="grid grid-cols-2 gap-2">
             <motion.button
               onClick={() => setActiveTab("scanner")}
@@ -199,7 +199,7 @@ function ScanManagerContent() {
             {/* Hero Scanner Section */}
             <motion.section
               {...cardHover}
-              className="relative rounded-2xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] backdrop-blur-[12px] p-10 overflow-hidden"
+              className="relative rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] backdrop-blur-[12px] p-10 overflow-hidden"
             >
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-20 -right-20 w-80 h-80 bg-teal-900/20 rounded-full blur-3xl opacity-60"></div>
@@ -207,7 +207,7 @@ function ScanManagerContent() {
               </div>
 
               {isViewer && (
-                <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-xs font-bold text-[#8B949E] shadow-sm">
+                <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-[rgba(48,54,61,0.9)] text-xs font-bold text-[#8B949E] shadow-sm">
                   <Eye className="w-3.5 h-3.5" />
                   View Only
                 </div>
@@ -252,19 +252,19 @@ function ScanManagerContent() {
                         boxShadow: "0 0 24px rgba(45,212,191,0.4)",
                       }}
                       whileTap={{ scale: 0.97 }}
-                      className="flex min-w-[160px] items-center justify-center gap-2 whitespace-nowrap rounded-full px-7 py-3 text-base font-bold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-full flex min-w-[160px] items-center justify-center gap-2 whitespace-nowrap rounded-full px-7 py-3 text-base font-bold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {isPending ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
                         <ShieldCheck className="w-5 h-5" />
                       )}
-                      {isPending ? "Scanningâ€¦" : "Scan Target"}
+                      {isPending ? "Scanning…" : "Scan Target"}
                     </motion.button>
                   </div>
                 )}
                 {isViewer && (
-                  <div className="w-full max-w-lg bg-white/10 border border-white/10 rounded-xl p-4 text-sm text-[#8B949E] font-medium flex items-center justify-center gap-2">
+                  <div className="w-full max-w-lg bg-white/10 border border-[rgba(48,54,61,0.9)] rounded-xl p-4 text-sm text-[#8B949E] font-medium flex items-center justify-center gap-2">
                     <Eye className="w-4 h-4" />
                     Your role restricts launching new scans. You can view
                     existing historical scans below.
@@ -273,8 +273,8 @@ function ScanManagerContent() {
 
                 {isPending && (
                   <p className="mt-4 text-sm text-teal-400 font-medium animate-pulse">
-                    Analyzing target with VirusTotal + Gemini AI â€” this may
-                    take a momentâ€¦
+                    Analyzing target with VirusTotal + Gemini AI — this may
+                    take a moment…
                   </p>
                 )}
               </div>
@@ -294,7 +294,7 @@ function ScanManagerContent() {
               <div className="flex flex-wrap items-center gap-2">
                 {/* View Scope Toggle for Managers+ */}
                 {isManagerOrAdmin && (
-                  <div className="flex bg-white/5 p-1 rounded-lg border border-white/10">
+                  <div className="flex bg-[rgba(22,27,34,0.85)] p-1 rounded-lg border border-[rgba(48,54,61,0.9)]">
                     <motion.button
                       onClick={() => setViewScope("all")}
                       whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
@@ -315,7 +315,7 @@ function ScanManagerContent() {
                 )}
 
                 {/* Date Filters */}
-                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg p-1">
                   <Filter className="w-4 h-4 text-[#8B949E] ml-2" />
                   <select
                     value={dateRange}
@@ -334,7 +334,7 @@ function ScanManagerContent() {
             {/* Scans Table */}
             <section>
               {paginatedScans.length === 0 ? (
-                <div className="bg-white/5 rounded-xl border border-white/10 p-16 text-center">
+                <div className="bg-[rgba(22,27,34,0.85)] rounded-xl border border-[rgba(48,54,61,0.9)] p-16 text-center">
                   <FileWarning className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-slate-300 mb-1">
                     No scans found
@@ -347,12 +347,12 @@ function ScanManagerContent() {
               ) : (
                 <motion.div
                   {...cardHover}
-                  className="rounded-2xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.06)] backdrop-blur-[8px] overflow-hidden flex flex-col"
+                  className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.88)] backdrop-blur-[8px] overflow-hidden flex flex-col"
                 >
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="bg-white/5 border-b border-white/10">
+                        <tr className="bg-[rgba(22,27,34,0.85)] border-b border-white/10">
                           <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                             Target
                           </th>
@@ -402,7 +402,7 @@ function ScanManagerContent() {
                                 </span>
                               ) : (
                                 <span className="text-xs text-[#8B949E]">
-                                  â€”
+                                  —
                                 </span>
                               )}
                             </td>
@@ -431,7 +431,7 @@ function ScanManagerContent() {
                                 </div>
                               ) : (
                                 <span className="text-xs text-[#8B949E]">
-                                  â€”
+                                  —
                                 </span>
                               )}
                             </td>
@@ -450,13 +450,13 @@ function ScanManagerContent() {
                                 </span>
                               ) : (
                                 <span className="text-xs text-[#8B949E]">
-                                  â€”
+                                  —
                                 </span>
                               )}
                             </td>
                             <td className="px-6 py-4 hidden lg:table-cell">
                               <span className="text-sm text-[#8B949E]">
-                                {s.threat_category || "â€”"}
+                                {s.threat_category || "—"}
                               </span>
                             </td>
                             <td className="px-6 py-4 text-right">
@@ -470,7 +470,7 @@ function ScanManagerContent() {
                                         day: "numeric",
                                       },
                                     )
-                                  : "â€”"}
+                                  : "—"}
                               </span>
                             </td>
                           </tr>
@@ -481,7 +481,7 @@ function ScanManagerContent() {
 
                   {/* Pagination Controls */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 bg-white/5 border-t border-white/10">
+                    <div className="flex items-center justify-between px-6 py-4 bg-[rgba(22,27,34,0.85)] border-t border-white/10">
                       <span className="text-sm text-[#8B949E]">
                         Showing {page * ITEMS_PER_PAGE + 1} to{" "}
                         {Math.min(
@@ -548,7 +548,7 @@ function ScanManagerContent() {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <motion.div
                 {...cardHover}
-                className="rounded-[12px] border border-[rgba(45,212,191,0.16)] [background:rgba(255,255,255,0.04)] p-5 backdrop-blur-[8px]"
+                className="rounded-[12px] border border-[rgba(45,212,191,0.16)] [background:rgba(22,27,34,0.85)] p-5 backdrop-blur-[8px]"
               >
                 <h3 className="mb-2 text-lg font-semibold text-[#E6EDF3]">
                   Current Target
@@ -575,16 +575,16 @@ function ScanManagerContent() {
 
               <motion.div
                 {...cardHover}
-                className="rounded-[12px] border border-[rgba(45,212,191,0.16)] [background:rgba(255,255,255,0.04)] p-3 backdrop-blur-[8px]"
+                className="rounded-[12px] border border-[rgba(45,212,191,0.16)] [background:rgba(22,27,34,0.85)] p-3 backdrop-blur-[8px]"
               >
                 {latestScan?.target ? (
                   <iframe
                     src={`https://image.thum.io/get/width/1200/crop/800/https://${latestScan.target}`}
                     title="Sandbox preview"
-                    className="h-[320px] w-full rounded-lg border border-white/10 bg-black"
+                    className="h-[320px] w-full rounded-lg border border-[rgba(48,54,61,0.9)] bg-black"
                   />
                 ) : (
-                  <div className="flex h-[320px] items-center justify-center rounded-lg border border-white/10 bg-black/30 text-sm text-[#8B949E]">
+                  <div className="flex h-[320px] items-center justify-center rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 text-sm text-[#8B949E]">
                     Run a threat scan first to generate sandbox preview data.
                   </div>
                 )}
@@ -610,3 +610,5 @@ export default function ScanManagerDashboard() {
     </Suspense>
   );
 }
+
+

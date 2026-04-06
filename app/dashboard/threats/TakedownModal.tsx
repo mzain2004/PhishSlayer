@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { X, Copy, Mail, ExternalLink, CheckCircle2, Gavel } from "lucide-react";
@@ -35,34 +35,34 @@ export default function TakedownModal({
   const [recipient, setRecipient] = useState(defaultRecipient);
   const [copied, setCopied] = useState(false);
 
-  const subject = `Abuse Report: Phishing/Malware Infrastructure â€” ${target}`;
+  const subject = `Abuse Report: Phishing/Malware Infrastructure — ${target}`;
 
   const tactics =
     manipulationTactics.length > 0
-      ? manipulationTactics.map((t) => `â€¢ ${t}`).join("\n")
-      : "â€¢ Suspicious content detected";
+      ? manipulationTactics.map((t) => `• ${t}`).join("\n")
+      : "• Suspicious content detected";
 
   const body = `To Whom It May Concern,
 
 I am writing to report a confirmed phishing/malware threat hosted at the following domain/IP address under your management:
 
 THREAT DETAILS
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+─────────────────────────────────
 Target:           ${target}
 Resolved IP:      ${resolvedIp || "See scan report"}
 Risk Score:       ${riskScore}/100
 AI Heuristic:     ${aiScore !== null ? `${aiScore}/10` : "Not analyzed"}
 Threat Category:  ${threatCategory}
-SSL Certificate:  ${hasSSL ? "Present" : "âš ï¸ MISSING â€” Likely Phishing"}
+SSL Certificate:  ${hasSSL ? "Present" : "⚠️ MISSING — Likely Phishing"}
 Open Risk Ports:  ${openPorts.length > 0 ? openPorts.join(", ") : "None detected"}
 Detection Date:   ${new Date().toUTCString()}
 
 BEHAVIORAL INDICATORS
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+─────────────────────────────────
 ${tactics}
 
 REQUESTED ACTION
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+─────────────────────────────────
 We request the immediate suspension of this domain/IP and investigation of the hosting account. This threat was identified by automated cybersecurity tooling and verified by AI analysis.
 
 Supporting evidence and full scan reports are available upon request.
@@ -97,7 +97,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
       onClick={onClose}
     >
       <div
-        className="bg-white/5 border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
+        className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -118,7 +118,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            className="rounded-full p-1.5 rounded-lg hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5 text-[#8B949E]" />
           </button>
@@ -136,11 +136,11 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
               placeholder="abuse@registrar.com"
-              className="w-full px-3 py-2 border border-white/10 bg-black rounded-lg text-sm text-white focus:ring-2 focus:ring-indigo-500 font-mono"
+              className="w-full px-3 py-2 border border-[rgba(48,54,61,0.9)] bg-black rounded-lg text-sm text-white focus:ring-2 focus:ring-indigo-500 font-mono"
             />
             {!registrarAbuseEmail && (
               <p className="text-xs text-amber-600 mt-1">
-                âš ï¸ Registrar abuse email not found in WHOIS. Try abuse@
+                ⚠️ Registrar abuse email not found in WHOIS. Try abuse@
                 {target.split(".").slice(-2).join(".")}
               </p>
             )}
@@ -172,7 +172,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
               type="text"
               value={subject}
               readOnly
-              className="w-full px-3 py-2 border border-white/10 rounded-lg text-sm text-white bg-white/10 font-mono"
+              className="w-full px-3 py-2 border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white bg-white/10 font-mono"
             />
           </div>
 
@@ -185,16 +185,16 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
               value={editableBody}
               onChange={(e) => setEditableBody(e.target.value)}
               rows={14}
-              className="w-full px-3 py-2 border border-white/10 bg-black rounded-lg text-xs text-slate-300 font-mono leading-relaxed focus:ring-2 focus:ring-indigo-500 resize-y"
+              className="w-full px-3 py-2 border border-[rgba(48,54,61,0.9)] bg-black rounded-lg text-xs text-slate-300 font-mono leading-relaxed focus:ring-2 focus:ring-indigo-500 resize-y"
             />
           </div>
         </div>
 
         {/* Action buttons */}
-        <div className="flex flex-wrap gap-2 p-5 border-t border-white/10 bg-white/5 rounded-b-2xl">
+        <div className="flex flex-wrap gap-2 p-5 border-t border-white/10 bg-[rgba(22,27,34,0.85)] rounded-b-2xl">
           <button
             onClick={handleCopy}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-500 text-white text-xs font-bold rounded-lg hover:bg-indigo-400 transition-colors"
+            className="rounded-full flex items-center gap-2 px-4 py-2.5 bg-indigo-500 text-white text-xs font-bold rounded-lg hover:bg-indigo-400 transition-colors"
           >
             {copied ? (
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
           </button>
           <button
             onClick={handleMailto}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/10 text-white text-xs font-bold rounded-lg hover:bg-slate-700 border border-white/10 transition-colors"
+            className="rounded-full flex items-center gap-2 px-4 py-2.5 bg-white/10 text-white text-xs font-bold rounded-lg hover:bg-slate-700 border border-[rgba(48,54,61,0.9)] transition-colors"
           >
             <Mail className="w-3.5 h-3.5" />
             Open in Mail App
@@ -215,7 +215,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
               const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(recipient)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(editableBody)}`;
               window.open(gmailUrl, "_blank");
             }}
-            className="flex items-center gap-2 px-4 py-2.5 border border-white/10 text-slate-300 text-xs font-bold rounded-lg hover:bg-white/10 transition-colors bg-white/10"
+            className="flex items-center gap-2 px-4 py-2.5 border border-[rgba(48,54,61,0.9)] text-slate-300 text-xs font-bold rounded-lg hover:bg-white/10 transition-colors bg-white/10"
           >
             <Mail className="w-3.5 h-3.5" />
             Open in Gmail
@@ -225,7 +225,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
               const outlookUrl = `https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(recipient)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(editableBody)}`;
               window.open(outlookUrl, "_blank");
             }}
-            className="flex items-center gap-2 px-4 py-2.5 border border-white/10 text-slate-300 text-xs font-bold rounded-lg hover:bg-white/10 transition-colors bg-white/10"
+            className="flex items-center gap-2 px-4 py-2.5 border border-[rgba(48,54,61,0.9)] text-slate-300 text-xs font-bold rounded-lg hover:bg-white/10 transition-colors bg-white/10"
           >
             <Mail className="w-3.5 h-3.5" />
             Open in Outlook Web
@@ -234,7 +234,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
             href="https://safebrowsing.google.com/safebrowsing/report_phish/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2.5 border border-white/10 text-slate-300 text-xs font-bold rounded-lg hover:bg-white/10 transition-colors bg-white/10"
+            className="flex items-center gap-2 px-4 py-2.5 border border-[rgba(48,54,61,0.9)] text-slate-300 text-xs font-bold rounded-lg hover:bg-white/10 transition-colors bg-white/10"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             Google Safe Browsing
@@ -243,7 +243,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
             href="https://www.phishtank.com/add_web_phish.php"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2.5 border border-white/10 text-slate-300 text-xs font-bold rounded-lg hover:bg-white/10 transition-colors bg-white/10"
+            className="flex items-center gap-2 px-4 py-2.5 border border-[rgba(48,54,61,0.9)] text-slate-300 text-xs font-bold rounded-lg hover:bg-white/10 transition-colors bg-white/10"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             PhishTank
@@ -257,4 +257,5 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
     </div>
   );
 }
+
 

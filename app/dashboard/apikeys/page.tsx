@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useTransition } from "react";
 import { motion } from "framer-motion";
@@ -92,7 +92,10 @@ export default function ApiKeysPage() {
   if (!limits.canUsePublicAPI && !isSuperAdmin) {
     return (
       <div className="text-white font-sans min-h-screen pt-20">
-        <UpgradeBanner feature="Public REST API Access" requiredTier="SOC Pro" />
+        <UpgradeBanner
+          feature="Public REST API Access"
+          requiredTier="SOC Pro"
+        />
       </div>
     );
   }
@@ -109,7 +112,10 @@ export default function ApiKeysPage() {
         </p>
       </div>
 
-      <motion.div {...cardHover} className="bg-black rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden mb-8">
+      <motion.div
+        {...cardHover}
+        className="bg-black rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)] border border-[rgba(48,54,61,0.9)] overflow-hidden mb-8"
+      >
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-[#e6edf3]">
             Production Key
@@ -118,7 +124,7 @@ export default function ApiKeysPage() {
             <button
               onClick={handleGenerate}
               disabled={isPending}
-              className="flex items-center gap-2 px-4 py-2 bg-[#2dd4bf] hover:bg-teal-400 text-black font-bold text-sm rounded-lg transition-colors disabled:opacity-50"
+              className="rounded-full flex items-center gap-2 px-4 py-2 bg-[#2dd4bf] hover:bg-teal-400 text-black font-bold text-sm rounded-lg transition-colors disabled:opacity-50"
             >
               {isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -143,7 +149,7 @@ export default function ApiKeysPage() {
                       type={showKey ? "text" : "password"}
                       value={apiKey}
                       readOnly
-                      className="w-full pl-4 pr-12 py-3 bg-black border border-white/10 rounded-lg text-teal-400 font-mono text-sm tracking-wider focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="w-full pl-4 pr-12 py-3 bg-black border border-[rgba(48,54,61,0.9)] rounded-lg text-teal-400 font-mono text-sm tracking-wider focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                     <button
                       onClick={() => setShowKey(!showKey)}
@@ -159,7 +165,7 @@ export default function ApiKeysPage() {
                   </div>
                   <button
                     onClick={handleCopy}
-                    className="px-4 py-3 liquid-glass hover:bg-[#1c2128] text-[#e6edf3] font-semibold rounded-lg shadow-sm transition-colors flex justify-center items-center"
+                    className="rounded-full px-4 py-3 liquid-glass hover:bg-[#1c2128] text-[#e6edf3] font-semibold rounded-lg shadow-sm transition-colors flex justify-center items-center"
                     title="Copy to clipboard"
                   >
                     <Copy className="w-4 h-4" />
@@ -175,7 +181,7 @@ export default function ApiKeysPage() {
                 <button
                   onClick={handleGenerate}
                   disabled={isPending}
-                  className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-[#e6edf3] liquid-glass hover:bg-[#1c2128] rounded-lg transition-colors disabled:opacity-50"
+                  className="rounded-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-[#e6edf3] liquid-glass hover:bg-[#1c2128] rounded-lg transition-colors disabled:opacity-50"
                 >
                   {isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -187,7 +193,7 @@ export default function ApiKeysPage() {
                 <button
                   onClick={handleRevoke}
                   disabled={isPending}
-                  className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                  className="rounded-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
                 >
                   <Trash2 className="w-4 h-4" />
                   Revoke Key
@@ -207,7 +213,7 @@ export default function ApiKeysPage() {
               <button
                 onClick={handleGenerate}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#2dd4bf] hover:bg-teal-400 text-black font-bold text-sm rounded-lg transition-colors disabled:opacity-50"
+                className="rounded-full inline-flex items-center gap-2 px-6 py-2.5 bg-[#2dd4bf] hover:bg-teal-400 text-black font-bold text-sm rounded-lg transition-colors disabled:opacity-50"
               >
                 {isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -221,7 +227,10 @@ export default function ApiKeysPage() {
         </div>
       </motion.div>
 
-      <motion.div {...cardHover} className="bg-white/5 rounded-xl shadow-sm border border-white/10 overflow-hidden text-slate-300 p-6 md:p-8">
+      <motion.div
+        {...cardHover}
+        className="bg-[rgba(22,27,34,0.85)] rounded-xl shadow-sm border border-[rgba(48,54,61,0.9)] overflow-hidden text-slate-300 p-6 md:p-8"
+      >
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <Terminal className="w-5 h-5 text-teal-400" /> Usage Examples
         </h3>
@@ -238,7 +247,7 @@ export default function ApiKeysPage() {
             <span className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-2 inline-block">
               cURL Example
             </span>
-            <code className="block bg-[#0f172a] p-4 rounded-lg font-mono text-sm border border-white/10 whitespace-pre overflow-x-auto text-emerald-300">
+            <code className="block bg-[#0f172a] p-4 rounded-lg font-mono text-sm border border-[rgba(48,54,61,0.9)] whitespace-pre overflow-x-auto text-emerald-300">
               curl -X POST https://api.phish-slayer.com/v1/scans \<br />
               &nbsp;&nbsp;-H "Authorization: Bearer YOUR_API_KEY" \<br />
               &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
@@ -250,4 +259,5 @@ export default function ApiKeysPage() {
     </div>
   );
 }
+
 

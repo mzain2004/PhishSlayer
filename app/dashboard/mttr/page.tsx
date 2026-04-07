@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import type { TimelineEvent } from "@/lib/microsoft/timelineBuilder";
+import PhishButton from "@/components/ui/PhishButton";
 
 type MttrStats = {
   avgMinutes: number;
@@ -195,10 +196,13 @@ export default function MTTRDashboardPage() {
             <option value={24}>Last 24 hours</option>
             <option value={72}>Last 72 hours</option>
           </select>
-          <motion.button
+          <PhishButton
             onClick={downloadReport}
             disabled={downloading}
-            whileHover={{ scale: 1.05, boxShadow: "0 0 28px rgba(45,212,191,0.5)" }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 0 28px rgba(45,212,191,0.5)",
+            }}
             whileTap={{ scale: 0.96 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             style={{
@@ -213,7 +217,7 @@ export default function MTTRDashboardPage() {
             }}
           >
             {downloading ? "Generating..." : "📄 Export PDF"}
-          </motion.button>
+          </PhishButton>
         </div>
       </div>
 
@@ -257,13 +261,13 @@ export default function MTTRDashboardPage() {
               variants={itemVariants}
               whileHover={{
                 scale: 1.02,
-                background: "rgba(22,27,34,0.88)",
+                background: "rgba(23,28,35,0.88)",
                 boxShadow: "0 8px 32px rgba(45,212,191,0.12)",
                 borderColor: "rgba(45,212,191,0.3)",
               }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               style={{
-                background: "rgba(22,27,34,0.75)",
+                background: "rgba(23,28,35,0.75)",
                 border: "1px solid rgba(48,54,61,0.7)",
                 backdropFilter: "blur(12px)",
                 borderRadius: "12px",
@@ -308,7 +312,7 @@ export default function MTTRDashboardPage() {
       <div
         data-card="large"
         style={{
-          background: "rgba(22,27,34,0.8)",
+          background: "rgba(23,28,35,0.8)",
           border: "1px solid rgba(48,54,61,0.7)",
           backdropFilter: "blur(10px)",
           borderRadius: "16px",
@@ -518,7 +522,7 @@ export default function MTTRDashboardPage() {
       <div
         style={{
           marginTop: "16px",
-          background: "rgba(22,27,34,0.8)",
+          background: "rgba(23,28,35,0.8)",
           border: "1px solid rgba(48,54,61,0.7)",
           backdropFilter: "blur(10px)",
           borderRadius: "16px",
@@ -547,5 +551,3 @@ export default function MTTRDashboardPage() {
     </motion.div>
   );
 }
-
-

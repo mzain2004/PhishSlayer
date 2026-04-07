@@ -77,7 +77,7 @@ export default async function DashboardOverviewPage() {
         formattedRiskScore={formattedRiskScore}
       />
 
-      <div className="p-6 bg-[rgba(22,27,34,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl flex flex-col gap-6">
+      <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-white">
             Network Telemetry (Live)
@@ -123,7 +123,7 @@ export default async function DashboardOverviewPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <QuickActionsPanel />
 
-        <div className="p-6 bg-[rgba(22,27,34,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl flex flex-col gap-4">
+        <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl flex flex-col gap-4">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-xl font-bold text-white">Event Feed</h2>
             <span className="text-xs text-[#2DD4BF]">Recent scans</span>
@@ -131,14 +131,14 @@ export default async function DashboardOverviewPage() {
 
           <div className="flex flex-col gap-3">
             {recentScans.length === 0 ? (
-              <div className="p-3 rounded-lg bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] text-sm text-white/60">
+              <div className="p-3 rounded-lg bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] text-sm text-white/60">
                 No recent scans yet.
               </div>
             ) : (
               recentScans.map((scan, index) => (
                 <div
                   key={`${scan.target}-${index}`}
-                  className="p-3 rounded-lg bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] flex items-start gap-3"
+                  className="p-3 rounded-lg bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] flex items-start gap-3"
                 >
                   <div
                     className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${

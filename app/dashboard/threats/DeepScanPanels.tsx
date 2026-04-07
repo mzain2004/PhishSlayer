@@ -113,7 +113,7 @@ export function WhoisPanel({
   }
 
   return (
-    <div className="bg-[rgba(22,27,34,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
+    <div className="bg-[rgba(23,28,35,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
       <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Globe className="w-4 h-4 text-teal-400" />
@@ -164,7 +164,7 @@ export function GhostMailPanel({
   const isGhost = d.ghostMailFlag;
 
   return (
-    <div className="bg-[rgba(22,27,34,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
+    <div className="bg-[rgba(23,28,35,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
       {/* Status Banner */}
       <div
         className={`px-4 py-4 ${isGhost ? "bg-red-950 border-b border-red-900" : "bg-emerald-950 border-b border-emerald-900"}`}
@@ -279,7 +279,7 @@ export function SslPanel({
           : "bg-red-950";
 
   return (
-    <div className="bg-[rgba(22,27,34,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
+    <div className="bg-[rgba(23,28,35,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
       <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
         <Lock className="w-4 h-4 text-teal-400" />
         <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
@@ -393,7 +393,7 @@ export function TyposquatPanel({
   };
 
   return (
-    <div className="bg-[rgba(22,27,34,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
+    <div className="bg-[rgba(23,28,35,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
       {t.isTyposquat ? (
         <div className="px-4 py-4 bg-red-950 border-b border-red-900">
           <div className="flex items-center gap-3">
@@ -459,7 +459,7 @@ export function DomTreePanel({
   if (!d) return <Unavailable label="DOM Tree" />;
 
   return (
-    <div className="bg-[rgba(22,27,34,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
+    <div className="bg-[rgba(23,28,35,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)] overflow-hidden">
       <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
         <Eye className="w-4 h-4 text-teal-400" />
         <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">

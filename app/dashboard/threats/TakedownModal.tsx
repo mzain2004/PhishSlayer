@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Copy, Mail, ExternalLink, CheckCircle2, Gavel } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import PhishButton from "@/components/ui/PhishButton";
 
 interface TakedownModalProps {
   isOpen: boolean;
@@ -98,7 +99,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
       onClick={onClose}
     >
       <div
-        className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
+        className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -117,12 +118,12 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
               </p>
             </div>
           </div>
-          <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={onClose}
             className="rounded-full p-1.5 rounded-lg hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5 text-[#8B949E]" />
-          </motion.button>
+          </PhishButton>
         </div>
 
         {/* Body */}
@@ -149,18 +150,18 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
               <span className="text-[10px] text-[#8B949E]">
                 Also report to:
               </span>
-              <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 onClick={() => setRecipient("reportphishing@google.com")}
                 className="text-[10px] text-indigo-400 hover:text-indigo-300 hover:underline font-mono"
               >
                 reportphishing@google.com
-              </motion.button>
-              <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              </PhishButton>
+              <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 onClick={() => setRecipient("phishing-report@us-cert.gov")}
                 className="text-[10px] text-indigo-400 hover:text-indigo-300 hover:underline font-mono"
               >
                 phishing-report@us-cert.gov
-              </motion.button>
+              </PhishButton>
             </div>
           </div>
 
@@ -192,8 +193,8 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
         </div>
 
         {/* Action buttons */}
-        <div className="flex flex-wrap gap-2 p-5 border-t border-white/10 bg-[rgba(22,27,34,0.85)] rounded-b-2xl">
-          <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <div className="flex flex-wrap gap-2 p-5 border-t border-white/10 bg-[rgba(23,28,35,0.85)] rounded-b-2xl">
+          <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={handleCopy}
             className="rounded-full flex items-center gap-2 px-4 py-2.5 bg-indigo-500 text-white text-xs font-bold rounded-lg hover:bg-indigo-400 transition-colors"
           >
@@ -203,15 +204,15 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
               <Copy className="w-3.5 h-3.5" />
             )}
             {copied ? "Copied!" : "Copy to Clipboard"}
-          </motion.button>
-          <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          </PhishButton>
+          <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={handleMailto}
             className="rounded-full flex items-center gap-2 px-4 py-2.5 bg-white/10 text-white text-xs font-bold rounded-lg hover:bg-slate-700 border border-[rgba(48,54,61,0.9)] transition-colors"
           >
             <Mail className="w-3.5 h-3.5" />
             Open in Mail App
-          </motion.button>
-          <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          </PhishButton>
+          <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={() => {
               const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(recipient)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(editableBody)}`;
               window.open(gmailUrl, "_blank");
@@ -220,8 +221,8 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
           >
             <Mail className="w-3.5 h-3.5" />
             Open in Gmail
-          </motion.button>
-          <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          </PhishButton>
+          <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={() => {
               const outlookUrl = `https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(recipient)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(editableBody)}`;
               window.open(outlookUrl, "_blank");
@@ -230,7 +231,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
           >
             <Mail className="w-3.5 h-3.5" />
             Open in Outlook Web
-          </motion.button>
+          </PhishButton>
           <a
             href="https://safebrowsing.google.com/safebrowsing/report_phish/"
             target="_blank"
@@ -258,5 +259,3 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
     </div>
   );
 }
-
-

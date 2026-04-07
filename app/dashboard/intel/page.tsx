@@ -23,6 +23,7 @@ import { useRole } from "@/lib/rbac/useRole";
 import { canManageIntelVault } from "@/lib/rbac/roles";
 import { useTier } from "@/hooks/useTier";
 import { UpgradeBanner } from "@/components/ui/UpgradeBanner";
+import PhishButton from "@/components/ui/PhishButton";
 
 const cardHover = {
   whileHover: {
@@ -195,7 +196,7 @@ export default function IntelVaultPage() {
             <motion.div
               {...cardHover}
               key={kpi.label}
-              className={`rounded-[12px] border bg-[rgba(22,27,34,0.88)] border-[rgba(48,54,61,0.9)] p-4 flex items-center gap-4 backdrop-blur-[8px] ${kpi.color}`}
+              className={`rounded-[12px] border bg-[rgba(23,28,35,0.88)] border-[rgba(48,54,61,0.9)] p-4 flex items-center gap-4 backdrop-blur-[8px] ${kpi.color}`}
             >
               <kpi.icon className="w-6 h-6 shrink-0 opacity-80" />
               <div>
@@ -220,13 +221,13 @@ export default function IntelVaultPage() {
               <h2 className="text-base font-semibold text-white">
                 Target Whitelist
               </h2>
-              <span className="ml-auto text-xs font-bold text-[#8B949E] bg-[rgba(22,27,34,0.85)] rounded-full px-2.5 py-0.5 border border-[rgba(48,54,61,0.9)]">
+              <span className="ml-auto text-xs font-bold text-[#8B949E] bg-[rgba(23,28,35,0.85)] rounded-full px-2.5 py-0.5 border border-[rgba(48,54,61,0.9)]">
                 {whitelist.length}
               </span>
             </div>
 
             {/* Table header */}
-            <div className="bg-[rgba(22,27,34,0.85)] px-5 py-2 border-b border-white/10 flex items-center justify-between">
+            <div className="bg-[rgba(23,28,35,0.85)] px-5 py-2 border-b border-white/10 flex items-center justify-between">
               <span className="text-[11px] font-bold text-[#E6EDF3] uppercase tracking-wider">
                 Target
               </span>
@@ -267,14 +268,14 @@ export default function IntelVaultPage() {
                       </span>
                     </div>
                     {isManager && (
-                      <motion.button
+                      <PhishButton
                         onClick={() => handleRemoveWhitelist(item.id)}
                         disabled={isPending}
                         aria-label={`Remove ${item.target} from whitelist`}
                         className="p-1.5 rounded-md text-[#8B949E] hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </motion.button>
+                      </PhishButton>
                     )}
                   </li>
                 ))}
@@ -293,13 +294,13 @@ export default function IntelVaultPage() {
               <h2 className="text-base font-semibold text-white">
                 Proprietary Intel Vault
               </h2>
-              <span className="ml-auto text-xs font-bold text-[#8B949E] bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-full px-2.5 py-0.5">
+              <span className="ml-auto text-xs font-bold text-[#8B949E] bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-full px-2.5 py-0.5">
                 {indicators.length}
               </span>
             </div>
 
             {/* Table header */}
-            <div className="bg-[rgba(22,27,34,0.85)] px-5 py-2 border-b border-white/10 grid grid-cols-12 gap-3 items-center">
+            <div className="bg-[rgba(23,28,35,0.85)] px-5 py-2 border-b border-white/10 grid grid-cols-12 gap-3 items-center">
               <span className="col-span-5 text-[11px] font-bold text-[#E6EDF3] uppercase tracking-wider">
                 Indicator
               </span>
@@ -364,14 +365,14 @@ export default function IntelVaultPage() {
                     {/* Action */}
                     <div className="col-span-1 flex justify-end">
                       {isManager && (
-                        <motion.button
+                        <PhishButton
                           onClick={() => handleRemoveIndicator(item.id)}
                           disabled={isPending}
                           aria-label={`Remove indicator ${item.indicator}`}
                           className="p-1.5 rounded-md text-[#8B949E] hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
                         >
                           <Trash2 className="w-4 h-4" />
-                        </motion.button>
+                        </PhishButton>
                       )}
                     </div>
                   </li>
@@ -386,7 +387,7 @@ export default function IntelVaultPage() {
           {...cardHover}
           className="mt-10 bg-[rgba(15,23,42,0.58)] rounded-xl border border-[rgba(45,212,191,0.16)] overflow-hidden"
         >
-          <div className="px-5 py-4 border-b border-white/10 bg-[rgba(22,27,34,0.85)] flex items-center gap-3">
+          <div className="px-5 py-4 border-b border-white/10 bg-[rgba(23,28,35,0.85)] flex items-center gap-3">
             <Code className="w-5 h-5 text-teal-400" />
             <h2 className="text-base font-semibold text-white">
               Public API v1
@@ -435,7 +436,7 @@ export default function IntelVaultPage() {
                 <h3 className="text-sm font-bold text-white uppercase tracking-wide">
                   cURL Example
                 </h3>
-                <motion.button
+                <PhishButton
                   onClick={() => {
                     navigator.clipboard.writeText(
                       `curl -X GET "https://your-domain.com/api/v1/scan?target=example.com" -H "x-api-key: YOUR_API_KEY"`,
@@ -445,7 +446,7 @@ export default function IntelVaultPage() {
                   className="flex items-center gap-1.5 text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors"
                 >
                   <Copy className="w-3.5 h-3.5" /> Copy
-                </motion.button>
+                </PhishButton>
               </div>
               <pre className="bg-black text-slate-300 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border border-[rgba(48,54,61,0.9)]">
                 {`curl -X GET \\
@@ -495,5 +496,3 @@ export default function IntelVaultPage() {
     </div>
   );
 }
-
-

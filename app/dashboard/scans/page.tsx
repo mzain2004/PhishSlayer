@@ -24,6 +24,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import PhishButton from "@/components/ui/PhishButton";
 
 type ScanRecord = {
   id?: string;
@@ -165,9 +166,9 @@ function ScanManagerContent() {
   return (
     <div className="font-sans text-slate-100 antialiased min-h-screen flex flex-col w-full">
       <main data-stagger-container className="flex-1 px-4 sm:px-8 py-8 w-full max-w-5xl mx-auto flex flex-col gap-10">
-        <section className="rounded-full border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.88)] p-1">
+        <section className="rounded-full border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.88)] p-1">
           <div className="grid grid-cols-2 gap-2">
-            <motion.button
+            <PhishButton
               onClick={() => setActiveTab("scanner")}
               whileHover={{ opacity: 0.8 }}
               whileTap={{ scale: 0.96 }}
@@ -178,8 +179,8 @@ function ScanManagerContent() {
               }`}
             >
               Threat Scanner
-            </motion.button>
-            <motion.button
+            </PhishButton>
+            <PhishButton
               onClick={() => setActiveTab("sandbox")}
               whileHover={{ opacity: 0.8 }}
               whileTap={{ scale: 0.96 }}
@@ -190,7 +191,7 @@ function ScanManagerContent() {
               }`}
             >
               Sandbox Analysis
-            </motion.button>
+            </PhishButton>
           </div>
         </section>
 
@@ -199,7 +200,7 @@ function ScanManagerContent() {
             {/* Hero Scanner Section */}
             <motion.section
               {...cardHover}
-              className="relative rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] backdrop-blur-[12px] p-10 overflow-hidden"
+              className="relative rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] backdrop-blur-[12px] p-10 overflow-hidden"
             >
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-20 -right-20 w-80 h-80 bg-teal-900/20 rounded-full blur-3xl opacity-60"></div>
@@ -244,7 +245,7 @@ function ScanManagerContent() {
                         className="w-full pl-12 pr-6 py-3 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.15)] rounded-full text-base text-[#E6EDF3] placeholder:text-white/50 focus:outline-none focus:border-[#2DD4BF] focus:shadow-[0_0_0_2px_rgba(45,212,191,0.2)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
-                    <motion.button
+                    <PhishButton
                       onClick={handleScan}
                       disabled={isPending || !target.trim()}
                       whileHover={{
@@ -260,7 +261,7 @@ function ScanManagerContent() {
                         <ShieldCheck className="w-5 h-5" />
                       )}
                       {isPending ? "Scanning…" : "Scan Target"}
-                    </motion.button>
+                    </PhishButton>
                   </div>
                 )}
                 {isViewer && (
@@ -294,28 +295,28 @@ function ScanManagerContent() {
               <div className="flex flex-wrap items-center gap-2">
                 {/* View Scope Toggle for Managers+ */}
                 {isManagerOrAdmin && (
-                  <div className="flex bg-[rgba(22,27,34,0.85)] p-1 rounded-lg border border-[rgba(48,54,61,0.9)]">
-                    <motion.button
+                  <div className="flex bg-[rgba(23,28,35,0.85)] p-1 rounded-lg border border-[rgba(48,54,61,0.9)]">
+                    <PhishButton
                       onClick={() => setViewScope("all")}
                       whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
                       whileTap={{ scale: 0.96 }}
                       className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-xs font-semibold [transition:all_0.2s_ease] ${viewScope === "all" ? "bg-white/10 text-white" : "bg-[rgba(255,255,255,0.08)] text-[#8B949E]"}`}
                     >
                       <Users className="w-3.5 h-3.5" /> All Users
-                    </motion.button>
-                    <motion.button
+                    </PhishButton>
+                    <PhishButton
                       onClick={() => setViewScope("my")}
                       whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
                       whileTap={{ scale: 0.96 }}
                       className={`flex items-center gap-1.5 rounded-full px-5 py-2 text-xs font-semibold [transition:all_0.2s_ease] ${viewScope === "my" ? "bg-white/10 text-white" : "bg-[rgba(255,255,255,0.08)] text-[#8B949E]"}`}
                     >
                       <User className="w-3.5 h-3.5" /> My Scans
-                    </motion.button>
+                    </PhishButton>
                   </div>
                 )}
 
                 {/* Date Filters */}
-                <div className="flex items-center gap-2 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg p-1">
                   <Filter className="w-4 h-4 text-[#8B949E] ml-2" />
                   <select
                     value={dateRange}
@@ -334,7 +335,7 @@ function ScanManagerContent() {
             {/* Scans Table */}
             <section>
               {paginatedScans.length === 0 ? (
-                <div className="bg-[rgba(22,27,34,0.85)] rounded-xl border border-[rgba(48,54,61,0.9)] p-16 text-center">
+                <div className="bg-[rgba(23,28,35,0.85)] rounded-xl border border-[rgba(48,54,61,0.9)] p-16 text-center">
                   <FileWarning className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-slate-300 mb-1">
                     No scans found
@@ -347,12 +348,12 @@ function ScanManagerContent() {
               ) : (
                 <motion.div
                   {...cardHover}
-                  className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.88)] backdrop-blur-[8px] overflow-hidden flex flex-col"
+                  className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.88)] backdrop-blur-[8px] overflow-hidden flex flex-col"
                 >
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="bg-[rgba(22,27,34,0.85)] border-b border-white/10">
+                        <tr className="bg-[rgba(23,28,35,0.85)] border-b border-white/10">
                           <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                             Target
                           </th>
@@ -481,7 +482,7 @@ function ScanManagerContent() {
 
                   {/* Pagination Controls */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 bg-[rgba(22,27,34,0.85)] border-t border-white/10">
+                    <div className="flex items-center justify-between px-6 py-4 bg-[rgba(23,28,35,0.85)] border-t border-white/10">
                       <span className="text-sm text-[#8B949E]">
                         Showing {page * ITEMS_PER_PAGE + 1} to{" "}
                         {Math.min(
@@ -491,7 +492,7 @@ function ScanManagerContent() {
                         of {filteredScans.length} scans
                       </span>
                       <div className="flex items-center gap-2">
-                        <motion.button
+                        <PhishButton
                           onClick={() => setPage((p) => Math.max(0, p - 1))}
                           disabled={page === 0}
                           whileHover={{
@@ -501,11 +502,11 @@ function ScanManagerContent() {
                           className="rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-[#8B949E] [transition:all_0.2s_ease] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <ChevronLeft className="w-4 h-4" />
-                        </motion.button>
+                        </PhishButton>
                         <span className="text-xs font-bold text-[#8B949E] px-2">
                           Page {page + 1} of {totalPages}
                         </span>
-                        <motion.button
+                        <PhishButton
                           onClick={() =>
                             setPage((p) => Math.min(totalPages - 1, p + 1))
                           }
@@ -517,7 +518,7 @@ function ScanManagerContent() {
                           className="rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-[#8B949E] [transition:all_0.2s_ease] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <ChevronRight className="w-4 h-4" />
-                        </motion.button>
+                        </PhishButton>
                       </div>
                     </div>
                   )}
@@ -548,7 +549,7 @@ function ScanManagerContent() {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <motion.div
                 {...cardHover}
-                className="rounded-[12px] border border-[rgba(45,212,191,0.16)] [background:rgba(22,27,34,0.85)] p-5 backdrop-blur-[8px]"
+                className="rounded-[12px] border border-[rgba(45,212,191,0.16)] [background:rgba(23,28,35,0.85)] p-5 backdrop-blur-[8px]"
               >
                 <h3 className="mb-2 text-lg font-semibold text-[#E6EDF3]">
                   Current Target
@@ -560,7 +561,7 @@ function ScanManagerContent() {
                   Open the deep analysis workspace to inspect IOC traces, source
                   intelligence, and detonation insights.
                 </p>
-                <motion.button
+                <PhishButton
                   onClick={() => router.push("/dashboard/threats")}
                   whileHover={{
                     scale: 1.03,
@@ -570,12 +571,12 @@ function ScanManagerContent() {
                   className="mt-4 rounded-full px-5 py-2 text-sm font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)]"
                 >
                   Open Deep Analysis
-                </motion.button>
+                </PhishButton>
               </motion.div>
 
               <motion.div
                 {...cardHover}
-                className="rounded-[12px] border border-[rgba(45,212,191,0.16)] [background:rgba(22,27,34,0.85)] p-3 backdrop-blur-[8px]"
+                className="rounded-[12px] border border-[rgba(45,212,191,0.16)] [background:rgba(23,28,35,0.85)] p-3 backdrop-blur-[8px]"
               >
                 {latestScan?.target ? (
                   <iframe
@@ -610,5 +611,3 @@ export default function ScanManagerDashboard() {
     </Suspense>
   );
 }
-
-

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import PhishButton from "@/components/ui/PhishButton";
 
 interface PortScanResult {
   port: number;
@@ -171,12 +172,12 @@ export default function PortPatrolPanel({
           <AlertTriangle className="w-7 h-7 text-red-500" />
         </div>
         <p className="text-sm font-semibold text-red-400">{error}</p>
-        <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runScan}
           className="rounded-full px-4 py-2 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-400 transition-colors"
         >
           Retry Scan
-        </motion.button>
+        </PhishButton>
       </div>
     );
   }
@@ -203,13 +204,13 @@ export default function PortPatrolPanel({
             </p>
           </div>
         </div>
-        <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runScan}
           className="rounded-full flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-bold text-sm rounded-xl hover:bg-orange-500 transition-all shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5"
         >
           <Radar className="w-4 h-4" />
           Launch Port Patrol
-        </motion.button>
+        </PhishButton>
       </div>
     );
   }
@@ -227,17 +228,17 @@ export default function PortPatrolPanel({
             Active Recon
           </span>
         </div>
-        <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runScan}
           className="rounded-full flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-orange-400 bg-orange-500/10 rounded-lg hover:bg-orange-500/20 border border-orange-500/20 transition-colors"
         >
           Re-scan
-        </motion.button>
+        </PhishButton>
       </div>
 
       {/* Info cards grid */}
       <div className="grid grid-cols-4 gap-3">
-        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <Globe className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -248,7 +249,7 @@ export default function PortPatrolPanel({
             {report.resolvedIp}
           </p>
         </div>
-        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <Timer className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -259,7 +260,7 @@ export default function PortPatrolPanel({
             {(report.scanDurationMs / 1000).toFixed(1)}s
           </p>
         </div>
-        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <Wifi className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -270,7 +271,7 @@ export default function PortPatrolPanel({
             {report.openPorts.length}
           </p>
         </div>
-        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <ShieldAlert className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -290,7 +291,7 @@ export default function PortPatrolPanel({
         <div className="rounded-xl border border-[rgba(48,54,61,0.9)] overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[rgba(22,27,34,0.85)] border-b border-white/10">
+              <tr className="bg-[rgba(23,28,35,0.85)] border-b border-white/10">
                 <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
                   Port
                 </th>
@@ -342,7 +343,7 @@ export default function PortPatrolPanel({
       )}
 
       {/* Summary */}
-      <div className="rounded-xl bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] p-4">
+      <div className="rounded-xl bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] p-4">
         <p className="text-sm text-slate-300">{report.riskSummary}</p>
         <p className="text-[10px] text-[#8B949E] mt-2">
           Scanned at: {new Date(report.scannedAt).toLocaleString()}
@@ -351,5 +352,3 @@ export default function PortPatrolPanel({
     </div>
   );
 }
-
-

@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import PhishButton from "@/components/ui/PhishButton";
 
 type SidebarItemProps = {
   icon: React.ComponentType<{ className?: string }>;
@@ -169,13 +170,13 @@ export default function Sidebar({
 
   return (
     <>
-      <motion.button
+      <PhishButton
         onClick={() => setMobileOpen((v) => !v)}
         className="fixed left-3 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-[rgba(255,255,255,0.08)] text-white backdrop-blur-[20px] md:hidden"
         aria-label="Toggle sidebar"
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </motion.button>
+      </PhishButton>
 
       <aside
         onMouseEnter={() => setExpanded(true)}

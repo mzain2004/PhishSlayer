@@ -1,9 +1,8 @@
 "use client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { motion } from "framer-motion";
+import PhishButton from "@/components/ui/PhishButton";
 
 export type AuditRow = {
   id: string;
@@ -58,14 +57,13 @@ export const auditColumns: ColumnDef<AuditRow>[] = [
   {
     accessorKey: "created_at",
     header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
+      <PhishButton
+        variant="secondary"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="text-[#8B949E] hover:text-slate-100 -ml-3"
       >
         Timestamp <ArrowUpDown className="ml-2 h-3 w-3" />
-      </Button>
+      </PhishButton>
     ),
     cell: ({ row }) => {
       const date = row.getValue("created_at") as string;
@@ -137,5 +135,3 @@ export const auditColumns: ColumnDef<AuditRow>[] = [
     },
   },
 ];
-
-

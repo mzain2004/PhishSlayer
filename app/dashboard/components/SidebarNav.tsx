@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { type UserRole } from "@/lib/rbac/roles";
 import { motion } from "framer-motion";
+import PhishButton from "@/components/ui/PhishButton";
 
 type SidebarNavProps = {
   profile: {
@@ -57,7 +58,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
         className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer text-sm ${
           isActive
             ? "font-semibold bg-teal-400/10 text-teal-400 border-l-2 border-teal-400"
-            : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[rgba(22,27,34,0.85)]"
+            : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[rgba(23,28,35,0.85)]"
         }`}
       >
         <Icon className="w-6 h-6 flex-shrink-0" />
@@ -126,7 +127,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
           </>
         </div>
 
-        <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
           type="button"
           onClick={() => setInfraOpen((prev) => !prev)}
           className="text-xs uppercase tracking-widest text-[#8B949E] hover:text-[#E6EDF3] cursor-pointer flex items-center justify-between w-full py-2 px-3 mt-4"
@@ -138,7 +139,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
             className={`transition-transform duration-200 ${!infraOpen ? "rotate-180" : ""} opacity-0 group-hover:opacity-100`}
             size={16}
           />
-        </motion.button>
+        </PhishButton>
         {infraOpen && (
           <>
             <NavItem
@@ -164,7 +165,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
           </>
         )}
 
-        <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
           type="button"
           onClick={() => setPlatformOpen((prev) => !prev)}
           className="text-xs uppercase tracking-widest text-[#8B949E] hover:text-[#E6EDF3] cursor-pointer flex items-center justify-between w-full py-2 px-3 mt-4"
@@ -176,7 +177,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
             className={`transition-transform duration-200 ${!platformOpen ? "rotate-180" : ""} opacity-0 group-hover:opacity-100`}
             size={16}
           />
-        </motion.button>
+        </PhishButton>
         {platformOpen && (
           <>
             <NavItem
@@ -219,7 +220,7 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
       <div className="bg-black border-t border-white/10 px-3 py-3 overflow-hidden">
         <Link
           href="/dashboard/profile"
-          className="flex items-center gap-3 p-2 rounded-lg hover:bg-[rgba(22,27,34,0.85)] transition-colors group/profile"
+          className="flex items-center gap-3 p-2 rounded-lg hover:bg-[rgba(23,28,35,0.85)] transition-colors group/profile"
         >
           <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden border border-[rgba(48,54,61,0.9)] flex-shrink-0">
             {profile?.avatar_url ? (
@@ -251,4 +252,3 @@ export default function SidebarNav({ profile }: SidebarNavProps) {
     </aside>
   );
 }
-

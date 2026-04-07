@@ -32,6 +32,7 @@ import {
 } from "@/lib/supabase/agentActions";
 import { blockIp } from "@/lib/supabase/actions";
 import type { EndpointEvent, EndpointStats } from "@/lib/supabase/agentQueries";
+import PhishButton from "@/components/ui/PhishButton";
 
 const ROWS_PER_PAGE = 20;
 const BAR_COLORS = ["#0d9488", "#0ea5e9", "#f97316", "#ef4444", "#8b5cf6"];
@@ -256,7 +257,7 @@ export default function AgentDashboardPage() {
                   className="w-56 py-2.5 pl-10 pr-5 rounded-full bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.15)] text-sm text-[#E6EDF3] placeholder:text-white/50 focus:outline-none focus:border-[#2DD4BF] focus:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]"
                 />
               </div>
-              <motion.button
+              <PhishButton
                 onClick={handleRefresh}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
@@ -266,8 +267,8 @@ export default function AgentDashboardPage() {
                   className={`w-4 h-4 ${!loaded ? "animate-spin" : ""}`}
                 />
                 Refresh
-              </motion.button>
-              <motion.button
+              </PhishButton>
+              <PhishButton
                 onClick={exportCsv}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
@@ -275,7 +276,7 @@ export default function AgentDashboardPage() {
               >
                 <Download className="w-4 h-4" />
                 Export CSV
-              </motion.button>
+              </PhishButton>
             </div>
           </div>
         </div>
@@ -284,7 +285,7 @@ export default function AgentDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <motion.div
             {...cardHover}
-            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(22,27,34,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
+            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(23,28,35,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
           >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">Total Events</p>
@@ -296,7 +297,7 @@ export default function AgentDashboardPage() {
           </motion.div>
           <motion.div
             {...cardHover}
-            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(22,27,34,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
+            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(23,28,35,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
           >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">
@@ -310,7 +311,7 @@ export default function AgentDashboardPage() {
           </motion.div>
           <motion.div
             {...cardHover}
-            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(22,27,34,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
+            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(23,28,35,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
           >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">Unique IPs</p>
@@ -322,7 +323,7 @@ export default function AgentDashboardPage() {
           </motion.div>
           <motion.div
             {...cardHover}
-            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(22,27,34,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
+            className="flex flex-col gap-1 rounded-[12px] bg-[rgba(23,28,35,0.88)] p-5 border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]"
           >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-[#8B949E]">
@@ -341,7 +342,7 @@ export default function AgentDashboardPage() {
           {/* Bar Chart */}
           <motion.div
             {...cardHover}
-            className="lg:col-span-2 bg-[rgba(22,27,34,0.88)] border border-[rgba(48,54,61,0.9)] rounded-2xl p-6 backdrop-blur-[8px]"
+            className="lg:col-span-2 bg-[rgba(23,28,35,0.88)] border border-[rgba(48,54,61,0.9)] rounded-2xl p-6 backdrop-blur-[8px]"
           >
             <div className="flex items-center gap-2 mb-4">
               <Activity className="w-5 h-5 text-teal-400" />
@@ -404,7 +405,7 @@ export default function AgentDashboardPage() {
           {/* Beaconing Alert */}
           <motion.div
             {...cardHover}
-            className="bg-[rgba(22,27,34,0.88)] border border-[rgba(48,54,61,0.9)] rounded-2xl p-6 backdrop-blur-[8px] flex flex-col"
+            className="bg-[rgba(23,28,35,0.88)] border border-[rgba(48,54,61,0.9)] rounded-2xl p-6 backdrop-blur-[8px] flex flex-col"
           >
             <div className="flex items-center gap-2 mb-4">
               <AlertTriangle className="w-5 h-5 text-orange-500" />
@@ -433,7 +434,7 @@ export default function AgentDashboardPage() {
                   {beaconingEvents.map((e, i) => (
                     <li
                       key={i}
-                      className="text-xs bg-[rgba(22,27,34,0.85)] rounded p-2 border border-[rgba(48,54,61,0.9)]"
+                      className="text-xs bg-[rgba(23,28,35,0.85)] rounded p-2 border border-[rgba(48,54,61,0.9)]"
                     >
                       <span className="font-mono font-bold text-red-400">
                         {e.process_name}
@@ -458,7 +459,7 @@ export default function AgentDashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-[rgba(22,27,34,0.85)] border-b border-white/10">
+                <tr className="bg-[rgba(23,28,35,0.85)] border-b border-white/10">
                   {[
                     "Timestamp",
                     "Process",
@@ -546,7 +547,7 @@ export default function AgentDashboardPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <motion.button
+                        <PhishButton
                           onClick={() => handleBlockIp(e.remote_address)}
                           disabled={
                             isPending && blockingIp === e.remote_address
@@ -559,7 +560,7 @@ export default function AgentDashboardPage() {
                             <Ban className="w-3 h-3" />
                           )}
                           Block
-                        </motion.button>
+                        </PhishButton>
                       </td>
                     </tr>
                   ))
@@ -569,32 +570,32 @@ export default function AgentDashboardPage() {
           </div>
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 bg-[rgba(22,27,34,0.85)]">
+            <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 bg-[rgba(23,28,35,0.85)]">
               <span className="text-xs text-[#8B949E]">
                 {filtered.length} events · Page {page + 1} of {totalPages}
               </span>
               <div className="flex gap-2">
-                <motion.button
+                <PhishButton
                   onClick={() => setPage(Math.max(0, page - 1))}
                   disabled={page === 0}
                   className="px-3 py-1 rounded border border-[rgba(48,54,61,0.9)] text-xs font-semibold text-slate-300 hover:bg-white/10 disabled:opacity-40"
                 >
                   Prev
-                </motion.button>
-                <motion.button
+                </PhishButton>
+                <PhishButton
                   onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                   disabled={page >= totalPages - 1}
                   className="px-3 py-1 rounded border border-[rgba(48,54,61,0.9)] text-xs font-semibold text-slate-300 hover:bg-white/10 disabled:opacity-40"
                 >
                   Next
-                </motion.button>
+                </PhishButton>
               </div>
             </div>
           )}
         </motion.div>
 
         {/* Agent Configuration */}
-        <div className="rounded-xl bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] overflow-hidden shadow-sm">
+        <div className="rounded-xl bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] overflow-hidden shadow-sm">
           <div className="bg-black px-4 py-3 border-b border-white/10 flex items-center gap-2">
             <Terminal className="w-4 h-4 text-teal-400" />
             <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
@@ -654,5 +655,3 @@ WHERE pos.remote_address != ''
     </div>
   );
 }
-
-

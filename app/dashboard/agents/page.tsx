@@ -33,6 +33,7 @@ import {
 import type { EndpointEvent, EndpointStats } from "@/lib/supabase/agentQueries";
 import { blockIp } from "@/lib/supabase/actions";
 import { createClient } from "@/lib/supabase/client";
+import PhishButton from "@/components/ui/PhishButton";
 
 type TabKey = "fleet" | "monitor" | "events";
 
@@ -40,7 +41,7 @@ const ROWS_PER_PAGE = 20;
 const BAR_COLORS = ["#0d9488", "#0ea5e9", "#f97316", "#ef4444", "#8b5cf6"];
 
 const cardClass =
-  "rounded-[12px] bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]";
+  "rounded-[12px] bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] backdrop-blur-[8px]";
 
 const cardHover = {
   whileHover: {
@@ -240,9 +241,9 @@ export default function AgentsPage() {
   return (
     <div className="text-white font-sans min-h-screen flex flex-col w-full">
       <main data-stagger-container className="flex-1 px-4 sm:px-8 py-8 w-full max-w-7xl mx-auto flex flex-col gap-6">
-        <div className="rounded-full p-1 border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.9)] w-full max-w-2xl">
+        <div className="rounded-full p-1 border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.9)] w-full max-w-2xl">
           <div className="grid grid-cols-3 gap-2">
-            <motion.button
+            <PhishButton
               onClick={() => setActiveTab("fleet")}
               whileHover={{ opacity: 0.8 }}
               className={`rounded-full px-5 py-2 text-sm transition-all font-semibold ${
@@ -252,8 +253,8 @@ export default function AgentsPage() {
               }`}
             >
               Agent Fleet
-            </motion.button>
-            <motion.button
+            </PhishButton>
+            <PhishButton
               onClick={() => setActiveTab("monitor")}
               whileHover={{ opacity: 0.8 }}
               className={`rounded-full px-5 py-2 text-sm transition-all font-semibold ${
@@ -263,8 +264,8 @@ export default function AgentsPage() {
               }`}
             >
               Endpoint Monitor
-            </motion.button>
-            <motion.button
+            </PhishButton>
+            <PhishButton
               onClick={() => setActiveTab("events")}
               whileHover={{ opacity: 0.8 }}
               className={`rounded-full px-5 py-2 text-sm transition-all font-semibold ${
@@ -274,7 +275,7 @@ export default function AgentsPage() {
               }`}
             >
               Live Events
-            </motion.button>
+            </PhishButton>
           </div>
         </div>
 
@@ -304,25 +305,25 @@ export default function AgentsPage() {
                       setPage(0);
                     }}
                     placeholder="Filter by process, IP, level..."
-                    className="w-56 py-2.5 pl-10 pr-5 rounded-full bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] text-sm text-[#E6EDF3] placeholder:text-white/50 focus:outline-none focus:border-[#2DD4BF] focus:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]"
+                    className="w-56 py-2.5 pl-10 pr-5 rounded-full bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] text-sm text-[#E6EDF3] placeholder:text-white/50 focus:outline-none focus:border-[#2DD4BF] focus:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]"
                   />
                 </div>
-                <motion.button
+                <PhishButton
                   onClick={handleRefresh}
                   whileHover={{ opacity: 0.8 }}
-                  className="rounded-full flex items-center gap-2 border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
+                  className="rounded-full flex items-center gap-2 border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
                 >
                   <RefreshCw className="w-4 h-4" />
                   Refresh
-                </motion.button>
-                <motion.button
+                </PhishButton>
+                <PhishButton
                   onClick={exportCsv}
                   whileHover={{ opacity: 0.8 }}
-                  className="rounded-full flex items-center gap-2 border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
+                  className="rounded-full flex items-center gap-2 border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
                 >
                   <Download className="w-4 h-4" />
                   Export CSV
-                </motion.button>
+                </PhishButton>
               </div>
             </div>
 
@@ -473,7 +474,7 @@ export default function AgentsPage() {
                       {beaconingEvents.map((e, i) => (
                         <li
                           key={i}
-                          className="text-xs bg-[rgba(22,27,34,0.85)] rounded p-2 border border-[rgba(48,54,61,0.9)]"
+                          className="text-xs bg-[rgba(23,28,35,0.85)] rounded p-2 border border-[rgba(48,54,61,0.9)]"
                         >
                           <span className="font-mono font-bold text-red-400">
                             {e.process_name}
@@ -497,7 +498,7 @@ export default function AgentsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-[rgba(22,27,34,0.85)] border-b border-white/10">
+                  <tr className="bg-[rgba(23,28,35,0.85)] border-b border-white/10">
                     {[
                       "Timestamp",
                       "Process",
@@ -593,7 +594,7 @@ export default function AgentsPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <motion.button
+                          <PhishButton
                             onClick={() => handleBlockIp(e.remote_address)}
                             disabled={
                               isPending && blockingIp === e.remote_address
@@ -606,7 +607,7 @@ export default function AgentsPage() {
                               <Ban className="w-3 h-3" />
                             )}
                             Block
-                          </motion.button>
+                          </PhishButton>
                         </td>
                       </tr>
                     ))
@@ -616,25 +617,25 @@ export default function AgentsPage() {
             </div>
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 bg-[rgba(22,27,34,0.85)]">
+              <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 bg-[rgba(23,28,35,0.85)]">
                 <span className="text-xs text-[#8B949E]">
                   {filtered.length} events - Page {page + 1} of {totalPages}
                 </span>
                 <div className="flex gap-2">
-                  <motion.button
+                  <PhishButton
                     onClick={() => setPage(Math.max(0, page - 1))}
                     disabled={page === 0}
                     className="rounded-full px-3 py-1 border border-[rgba(48,54,61,0.9)] text-xs font-semibold text-slate-300 hover:bg-white/10 disabled:opacity-40"
                   >
                     Prev
-                  </motion.button>
-                  <motion.button
+                  </PhishButton>
+                  <PhishButton
                     onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                     disabled={page >= totalPages - 1}
                     className="rounded-full px-3 py-1 border border-[rgba(48,54,61,0.9)] text-xs font-semibold text-slate-300 hover:bg-white/10 disabled:opacity-40"
                   >
                     Next
-                  </motion.button>
+                  </PhishButton>
                 </div>
               </div>
             )}

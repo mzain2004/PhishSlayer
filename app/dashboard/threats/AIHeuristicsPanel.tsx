@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import PhishButton from "@/components/ui/PhishButton";
 
 interface AIHeuristicsPanelProps {
   target: string;
@@ -138,13 +139,13 @@ export default function AIHeuristicsPanel({
           <AlertTriangle className="w-7 h-7 text-red-400" />
         </div>
         <p className="text-sm font-semibold text-red-400">{error}</p>
-        <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runAnalysis}
           className="rounded-full flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-400 text-white text-xs font-bold rounded-lg transition-colors"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           Retry Analysis
-        </motion.button>
+        </PhishButton>
       </div>
     );
   }
@@ -162,13 +163,13 @@ export default function AIHeuristicsPanel({
             Deep behavioral analysis of page content using Gemini AI
           </p>
         </div>
-        <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runAnalysis}
           className="rounded-full flex items-center gap-2 px-6 py-3 bg-violet-600 text-white font-bold text-sm rounded-xl hover:bg-violet-500 transition-all shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 hover:-translate-y-0.5"
         >
           <Sparkles className="w-4 h-4" />
           Run AI Analysis
-        </motion.button>
+        </PhishButton>
       </div>
     );
   }
@@ -187,13 +188,13 @@ export default function AIHeuristicsPanel({
             Powered by Gemini
           </span>
         </div>
-        <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runAnalysis}
           className="rounded-full flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-violet-400 bg-violet-500/10 rounded-lg hover:bg-violet-500/20 border border-violet-500/20 transition-colors"
         >
           <RefreshCw className="w-3 h-3" />
           Re-analyze
-        </motion.button>
+        </PhishButton>
       </div>
 
       {/* Metric cards */}
@@ -220,7 +221,7 @@ export default function AIHeuristicsPanel({
             <span className="text-lg">/100</span>
           </p>
         </div>
-        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-4">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
             Confidence
           </p>
@@ -235,7 +236,7 @@ export default function AIHeuristicsPanel({
       </div>
 
       {/* Manipulation Tactics */}
-      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-4">
+      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-4">
         <div className="flex items-center gap-2 mb-3">
           <Eye className="w-4 h-4 text-orange-400" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -261,7 +262,7 @@ export default function AIHeuristicsPanel({
       </div>
 
       {/* Credential Harvesting */}
-      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-4">
+      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-4">
         <div className="flex items-center gap-2 mb-3">
           <Lock className="w-4 h-4 text-red-400" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -287,7 +288,7 @@ export default function AIHeuristicsPanel({
       </div>
 
       {/* Key Indicators */}
-      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-4">
+      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-4">
         <div className="flex items-center gap-2 mb-3">
           <ShieldAlert className="w-4 h-4 text-[#8B949E]" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -314,7 +315,7 @@ export default function AIHeuristicsPanel({
       </div>
 
       {/* AI Summary */}
-      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-4">
+      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-4">
         <h4 className="text-xs font-bold uppercase tracking-wider text-[#8B949E] mb-2">
           AI Threat Summary
         </h4>
@@ -328,5 +329,3 @@ export default function AIHeuristicsPanel({
     </div>
   );
 }
-
-

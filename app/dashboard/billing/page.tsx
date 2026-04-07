@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import PhishButton from "@/components/ui/PhishButton";
 
 const TIER_DISPLAY: Record<
   string,
@@ -169,7 +170,7 @@ export default function BillingPage() {
           </div>
           <div className="flex items-center gap-3">
             {isPaid ? (
-              <motion.button
+              <PhishButton
                 disabled={isPortalLoading}
                 onClick={handleManageSubscription}
                 whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
@@ -182,7 +183,7 @@ export default function BillingPage() {
                   <CreditCard className="w-4 h-4" />
                 )}
                 Manage Subscription
-              </motion.button>
+              </PhishButton>
             ) : (
               <Link
                 href="/pricing"
@@ -196,13 +197,13 @@ export default function BillingPage() {
         </div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-3 border-t border-white/10 pt-4 gap-3">
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] px-3 py-2.5">
+          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] px-3 py-2.5">
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Current Tier
             </p>
             <p className="text-[#e6edf3] text-sm font-semibold">{plan.name}</p>
           </div>
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] px-3 py-2.5">
+          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] px-3 py-2.5">
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Billing
             </p>
@@ -210,7 +211,7 @@ export default function BillingPage() {
               {isPaid ? "Monthly via Paddle" : "Free"}
             </p>
           </div>
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] px-3 py-2.5">
+          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] px-3 py-2.5">
             <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
               Monthly Amount
             </p>
@@ -229,7 +230,7 @@ export default function BillingPage() {
           <p className="text-[#8B949E] text-sm mt-2 mb-4">
             You are currently on the free Recon plan.
           </p>
-          <motion.button
+          <PhishButton
             onClick={() => router.push("/pricing")}
             whileHover={{
               scale: 1.03,
@@ -239,7 +240,7 @@ export default function BillingPage() {
             className="rounded-full px-5 py-2 text-sm font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)]"
           >
             Upgrade Your Plan
-          </motion.button>
+          </PhishButton>
         </motion.div>
       )}
 
@@ -359,5 +360,3 @@ export default function BillingPage() {
     </div>
   );
 }
-
-

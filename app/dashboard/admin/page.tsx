@@ -22,6 +22,7 @@ import {
   toggleUserStatus,
   inviteOrgUser,
 } from "@/lib/supabase/actions";
+import PhishButton from "@/components/ui/PhishButton";
 
 type OrgUser = {
   id: string;
@@ -173,27 +174,27 @@ export default function UserManagementPage() {
               Manage organization members, assign roles, and control access.
             </p>
           </div>
-          <motion.button
+          <PhishButton
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-white px-5 py-2.5 rounded-lg font-semibold transition-all"
           >
             <UserPlus className="w-4 h-4" />
             Invite User
-          </motion.button>
+          </PhishButton>
         </div>
 
         {/* KPI Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <motion.div
             {...cardHover}
-            className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
+            className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
           >
             <p className="text-sm font-medium text-[#8B949E]">Total Users</p>
             <p className="text-3xl font-bold text-white mt-1">{users.length}</p>
           </motion.div>
           <motion.div
             {...cardHover}
-            className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
+            className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
           >
             <p className="text-sm font-medium text-[#8B949E]">
               Active Analysts
@@ -204,7 +205,7 @@ export default function UserManagementPage() {
           </motion.div>
           <motion.div
             {...cardHover}
-            className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
+            className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
           >
             <p className="text-sm font-medium text-[#8B949E]">Managers</p>
             <p className="text-3xl font-bold text-indigo-400 mt-1">
@@ -213,7 +214,7 @@ export default function UserManagementPage() {
           </motion.div>
           <motion.div
             {...cardHover}
-            className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
+            className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
           >
             <p className="text-sm font-medium text-[#8B949E]">Exec Viewers</p>
             <p className="text-3xl font-bold text-slate-300 mt-1">{viewers}</p>
@@ -223,12 +224,12 @@ export default function UserManagementPage() {
         {/* Users Table */}
         <motion.div
           {...cardHover}
-          className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl overflow-hidden"
+          className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl overflow-hidden"
         >
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-[rgba(22,27,34,0.85)] border-b border-white/10">
+                <tr className="bg-[rgba(23,28,35,0.85)] border-b border-white/10">
                   <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                     User
                   </th>
@@ -327,7 +328,7 @@ export default function UserManagementPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <motion.button
+                      <PhishButton
                         onClick={() => handleToggleStatus(u.id, u.is_active)}
                         disabled={isPending}
                         className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${
@@ -337,7 +338,7 @@ export default function UserManagementPage() {
                         }`}
                       >
                         {u.is_active ? "Deactivate" : "Activate"}
-                      </motion.button>
+                      </PhishButton>
                     </td>
                   </tr>
                 ))}
@@ -350,18 +351,18 @@ export default function UserManagementPage() {
       {/* Invite Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[rgba(22,27,34,0.85)] rounded-2xl border border-[rgba(48,54,61,0.9)] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-[rgba(23,28,35,0.85)] rounded-2xl border border-[rgba(48,54,61,0.9)] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-teal-400" />
                 Invite New User
               </h2>
-              <motion.button
+              <PhishButton
                 onClick={() => setShowModal(false)}
                 className="text-[#8B949E] hover:text-slate-300 transition-colors"
               >
                 <XCircle className="w-5 h-5" />
-              </motion.button>
+              </PhishButton>
             </div>
             <div className="p-6 flex flex-col gap-4">
               <div>
@@ -373,7 +374,7 @@ export default function UserManagementPage() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="colleague@company.com"
-                  className="w-full px-3 py-2 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                  className="w-full px-3 py-2 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
                 />
               </div>
               <div>
@@ -383,7 +384,7 @@ export default function UserManagementPage() {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as UserRole)}
-                  className="w-full px-3 py-2 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all appearance-none outline-none"
+                  className="w-full px-3 py-2 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all appearance-none outline-none"
                 >
                   <option value="super_admin">Super Admin</option>
                   <option value="manager">SOC Manager</option>
@@ -392,14 +393,14 @@ export default function UserManagementPage() {
                 </select>
               </div>
             </div>
-            <div className="p-6 bg-[rgba(22,27,34,0.85)] border-t border-white/10 flex justify-end gap-3">
-              <motion.button
+            <div className="p-6 bg-[rgba(23,28,35,0.85)] border-t border-white/10 flex justify-end gap-3">
+              <PhishButton
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 text-sm font-semibold text-[#8B949E] hover:text-white transition-colors"
               >
                 Cancel
-              </motion.button>
-              <motion.button
+              </PhishButton>
+              <PhishButton
                 onClick={handleInvite}
                 disabled={isPending || !inviteEmail}
                 className="rounded-full flex items-center gap-2 px-5 py-2 bg-teal-500 hover:bg-teal-400 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
@@ -410,7 +411,7 @@ export default function UserManagementPage() {
                   <Plus className="w-4 h-4" />
                 )}
                 Send Invite
-              </motion.button>
+              </PhishButton>
             </div>
           </div>
         </div>
@@ -418,5 +419,3 @@ export default function UserManagementPage() {
     </div>
   );
 }
-
-

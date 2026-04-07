@@ -30,6 +30,7 @@ import {
 } from "@/lib/supabase/actions";
 import { useRole } from "@/lib/rbac/useRole";
 import { canAssignIncidents, isReadOnly } from "@/lib/rbac/roles";
+import PhishButton from "@/components/ui/PhishButton";
 
 type Incident = {
   id: string;
@@ -380,7 +381,7 @@ export default function IncidentReportsPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg p-1 h-[42px]">
+              <div className="flex items-center gap-2 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg p-1 h-[42px]">
                 <Filter className="w-4 h-4 text-[#8B949E] ml-2" />
                 <select
                   value={dateRange}
@@ -403,10 +404,10 @@ export default function IncidentReportsPage() {
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   placeholder="Filter incidents…"
-                  className="w-56 py-2.5 pl-10 pr-4 bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all"
+                  className="w-56 py-2.5 pl-10 pr-4 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all"
                 />
               </div>
-              <motion.button
+              <PhishButton
                 onClick={exportToExcel}
                 whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
                 whileTap={{ scale: 0.96 }}
@@ -414,9 +415,9 @@ export default function IncidentReportsPage() {
               >
                 <Download className="w-4 h-4" />
                 Export
-              </motion.button>
+              </PhishButton>
 
-              <motion.button
+              <PhishButton
                 onClick={() => setIsCreateModalOpen(true)}
                 whileHover={{
                   scale: 1.03,
@@ -427,7 +428,7 @@ export default function IncidentReportsPage() {
               >
                 <Plus className="w-4 h-4" />
                 New Incident
-              </motion.button>
+              </PhishButton>
             </div>
           </div>
         </div>
@@ -451,7 +452,7 @@ export default function IncidentReportsPage() {
                   scale: 1.02,
                   boxShadow: "0 8px 32px rgba(45, 212, 191, 0.15)",
                 }}
-                className="flex flex-col gap-1 rounded-[12px] border border-[rgba(255,255,255,0.12)] [background:rgba(22,27,34,0.85)] p-5 backdrop-blur-[8px]"
+                className="flex flex-col gap-1 rounded-[12px] border border-[rgba(255,255,255,0.12)] [background:rgba(23,28,35,0.85)] p-5 backdrop-blur-[8px]"
               >
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-[#8B949E]">
@@ -469,7 +470,7 @@ export default function IncidentReportsPage() {
 
         {/* Table */}
         {filtered.length === 0 ? (
-          <div className="rounded-xl bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] p-16 text-center">
+          <div className="rounded-xl bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] p-16 text-center">
             <FileWarning className="w-12 h-12 text-slate-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-300 mb-1">
               No incidents found
@@ -481,11 +482,11 @@ export default function IncidentReportsPage() {
             </p>
           </div>
         ) : (
-          <div className="rounded-xl bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] overflow-hidden">
+          <div className="rounded-xl bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] overflow-hidden">
             <div style={{ overflowX: "auto", width: "100%" }}>
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-[rgba(22,27,34,0.85)] border-b border-white/10">
+                  <tr className="bg-[rgba(23,28,35,0.85)] border-b border-white/10">
                     <th className="px-6 py-3.5 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
                       Title
                     </th>
@@ -558,7 +559,7 @@ export default function IncidentReportsPage() {
                                   handleAssign(incident.id, e.target.value)
                                 }
                                 disabled={isPending && actionId === incident.id}
-                                className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] text-sm text-slate-300 py-1.5 px-3 rounded-md focus:ring-1 focus:ring-teal-500 outline-none w-40 truncate"
+                                className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] text-sm text-slate-300 py-1.5 px-3 rounded-md focus:ring-1 focus:ring-teal-500 outline-none w-40 truncate"
                               >
                                 <option value="" disabled>
                                   Unassigned
@@ -585,7 +586,7 @@ export default function IncidentReportsPage() {
                               {!incident.status
                                 ?.toLowerCase()
                                 .includes("resolved") && (
-                                <motion.button
+                                <PhishButton
                                   onClick={() => handleResolve(incident.id)}
                                   disabled={
                                     isPending && actionId === incident.id
@@ -604,12 +605,12 @@ export default function IncidentReportsPage() {
                                     <CheckCircle2 className="w-3.5 h-3.5" />
                                   )}
                                   Resolve
-                                </motion.button>
+                                </PhishButton>
                               )}
 
                               {/* Block IP/Domain */}
                               {extractTarget(incident) && (
-                                <motion.button
+                                <PhishButton
                                   onClick={() => {
                                     const target = extractTarget(incident);
                                     if (target)
@@ -631,11 +632,11 @@ export default function IncidentReportsPage() {
                                     <Ban className="w-3.5 h-3.5" />
                                   )}
                                   Block IP
-                                </motion.button>
+                                </PhishButton>
                               )}
 
                               {/* Delete */}
-                              <motion.button
+                              <PhishButton
                                 onClick={() => handleDelete(incident.id)}
                                 disabled={isPending && actionId === incident.id}
                                 title="Delete"
@@ -651,7 +652,7 @@ export default function IncidentReportsPage() {
                                   <Trash2 className="w-3.5 h-3.5" />
                                 )}
                                 Delete
-                              </motion.button>
+                              </PhishButton>
                             </div>
                           </td>
                         )}
@@ -668,15 +669,15 @@ export default function IncidentReportsPage() {
       {/* Create Incident Modal */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300">
-          <div className="bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-2xl w-full max-w-lg shadow-2xl relative animate-in fade-in zoom-in duration-200">
-            <motion.button
+          <div className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-2xl w-full max-w-lg shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <PhishButton
               onClick={() => setIsCreateModalOpen(false)}
               whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
               whileTap={{ scale: 0.96 }}
               className="absolute right-4 top-4 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-[#8B949E] [transition:all_0.2s_ease]"
             >
               <X className="w-5 h-5" />
-            </motion.button>
+            </PhishButton>
 
             <div className="p-8">
               <h2 className="text-2xl font-bold text-white mb-2">
@@ -698,7 +699,7 @@ export default function IncidentReportsPage() {
                     onChange={(e) =>
                       setNewIncident({ ...newIncident, title: e.target.value })
                     }
-                    className="w-full bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:ring-2 focus:ring-teal-500/50 outline-none transition-all"
+                    className="w-full bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:ring-2 focus:ring-teal-500/50 outline-none transition-all"
                     placeholder="e.g. Unusual login from Russia"
                   />
                 </div>
@@ -716,7 +717,7 @@ export default function IncidentReportsPage() {
                           severity: e.target.value,
                         })
                       }
-                      className="w-full bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all cursor-pointer"
+                      className="w-full bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all cursor-pointer"
                     >
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
@@ -737,7 +738,7 @@ export default function IncidentReportsPage() {
                           assignee: e.target.value,
                         })
                       }
-                      className="w-full bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all cursor-pointer"
+                      className="w-full bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all cursor-pointer"
                     >
                       <option value="Unassigned">Unassigned</option>
                       {orgUsers.map((u) => (
@@ -762,13 +763,13 @@ export default function IncidentReportsPage() {
                         description: e.target.value,
                       })
                     }
-                    className="w-full bg-[rgba(22,27,34,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:ring-2 focus:ring-teal-500/50 outline-none transition-all resize-none"
+                    className="w-full bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:ring-2 focus:ring-teal-500/50 outline-none transition-all resize-none"
                     placeholder="Describe the threat or suspicious activity observed..."
                   />
                 </div>
 
                 <div className="flex gap-3 pt-4">
-                  <motion.button
+                  <PhishButton
                     type="button"
                     onClick={() => setIsCreateModalOpen(false)}
                     whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
@@ -776,8 +777,8 @@ export default function IncidentReportsPage() {
                     className="flex-1 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 font-semibold text-white [transition:all_0.2s_ease]"
                   >
                     Cancel
-                  </motion.button>
-                  <motion.button
+                  </PhishButton>
+                  <PhishButton
                     type="submit"
                     disabled={isPending}
                     whileHover={{
@@ -795,7 +796,7 @@ export default function IncidentReportsPage() {
                     ) : (
                       "Create Incident"
                     )}
-                  </motion.button>
+                  </PhishButton>
                 </div>
               </form>
             </div>
@@ -805,5 +806,3 @@ export default function IncidentReportsPage() {
     </div>
   );
 }
-
-

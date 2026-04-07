@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Terminal, Send, Loader2 } from "lucide-react";
+import PhishButton from "@/components/ui/PhishButton";
 
 type Entry = { role: "user" | "assistant"; text: string };
 
@@ -54,7 +55,7 @@ export default function TerminalPage() {
           boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
         }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] backdrop-blur-sm overflow-hidden"
+        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] backdrop-blur-sm overflow-hidden"
       >
         <div className="border-b border-white/10 px-4 py-3 text-xs uppercase tracking-widest text-[#8B949E]">
           Session Output
@@ -82,7 +83,7 @@ export default function TerminalPage() {
             placeholder="Type command or prompt..."
             className="flex-1 rounded-full bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.15)] px-4 py-2 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF]"
           />
-          <motion.button
+          <PhishButton
             onClick={submit}
             disabled={running || !input.trim()}
             whileHover={{
@@ -98,11 +99,9 @@ export default function TerminalPage() {
               <Send className="w-4 h-4" />
             )}
             Run
-          </motion.button>
+          </PhishButton>
         </div>
       </motion.div>
     </div>
   );
 }
-
-

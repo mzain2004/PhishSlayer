@@ -1,9 +1,8 @@
 "use client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ArrowUpDown, ExternalLink } from "lucide-react";
-import { motion } from "framer-motion";
+import PhishButton from "@/components/ui/PhishButton";
 
 export type ScanRow = {
   id: string;
@@ -26,14 +25,13 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
   {
     accessorKey: "target",
     header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
+      <PhishButton
+        variant="secondary"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="text-[#8B949E] hover:text-slate-100 -ml-3"
       >
         Target <ArrowUpDown className="ml-2 h-3 w-3" />
-      </Button>
+      </PhishButton>
     ),
     cell: ({ row }) => (
       <span className="font-mono text-teal-400 text-sm">
@@ -58,14 +56,13 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
   {
     accessorKey: "risk_score",
     header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
+      <PhishButton
+        variant="secondary"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="text-[#8B949E] hover:text-slate-100 -ml-3"
       >
         Risk <ArrowUpDown className="ml-2 h-3 w-3" />
-      </Button>
+      </PhishButton>
     ),
     cell: ({ row }) => {
       const score = (row.getValue("risk_score") as number) || 0;
@@ -106,14 +103,13 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
   {
     accessorKey: "created_at",
     header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
+      <PhishButton
+        variant="secondary"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="text-[#8B949E] hover:text-slate-100 -ml-3"
       >
         Scanned <ArrowUpDown className="ml-2 h-3 w-3" />
-      </Button>
+      </PhishButton>
     ),
     cell: ({ row }) => {
       const date = row.getValue("created_at") as string;
@@ -127,18 +123,15 @@ export const scanColumns: ColumnDef<ScanRow>[] = [
   {
     id: "actions",
     cell: ({ row }) => (
-      <Button
-        variant="ghost"
-        size="sm"
+      <PhishButton
+        variant="secondary"
         onClick={() =>
           (window.location.href = `/dashboard/threats?scan=${row.original.id}`)
         }
         className="text-teal-400 hover:text-teal-300 hover:bg-teal-500/10"
       >
         <ExternalLink className="h-3 w-3 mr-1" /> Analyze
-      </Button>
+      </PhishButton>
     ),
   },
 ];
-
-

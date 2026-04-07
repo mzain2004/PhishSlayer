@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Key, Loader2, Lock, Save, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import PhishButton from "@/components/ui/PhishButton";
 
 type Props = {
   userId: string;
@@ -140,7 +141,7 @@ export default function SettingsClient({
     <div className="flex flex-col gap-6 text-white">
       <motion.header
         {...hoverProps}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-6 backdrop-blur-3xl"
+        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-6 backdrop-blur-3xl"
       >
         <h1 className="text-3xl font-bold">Platform Settings</h1>
         <p className="mt-2 text-sm text-white/60">
@@ -150,7 +151,7 @@ export default function SettingsClient({
 
       <motion.section
         {...hoverProps}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-6 backdrop-blur-3xl"
+        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-6 backdrop-blur-3xl"
       >
         <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
           <User className="h-5 w-5 text-[#2DD4BF]" /> Profile
@@ -198,7 +199,7 @@ export default function SettingsClient({
             />
           </div>
         </div>
-        <motion.button
+        <PhishButton
           onClick={saveProfile}
           disabled={isPending}
           whileHover={{
@@ -214,12 +215,12 @@ export default function SettingsClient({
             <Save className="h-4 w-4" />
           )}{" "}
           Save Profile
-        </motion.button>
+        </PhishButton>
       </motion.section>
 
       <motion.section
         {...hoverProps}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-6 backdrop-blur-3xl"
+        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-6 backdrop-blur-3xl"
       >
         <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
           <Lock className="h-5 w-5 text-[#A78BFA]" /> Password
@@ -240,7 +241,7 @@ export default function SettingsClient({
             placeholder="Confirm password"
           />
         </div>
-        <motion.button
+        <PhishButton
           onClick={updatePassword}
           disabled={isPending}
           whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
@@ -253,12 +254,12 @@ export default function SettingsClient({
             <Lock className="h-4 w-4" />
           )}{" "}
           Update Password
-        </motion.button>
+        </PhishButton>
       </motion.section>
 
       <motion.section
         {...hoverProps}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] p-6 backdrop-blur-3xl"
+        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-6 backdrop-blur-3xl"
       >
         <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
           <Key className="h-5 w-5 text-[#2DD4BF]" /> API Key
@@ -266,7 +267,7 @@ export default function SettingsClient({
         <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/40 px-3 py-2 text-sm text-white/90 break-all">
           {apiKey ?? "No API key generated yet"}
         </div>
-        <motion.button
+        <PhishButton
           onClick={regenerateApiKey}
           disabled={isPending}
           whileHover={{
@@ -282,9 +283,8 @@ export default function SettingsClient({
             <Key className="h-4 w-4" />
           )}{" "}
           Regenerate API Key
-        </motion.button>
+        </PhishButton>
       </motion.section>
     </div>
   );
 }
-

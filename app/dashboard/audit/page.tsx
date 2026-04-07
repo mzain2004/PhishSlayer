@@ -16,6 +16,7 @@ import {
   User,
   Activity,
 } from "lucide-react";
+import PhishButton from "@/components/ui/PhishButton";
 
 export default function AuditLogPage() {
   const { role, loading: roleLoading } = useRole();
@@ -147,10 +148,10 @@ export default function AuditLogPage() {
 
       <motion.div
         {...cardHover}
-        className="bg-[rgba(22,27,34,0.85)] rounded-xl border border-[rgba(48,54,61,0.9)] overflow-hidden flex flex-col flex-1"
+        className="bg-[rgba(23,28,35,0.85)] rounded-xl border border-[rgba(48,54,61,0.9)] overflow-hidden flex flex-col flex-1"
       >
         {/* Toolbar */}
-        <div className="p-4 border-b border-white/10 bg-[rgba(22,27,34,0.85)] flex flex-col sm:flex-row gap-4">
+        <div className="p-4 border-b border-white/10 bg-[rgba(23,28,35,0.85)] flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8B949E]" />
             <input
@@ -161,7 +162,7 @@ export default function AuditLogPage() {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white bg-[rgba(22,27,34,0.85)] focus:ring-2 focus:ring-teal-500 placeholder-slate-500"
+              className="w-full pl-9 pr-4 py-2 border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white bg-[rgba(23,28,35,0.85)] focus:ring-2 focus:ring-teal-500 placeholder-slate-500"
             />
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
@@ -173,7 +174,7 @@ export default function AuditLogPage() {
                   setActionFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full pl-9 pr-8 py-2 border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-slate-300 focus:ring-2 focus:ring-teal-500 bg-[rgba(22,27,34,0.85)] appearance-none"
+                className="w-full pl-9 pr-8 py-2 border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-slate-300 focus:ring-2 focus:ring-teal-500 bg-[rgba(23,28,35,0.85)] appearance-none"
               >
                 <option value="all">All Actions</option>
                 <option value="login">Login</option>
@@ -191,7 +192,7 @@ export default function AuditLogPage() {
         {/* Table */}
         <div className="overflow-x-auto flex-1 h-[500px]">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-[rgba(22,27,34,0.85)] text-[#8B949E] sticky top-0 border-b border-white/10">
+            <thead className="bg-[rgba(23,28,35,0.85)] text-[#8B949E] sticky top-0 border-b border-white/10">
               <tr>
                 <th className="px-6 py-4 font-bold tracking-widest uppercase text-[10px]">
                   Timestamp / IP
@@ -313,7 +314,7 @@ export default function AuditLogPage() {
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-4 border-t border-white/10 bg-[rgba(22,27,34,0.85)] flex items-center justify-between">
+        <div className="p-4 border-t border-white/10 bg-[rgba(23,28,35,0.85)] flex items-center justify-between">
           <p className="text-sm text-[#8B949E]">
             Showing{" "}
             <span className="font-semibold text-white">
@@ -327,28 +328,26 @@ export default function AuditLogPage() {
             entries
           </p>
           <div className="flex items-center gap-2">
-            <motion.button
+            <PhishButton
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1 || loading}
               className="p-1.5 rounded border border-[rgba(48,54,61,0.9)] hover:bg-white/10 disabled:opacity-50 text-[#8B949E]"
             >
               <ChevronLeft className="w-5 h-5" />
-            </motion.button>
+            </PhishButton>
             <span className="text-sm font-medium px-4 py-1.5 bg-white/10 border border-[rgba(48,54,61,0.9)] rounded text-slate-300">
               {page} / {totalPages}
             </span>
-            <motion.button
+            <PhishButton
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || loading}
               className="p-1.5 rounded border border-[rgba(48,54,61,0.9)] hover:bg-white/10 disabled:opacity-50 text-[#8B949E]"
             >
               <ChevronRight className="w-5 h-5" />
-            </motion.button>
+            </PhishButton>
           </div>
         </div>
       </motion.div>
     </div>
   );
 }
-
-

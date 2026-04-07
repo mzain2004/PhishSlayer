@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { FileText, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import PhishButton from "@/components/ui/PhishButton";
 
 export default function ReportsPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -71,7 +72,7 @@ export default function ReportsPage() {
           boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
         }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(22,27,34,0.85)] backdrop-blur-sm p-6"
+        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] backdrop-blur-sm p-6"
       >
         <h2 className="text-lg font-semibold text-[#E6EDF3] mb-2">
           Executive PDF Export
@@ -81,7 +82,7 @@ export default function ReportsPage() {
           the Threat Intelligence module.
         </p>
 
-        <motion.button
+        <PhishButton
           onClick={exportExecutivePdf}
           disabled={isExporting}
           whileHover={{
@@ -97,10 +98,8 @@ export default function ReportsPage() {
             <Download className="w-4 h-4" />
           )}
           {isExporting ? "Generating..." : "Export PDF"}
-        </motion.button>
+        </PhishButton>
       </motion.div>
     </div>
   );
 }
-
-

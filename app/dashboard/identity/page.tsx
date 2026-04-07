@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import type { IdentityChain } from "@/lib/microsoft/types";
+import PhishButton from "@/components/ui/PhishButton";
 
 type ChainSummary = {
   totalChains: number;
@@ -312,10 +313,13 @@ export default function IdentityDashboardPage() {
             <option value={24}>Last 24 hours</option>
             <option value={72}>Last 72 hours</option>
           </select>
-          <motion.button
+          <PhishButton
             onClick={downloadReport}
             disabled={downloading}
-            whileHover={{ scale: 1.05, boxShadow: "0 0 28px rgba(45,212,191,0.5)" }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 0 28px rgba(45,212,191,0.5)",
+            }}
             whileTap={{ scale: 0.96 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             style={{
@@ -330,7 +334,7 @@ export default function IdentityDashboardPage() {
             }}
           >
             {downloading ? "Exporting..." : "Export PDF"}
-          </motion.button>
+          </PhishButton>
         </div>
       </div>
 
@@ -339,12 +343,12 @@ export default function IdentityDashboardPage() {
           display: "inline-flex",
           gap: "8px",
           marginBottom: "24px",
-          background: "rgba(22,27,34,0.8)",
+          background: "rgba(23,28,35,0.8)",
           borderRadius: "9999px",
           padding: "4px",
         }}
       >
-        <motion.button
+        <PhishButton
           type="button"
           onClick={() => setActiveTab("chains")}
           whileHover={{ scale: 1.04 }}
@@ -364,8 +368,8 @@ export default function IdentityDashboardPage() {
           }}
         >
           Identity Chains
-        </motion.button>
-        <motion.button
+        </PhishButton>
+        <PhishButton
           type="button"
           onClick={() => setActiveTab("anomalies")}
           whileHover={{ scale: 1.04 }}
@@ -380,14 +384,13 @@ export default function IdentityDashboardPage() {
               activeTab === "anomalies"
                 ? "linear-gradient(135deg,#2DD4BF,#22c55e)"
                 : "transparent",
-            color:
-              activeTab === "anomalies" ? "#000" : "rgba(255,255,255,0.5)",
+            color: activeTab === "anomalies" ? "#000" : "rgba(255,255,255,0.5)",
             fontWeight: 700,
           }}
         >
           Anomalies
-        </motion.button>
-        <motion.button
+        </PhishButton>
+        <PhishButton
           type="button"
           onClick={() => setActiveTab("lifecycle")}
           whileHover={{ scale: 1.04 }}
@@ -402,13 +405,12 @@ export default function IdentityDashboardPage() {
               activeTab === "lifecycle"
                 ? "linear-gradient(135deg,#2DD4BF,#22c55e)"
                 : "transparent",
-            color:
-              activeTab === "lifecycle" ? "#000" : "rgba(255,255,255,0.5)",
+            color: activeTab === "lifecycle" ? "#000" : "rgba(255,255,255,0.5)",
             fontWeight: 700,
           }}
         >
           Service Identities
-        </motion.button>
+        </PhishButton>
       </div>
 
       {activeTab === "chains" && summary ? (
@@ -500,13 +502,13 @@ export default function IdentityDashboardPage() {
               variants={itemVariants}
               whileHover={{
                 scale: 1.02,
-                background: "rgba(22,27,34,0.88)",
+                background: "rgba(23,28,35,0.88)",
                 boxShadow: "0 8px 32px rgba(45,212,191,0.12)",
                 borderColor: "rgba(45,212,191,0.3)",
               }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               style={{
-                background: "rgba(22,27,34,0.75)",
+                background: "rgba(23,28,35,0.75)",
                 border: "1px solid rgba(48,54,61,0.7)",
                 backdropFilter: "blur(12px)",
                 borderRadius: "12px",
@@ -635,7 +637,7 @@ export default function IdentityDashboardPage() {
               <div
                 key={chain.chainId}
                 style={{
-                  background: "rgba(22,27,34,0.75)",
+                  background: "rgba(23,28,35,0.75)",
                   border: `1px solid ${chain.isPartialGraph ? "#E3B341" : "rgba(255,255,255,0.1)"}`,
                   borderRadius: "12px",
                   padding: "20px",
@@ -817,7 +819,7 @@ export default function IdentityDashboardPage() {
               <div
                 key={`${anomaly.type}-${anomaly.timestamp}-${index}`}
                 style={{
-                  background: "rgba(22,27,34,0.75)",
+                  background: "rgba(23,28,35,0.75)",
                   border: `1px solid ${anomaly.severity === "high" || anomaly.severity === "critical" ? "rgba(248,81,73,0.4)" : anomaly.severity === "medium" ? "rgba(227,179,65,0.3)" : "rgba(63,185,80,0.3)"}`,
                   borderRadius: "12px",
                   backdropFilter: "blur(12px)",
@@ -958,7 +960,7 @@ export default function IdentityDashboardPage() {
                     </span>
                   </div>
 
-                  <motion.button
+                  <PhishButton
                     type="button"
                     onClick={() =>
                       toggleIdentityExpansion(summaryItem.identityId)
@@ -977,7 +979,7 @@ export default function IdentityDashboardPage() {
                     }}
                   >
                     {isExpanded ? "Hide Events" : "View Events"}
-                  </motion.button>
+                  </PhishButton>
                 </div>
 
                 <div
@@ -1094,5 +1096,3 @@ export default function IdentityDashboardPage() {
     </motion.div>
   );
 }
-
-

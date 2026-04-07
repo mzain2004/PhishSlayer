@@ -3,6 +3,7 @@
 import { Component, type ReactNode } from "react";
 import { ShieldAlert } from "lucide-react";
 import { motion } from "framer-motion";
+import PhishButton from "@/components/ui/PhishButton";
 
 interface Props {
   children: ReactNode;
@@ -42,7 +43,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
               An unexpected error occurred. Please refresh the page or contact
               support if the problem persists.
             </p>
-            <motion.button transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
               onClick={() => {
                 this.setState({ hasError: false, error: undefined });
                 window.location.reload();
@@ -50,7 +51,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
               className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-bold text-sm transition-colors"
             >
               Reload Page
-            </motion.button>
+            </PhishButton>
           </div>
         </div>
       );
@@ -59,5 +60,3 @@ export class DashboardErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-
-

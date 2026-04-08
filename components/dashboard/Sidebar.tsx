@@ -28,6 +28,7 @@ type SidebarItemProps = {
   label: string;
   href: string;
   active: boolean;
+  badgeCount?: number;
 };
 
 const navItems = [
@@ -39,6 +40,7 @@ const navItems = [
     label: "Incident Reports",
     href: "/dashboard/incidents",
   },
+  { icon: AlertTriangle, label: "Escalations", href: "/dashboard/escalations" },
   { icon: Database, label: "Intel Vault", href: "/dashboard/intel" },
   { icon: LinkIcon, label: "Identity Chain", href: "/dashboard/identity" },
   { icon: Activity, label: "MTTR", href: "/dashboard/mttr" },
@@ -53,6 +55,7 @@ function SidebarItem({
   label,
   href,
   active,
+  badgeCount,
   expanded,
 }: SidebarItemProps & { expanded: boolean }) {
   const baseTransition = "[transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]";
@@ -70,9 +73,14 @@ function SidebarItem({
       >
         <Link
           href={href}
-          className="flex h-10 w-10 items-center justify-center rounded-full"
+          className="relative flex h-10 w-10 items-center justify-center rounded-full"
         >
           <Icon className="h-[18px] w-[18px]" />
+          {typeof badgeCount === "number" ? (
+            <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-semibold text-black bg-[#2DD4BF] flex items-center justify-center">
+              {badgeCount}
+            </span>
+          ) : null}
         </Link>
       </motion.div>
     );
@@ -100,6 +108,11 @@ function SidebarItem({
         <span className="block overflow-hidden whitespace-nowrap text-[13px] text-[rgba(255,255,255,0.85)] font-medium [transition:all_0.25s_cubic-bezier(0.4,0,0.2,1)]">
           {label}
         </span>
+        {typeof badgeCount === "number" ? (
+          <span className="ml-auto min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-semibold text-black bg-[#2DD4BF] flex items-center justify-center">
+            {badgeCount}
+          </span>
+        ) : null}
       </Link>
     </motion.div>
   );
@@ -119,6 +132,7 @@ export default function Sidebar({
     email: "authenticated@phish-slayer.local",
     avatarUrl: "",
   });
+  const [pendingEscalations, setPendingEscalations] = useState(0);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -163,6 +177,32 @@ export default function Sidebar({
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadPendingEscalations = async () => {
+      const supabase = createClient();
+      const { count } = await supabase
+        .from("escalations")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending");
+
+      if (mounted) {
+        setPendingEscalations(count || 0);
+      }
+    };
+
+    void loadPendingEscalations();
+    const intervalId = window.setInterval(() => {
+      void loadPendingEscalations();
+    }, 60000);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   const showExpanded = mobileOpen || expanded;
@@ -221,6 +261,11 @@ export default function Sidebar({
                   href={item.href}
                   active={Boolean(active)}
                   expanded={showExpanded}
+                  badgeCount={
+                    item.href === "/dashboard/escalations"
+                      ? pendingEscalations
+                      : undefined
+                  }
                 />
               );
             })}

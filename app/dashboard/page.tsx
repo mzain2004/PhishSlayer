@@ -80,20 +80,34 @@ export default async function DashboardOverviewPage() {
         <SOCTierBadge tier={1} />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full lg:w-auto">
           <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">Total Scans</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
+              Total Scans
+            </p>
             <p className="text-lg font-semibold text-white">{totalScans}</p>
           </div>
           <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">Malicious</p>
-            <p className="text-lg font-semibold text-red-300">{maliciousScans}</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
+              Malicious
+            </p>
+            <p className="text-lg font-semibold text-red-300">
+              {maliciousScans}
+            </p>
           </div>
           <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">Incidents</p>
-            <p className="text-lg font-semibold text-orange-200">{activeIncidents}</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
+              Incidents
+            </p>
+            <p className="text-lg font-semibold text-orange-200">
+              {activeIncidents}
+            </p>
           </div>
           <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">Intel Records</p>
-            <p className="text-lg font-semibold text-cyan-200">{intelCount ?? 0}</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
+              Intel Records
+            </p>
+            <p className="text-lg font-semibold text-cyan-200">
+              {intelCount ?? 0}
+            </p>
           </div>
         </div>
       </div>
@@ -173,9 +187,7 @@ export default async function DashboardOverviewPage() {
 
             <div className="flex flex-col gap-3">
               {recentScans.length === 0 ? (
-                <div
-                  className="p-3 rounded-lg bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] text-sm text-white/60"
-                >
+                <div className="p-3 rounded-lg bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] text-sm text-white/60">
                   No recent scans yet.
                 </div>
               ) : (

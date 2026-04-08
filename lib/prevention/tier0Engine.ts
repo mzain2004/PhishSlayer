@@ -58,9 +58,10 @@ function normalizeTarget(urlOrTarget: string): string {
   }
 
   try {
-    const url = value.startsWith("http://") || value.startsWith("https://")
-      ? new URL(value)
-      : new URL(`https://${value}`);
+    const url =
+      value.startsWith("http://") || value.startsWith("https://")
+        ? new URL(value)
+        : new URL(`https://${value}`);
     return url.hostname.toLowerCase();
   } catch {
     return value

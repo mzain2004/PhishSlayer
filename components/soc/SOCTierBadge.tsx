@@ -43,11 +43,7 @@ export default function SOCTierBadge({ tier }: Props) {
   return (
     <motion.div
       animate={{
-        boxShadow: [
-          "0 0 0 rgba(0,0,0,0)",
-          config.glow,
-          "0 0 0 rgba(0,0,0,0)",
-        ],
+        boxShadow: ["0 0 0 rgba(0,0,0,0)", config.glow, "0 0 0 rgba(0,0,0,0)"],
       }}
       transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
       className={`inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold tracking-[0.16em] uppercase border bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl ${config.classes}`}

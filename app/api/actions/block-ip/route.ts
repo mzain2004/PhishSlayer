@@ -29,51 +29,67 @@ function mapThreatToAuditSeverity(
 }
 
 export async function POST(request: NextRequest) {
-  const cookieStore = await cookies();
-  const callerClient = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+  const agentSecretHeader =
+    request.headers.get("AGENT_SECRET") ||
+    request.headers.get("agent_secret") ||
+    request.headers.get("x-agent-secret");
+  const internalAuth =
+    Boolean(agentSecretHeader) &&
+    agentSecretHeader === process.env.AGENT_SECRET;
+
+  let callerUserId: string | null = null;
+
+  if (!internalAuth) {
+    const cookieStore = await cookies();
+    const callerClient = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
         },
       },
-    },
-  );
-
-  const {
-    data: { user: callerUser },
-    error: authError,
-  } = await callerClient.auth.getUser();
-
-  if (authError || !callerUser) {
-    return NextResponse.json(
-      { success: false, error: "Unauthorized" },
-      { status: 401 },
     );
-  }
 
-  const { data: callerProfile, error: profileError } = await callerClient
-    .from("profiles")
-    .select("role")
-    .eq("id", callerUser.id)
-    .single();
+    const {
+      data: { user: callerUser },
+      error: authError,
+    } = await callerClient.auth.getUser();
 
-  if (profileError || !callerProfile) {
-    return NextResponse.json(
-      { success: false, error: "Could not verify caller role" },
-      { status: 403 },
-    );
-  }
+    if (authError || !callerUser) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
 
-  if (
-    !(["admin", "manager", "super_admin"] as const).includes(callerProfile.role)
-  ) {
-    return NextResponse.json(
-      { success: false, error: "Forbidden: insufficient privileges" },
-      { status: 403 },
-    );
+    const { data: callerProfile, error: profileError } = await callerClient
+      .from("profiles")
+      .select("role")
+      .eq("id", callerUser.id)
+      .single();
+
+    if (profileError || !callerProfile) {
+      return NextResponse.json(
+        { success: false, error: "Could not verify caller role" },
+        { status: 403 },
+      );
+    }
+
+    if (
+      !(["admin", "manager", "super_admin"] as const).includes(
+        callerProfile.role,
+      )
+    ) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden: insufficient privileges" },
+        { status: 403 },
+      );
+    }
+
+    callerUserId = callerUser.id;
   }
 
   let body: unknown;
@@ -188,7 +204,7 @@ export async function POST(request: NextRequest) {
       ip,
       reason,
       threat_level: threatLevel,
-      blocked_by: callerUser.id,
+      blocked_by: callerUserId,
       cloudflare_rule_id: cloudflareRuleId,
       created_at: new Date().toISOString(),
     });
@@ -213,7 +229,7 @@ export async function POST(request: NextRequest) {
       cloudflare_rule_id: cloudflareRuleId,
       threat_level: threatLevel,
     },
-    actor_id: callerUser.id,
+    actor_id: callerUserId,
     created_at: new Date().toISOString(),
   });
 

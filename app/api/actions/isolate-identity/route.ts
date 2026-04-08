@@ -17,51 +17,67 @@ const IsolatePayloadSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  // ── 1. Build caller client (respects RLS, reads session) ──────────────────
-  const cookieStore = await cookies();
-  const callerClient = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+  const agentSecretHeader =
+    request.headers.get("AGENT_SECRET") ||
+    request.headers.get("agent_secret") ||
+    request.headers.get("x-agent-secret");
+  const internalAuth =
+    Boolean(agentSecretHeader) &&
+    agentSecretHeader === process.env.AGENT_SECRET;
+
+  let callerUserId: string | null = null;
+  let callerRole: string = "system";
+
+  if (!internalAuth) {
+    // ── 1. Build caller client (respects RLS, reads session) ──────────────────
+    const cookieStore = await cookies();
+    const callerClient = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
         },
       },
-    },
-  );
-
-  // ── 2. Verify caller is authenticated ────────────────────────────────────
-  const {
-    data: { user: callerUser },
-    error: authError,
-  } = await callerClient.auth.getUser();
-  if (authError || !callerUser) {
-    return NextResponse.json(
-      { success: false, error: "Unauthorized" },
-      { status: 401 },
     );
-  }
 
-  // ── 3. Verify caller has admin or manager role ────────────────────────────
-  const { data: callerProfile, error: profileError } = await callerClient
-    .from("profiles")
-    .select("role")
-    .eq("id", callerUser.id)
-    .single();
+    // ── 2. Verify caller is authenticated ────────────────────────────────────
+    const {
+      data: { user: callerUser },
+      error: authError,
+    } = await callerClient.auth.getUser();
+    if (authError || !callerUser) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
 
-  if (profileError || !callerProfile) {
-    return NextResponse.json(
-      { success: false, error: "Could not verify caller role" },
-      { status: 403 },
-    );
-  }
+    // ── 3. Verify caller has admin or manager role ────────────────────────────
+    const { data: callerProfile, error: profileError } = await callerClient
+      .from("profiles")
+      .select("role")
+      .eq("id", callerUser.id)
+      .single();
 
-  if (!["admin", "manager", "super_admin"].includes(callerProfile.role)) {
-    return NextResponse.json(
-      { success: false, error: "Forbidden: insufficient privileges" },
-      { status: 403 },
-    );
+    if (profileError || !callerProfile) {
+      return NextResponse.json(
+        { success: false, error: "Could not verify caller role" },
+        { status: 403 },
+      );
+    }
+
+    if (!["admin", "manager", "super_admin"].includes(callerProfile.role)) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden: insufficient privileges" },
+        { status: 403 },
+      );
+    }
+
+    callerUserId = callerUser.id;
+    callerRole = callerProfile.role;
   }
 
   // ── 4. Parse & validate request body ─────────────────────────────────────
@@ -90,7 +106,7 @@ export async function POST(request: NextRequest) {
   const { targetUserId, reason } = parsed.data;
 
   // Prevent self-isolation
-  if (targetUserId === callerUser.id) {
+  if (callerUserId && targetUserId === callerUserId) {
     return NextResponse.json(
       { success: false, error: "Cannot isolate your own account" },
       { status: 400 },
@@ -179,13 +195,13 @@ export async function POST(request: NextRequest) {
 
   // ── 8. Write critical audit log ──────────────────────────────────────────
   const { error: auditError } = await adminClient.from("audit_logs").insert({
-    actor_id: callerUser.id,
+    actor_id: callerUserId,
     target_id: targetUserId,
     action: "IDENTITY_ISOLATED",
     severity: "critical",
     reason,
     metadata: {
-      caller_role: callerProfile.role,
+      caller_role: callerRole,
       previous_status: targetProfile.status,
       session_revoked: !signOutError,
       auth_banned: !banError,

@@ -57,7 +57,9 @@ export default function L1DecisionLog() {
 
   return (
     <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl flex flex-col gap-4">
-      <h2 className="text-xl font-bold text-white">L1 Autonomous Decision Log</h2>
+      <h2 className="text-xl font-bold text-white">
+        L1 Autonomous Decision Log
+      </h2>
 
       <div className="flex flex-col gap-3 max-h-80 overflow-y-auto pr-1">
         {rows.length === 0 ? (
@@ -85,7 +87,9 @@ export default function L1DecisionLog() {
                   >
                     {escalated ? "ESCALATED" : "CLOSED"}
                   </span>
-                  <span className="text-xs text-white/50">{timeAgo(row.created_at)}</span>
+                  <span className="text-xs text-white/50">
+                    {timeAgo(row.created_at)}
+                  </span>
                 </div>
 
                 <p className="text-sm text-white/80 mt-2">

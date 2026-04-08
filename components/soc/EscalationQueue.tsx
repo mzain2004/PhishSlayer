@@ -8,7 +8,11 @@ type EscalationRow = {
   id: string;
   severity: "low" | "medium" | "high" | "critical";
   title: string;
-  recommended_action: "CLOSE" | "ISOLATE_IDENTITY" | "BLOCK_IP" | "MANUAL_REVIEW";
+  recommended_action:
+    | "CLOSE"
+    | "ISOLATE_IDENTITY"
+    | "BLOCK_IP"
+    | "MANUAL_REVIEW";
   created_at: string;
 };
 
@@ -123,7 +127,9 @@ export default function EscalationQueue() {
                 >
                   {row.severity}
                 </span>
-                <span className="text-xs text-white/60">{timeAgo(row.created_at)}</span>
+                <span className="text-xs text-white/60">
+                  {timeAgo(row.created_at)}
+                </span>
               </div>
 
               <p className="text-white font-semibold">{row.title}</p>

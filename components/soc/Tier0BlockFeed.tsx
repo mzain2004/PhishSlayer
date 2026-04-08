@@ -54,7 +54,9 @@ export default function Tier0BlockFeed() {
 
       <div className="flex flex-col gap-3">
         {rows.length === 0 ? (
-          <p className="text-sm text-white/50">No Tier 0 blocks recorded yet.</p>
+          <p className="text-sm text-white/50">
+            No Tier 0 blocks recorded yet.
+          </p>
         ) : (
           rows.map((row) => (
             <div
@@ -67,7 +69,10 @@ export default function Tier0BlockFeed() {
                   {row.metadata?.rule_triggered || "UNKNOWN_RULE"}
                 </p>
                 <p className="text-xs text-white/70 truncate">
-                  {row.metadata?.scan_url || row.metadata?.ip || row.metadata?.destination_ip || "Unknown target"}
+                  {row.metadata?.scan_url ||
+                    row.metadata?.ip ||
+                    row.metadata?.destination_ip ||
+                    "Unknown target"}
                 </p>
                 <p className="text-xs text-white/50 mt-1">
                   {new Date(row.created_at).toLocaleString()}

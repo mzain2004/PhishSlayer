@@ -141,18 +141,21 @@ export async function PATCH(
   }
 
   if (escalation.recommended_action === "BLOCK_IP" && escalation.affected_ip) {
-    const response = await fetch(`${request.nextUrl.origin}/api/actions/block-ip`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        cookie: request.headers.get("cookie") || "",
+    const response = await fetch(
+      `${request.nextUrl.origin}/api/actions/block-ip`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          cookie: request.headers.get("cookie") || "",
+        },
+        body: JSON.stringify({
+          ip: escalation.affected_ip,
+          reason: escalation.title,
+          threatLevel: escalation.severity,
+        }),
       },
-      body: JSON.stringify({
-        ip: escalation.affected_ip,
-        reason: escalation.title,
-        threatLevel: escalation.severity,
-      }),
-    });
+    );
 
     if (response.ok) {
       actionFired = "BLOCK_IP";

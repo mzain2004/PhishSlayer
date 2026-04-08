@@ -63,7 +63,9 @@ export default function AgentSwarmPanel() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [l1DecisionCount, setL1DecisionCount] = useState(0);
   const [l2DecisionCount, setL2DecisionCount] = useState(0);
-  const [l2LastRunOverride, setL2LastRunOverride] = useState<string | null>(null);
+  const [l2LastRunOverride, setL2LastRunOverride] = useState<string | null>(
+    null,
+  );
 
   const hitlEnabled =
     String(process.env.NEXT_PUBLIC_HITL_MODE || "true").toLowerCase() !==
@@ -243,9 +245,7 @@ export default function AgentSwarmPanel() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {[l1Agent, l2Agent]
-            .filter(Boolean)
-            .map((agent, index) => (
+          {[l1Agent, l2Agent].filter(Boolean).map((agent, index) => (
             <div
               key={agent!.id}
               className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 p-4 flex flex-col gap-3"
@@ -277,7 +277,8 @@ export default function AgentSwarmPanel() {
               </p>
 
               <p className="text-xs text-white/60">
-                Total decisions made: {index === 0 ? l1DecisionCount : l2DecisionCount}
+                Total decisions made:{" "}
+                {index === 0 ? l1DecisionCount : l2DecisionCount}
               </p>
 
               <button
@@ -296,7 +297,7 @@ export default function AgentSwarmPanel() {
                 )}
               </button>
             </div>
-            ))}
+          ))}
         </div>
       )}
 

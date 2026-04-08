@@ -56,7 +56,11 @@ type EscalationRow = {
   description: string;
   affected_user_id: string | null;
   affected_ip: string | null;
-  recommended_action: "CLOSE" | "ISOLATE_IDENTITY" | "BLOCK_IP" | "MANUAL_REVIEW";
+  recommended_action:
+    | "CLOSE"
+    | "ISOLATE_IDENTITY"
+    | "BLOCK_IP"
+    | "MANUAL_REVIEW";
   status: string;
   telemetry_snapshot: Record<string, unknown> | null;
   created_at: string;
@@ -234,7 +238,9 @@ async function runGeminiFunctionCall(
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`Gemini function call failed (${response.status}): ${text}`);
+    throw new Error(
+      `Gemini function call failed (${response.status}): ${text}`,
+    );
   }
 
   const raw = await response.json();
@@ -317,28 +323,31 @@ async function processBatch(request: NextRequest) {
       let actionFired = false;
 
       if (hitlMode) {
-        const escalationResponse = await fetch(`${baseUrl}/api/actions/escalate`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            AGENT_SECRET: process.env.AGENT_SECRET || "",
-          },
-          body: JSON.stringify({
-            alertId: escalation.id,
-            severity: escalation.severity,
-            title: `L2 Recommends: ${functionCall.name}`,
-            description:
-              "L2 Agent recommendation awaiting approval. Args: " +
-              JSON.stringify(functionCall.args),
-            recommendedAction: mapToRecommendedAction(functionCall.name),
-            affectedUserId: escalation.affected_user_id || undefined,
-            affectedIp: escalation.affected_ip || undefined,
-            telemetrySnapshot: {
-              function_call: functionCall,
-              original: escalation,
+        const escalationResponse = await fetch(
+          `${baseUrl}/api/actions/escalate`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              AGENT_SECRET: process.env.AGENT_SECRET || "",
             },
-          }),
-        });
+            body: JSON.stringify({
+              alertId: escalation.id,
+              severity: escalation.severity,
+              title: `L2 Recommends: ${functionCall.name}`,
+              description:
+                "L2 Agent recommendation awaiting approval. Args: " +
+                JSON.stringify(functionCall.args),
+              recommendedAction: mapToRecommendedAction(functionCall.name),
+              affectedUserId: escalation.affected_user_id || undefined,
+              affectedIp: escalation.affected_ip || undefined,
+              telemetrySnapshot: {
+                function_call: functionCall,
+                original: escalation,
+              },
+            }),
+          },
+        );
 
         if (!escalationResponse.ok) {
           const details = await escalationResponse.text();
@@ -387,18 +396,21 @@ async function processBatch(request: NextRequest) {
 
         if (functionCall.name === "block_ip") {
           const args = BlockIpArgsSchema.parse(functionCall.args);
-          const actionResponse = await fetch(`${baseUrl}/api/actions/block-ip`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              AGENT_SECRET: process.env.AGENT_SECRET || "",
+          const actionResponse = await fetch(
+            `${baseUrl}/api/actions/block-ip`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                AGENT_SECRET: process.env.AGENT_SECRET || "",
+              },
+              body: JSON.stringify({
+                ip: args.ip,
+                reason: args.reason,
+                threatLevel: args.threatLevel,
+              }),
             },
-            body: JSON.stringify({
-              ip: args.ip,
-              reason: args.reason,
-              threatLevel: args.threatLevel,
-            }),
-          });
+          );
 
           if (!actionResponse.ok) {
             const details = await actionResponse.text();
@@ -409,26 +421,29 @@ async function processBatch(request: NextRequest) {
 
         if (functionCall.name === "escalate_for_review") {
           const args = EscalateReviewArgsSchema.parse(functionCall.args);
-          const actionResponse = await fetch(`${baseUrl}/api/actions/escalate`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              AGENT_SECRET: process.env.AGENT_SECRET || "",
-            },
-            body: JSON.stringify({
-              alertId: escalation.id,
-              severity: escalation.severity,
-              title: "L2 Manual Review Required",
-              description: args.reason,
-              recommendedAction: "MANUAL_REVIEW",
-              affectedUserId: escalation.affected_user_id || undefined,
-              affectedIp: escalation.affected_ip || undefined,
-              telemetrySnapshot: {
-                function_call: functionCall,
-                original: escalation,
+          const actionResponse = await fetch(
+            `${baseUrl}/api/actions/escalate`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                AGENT_SECRET: process.env.AGENT_SECRET || "",
               },
-            }),
-          });
+              body: JSON.stringify({
+                alertId: escalation.id,
+                severity: escalation.severity,
+                title: "L2 Manual Review Required",
+                description: args.reason,
+                recommendedAction: "MANUAL_REVIEW",
+                affectedUserId: escalation.affected_user_id || undefined,
+                affectedIp: escalation.affected_ip || undefined,
+                telemetrySnapshot: {
+                  function_call: functionCall,
+                  original: escalation,
+                },
+              }),
+            },
+          );
 
           if (!actionResponse.ok) {
             const details = await actionResponse.text();

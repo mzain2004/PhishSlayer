@@ -37,17 +37,20 @@ const GeminiApiResponseSchema = z.object({
 
 type ScanRecord = {
   id: string;
-  url: string | null;
-  vt_positives: number | null;
-  vt_total_engines: number | null;
-  vt_threat_categories: unknown;
-  domain_age_days: number | null;
-  whois_risk_flag: boolean | null;
-  ai_threat_score: number | null;
-  ai_classification: string | null;
-  ai_reasoning_summary: string | null;
+  target: string | null;
+  status: string | null;
+  risk_score: number | null;
+  verdict: string | null;
+  threat_category: string | null;
+  total_engines: number | null;
+  malicious_count: number | null;
+  ai_summary: string | null;
+  ai_heuristic: unknown;
+  payload: unknown;
   user_id: string | null;
   created_at: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
 };
 
 type Decision = z.infer<typeof DecisionSchema>;
@@ -64,9 +67,9 @@ it and respond ONLY with a valid JSON object in this exact format:
   'recommended_action': 'CLOSE' or 'ISOLATE_IDENTITY' or 'BLOCK_IP' or 'MANUAL_REVIEW'
 }
 Rules:
-- ESCALATE if ai_threat_score >= 0.7 OR vt_positives >= 3
-- ESCALATE if ai_classification is 'phishing' or 'malware'
-- CLOSE if ai_threat_score < 0.3 AND vt_positives <= 1
+- ESCALATE if risk_score >= 70 OR malicious_count >= 3
+- ESCALATE if verdict is 'malicious' or 'phishing'
+- CLOSE if risk_score < 30 AND malicious_count <= 1
 - If uncertain, always ESCALATE. Never CLOSE a borderline case.
 - Respond with raw JSON only. No markdown. No explanation.`;
 
@@ -123,7 +126,7 @@ async function fetchUnreviewedScans(
   return adminClient
     .from("scans")
     .select(
-      "id, url, vt_positives, vt_total_engines, vt_threat_categories, domain_age_days, whois_risk_flag, ai_threat_score, ai_classification, ai_reasoning_summary, user_id, created_at",
+      "id, target, status, risk_score, verdict, threat_category, total_engines, malicious_count, ai_summary, ai_heuristic, payload, user_id, created_at, reviewed_by, reviewed_at",
     )
     .in("status", ["pending", "unreviewed"])
     .gte("created_at", sinceIso)
@@ -209,7 +212,7 @@ async function escalateScan(
     body: JSON.stringify({
       alertId: scan.id,
       severity: decision.severity,
-      title: `L1 Agent Escalation: ${scan.url || scan.id}`,
+      title: `L1 Agent Escalation: ${scan.target || scan.id}`,
       description: decision.reasoning,
       affectedUserId: scan.user_id || undefined,
       affectedIp: null,

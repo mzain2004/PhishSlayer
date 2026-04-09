@@ -2,37 +2,223 @@ name: Deploy to Production
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: "Force Docker rebuild (ignore cache)"
+        required: false
+        default: "false"
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  pre-deploy-checks:
+    name: Pre-Deploy Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
     steps:
-      - name: Deploy to Azure VM
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          host: 40.123.224.93
-          username: mzain2004
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          command_timeout: 30m
-          script: |
-            cd /home/mzain2004/Phish-Slayer
-            git pull origin main
-            sed -i 's/- "80:3000"/- "3000:3000"/g' docker-compose.yml
-            docker compose down
-            docker build --no-cache \
-              --build-arg NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }} \
-              --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }} \
-              --build-arg NEXT_PUBLIC_SITE_URL=https://phishslayer.tech \
-              --build-arg NEXT_PUBLIC_PADDLE_CLIENT_TOKEN=${{ secrets.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN }} \
-              --build-arg NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID }} \
-              --build-arg NEXT_PUBLIC_PADDLE_CC_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_CC_PRICE_ID }} \
-              --build-arg NEXT_PUBLIC_PADDLE_ENV=production \
-              --build-arg SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} \
-              --build-arg VIRUS_TOTAL_API_KEY=${{ secrets.VIRUS_TOTAL_API_KEY }} \
-              --build-arg GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
-              -t phish-slayer-local .
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      - name: Build check
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Set deploy flag
+        id: check
+        run: echo "should_deploy=true" >> $GITHUB_OUTPUT
+
+  deploy-azure:
+    name: Deploy to Azure VM
+    runs-on: ubuntu-latest
+    needs: pre-deploy-checks
+    if: needs.pre-deploy-checks.outputs.should_deploy == 'true'
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
+
+      - name: Add Azure VM to known hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.AZURE_VM_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Azure VM
+        run: |
+          ssh root@${{ secrets.AZURE_VM_IP }} << 'ENDSSH'
+            set -e
+            echo "=== Starting Phish-Slayer deployment ==="
+            cd /root/phish-slayer || cd /app || cd ~/app
+
+            echo "=== Pulling latest code ==="
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "=== Writing environment file ==="
+            cat > .env.local << 'ENVEOF'
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          CRON_SECRET=${{ secrets.CRON_SECRET }}
+          AGENT_SECRET=${{ secrets.AGENT_SECRET }}
+          WAZUH_WEBHOOK_SECRET=${{ secrets.WAZUH_WEBHOOK_SECRET }}
+          WAZUH_MANAGER_IP=${{ secrets.WAZUH_MANAGER_IP }}
+          WAZUH_API_TOKEN=${{ secrets.WAZUH_API_TOKEN }}
+          DO_SSH_PRIVATE_KEY=${{ secrets.DO_SSH_PRIVATE_KEY }}
+          CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID=${{ secrets.CLOUDFLARE_ZONE_ID }}
+          DISCORD_ESCALATION_WEBHOOK_URL=${{ secrets.DISCORD_ESCALATION_WEBHOOK_URL }}
+          NEXT_PUBLIC_SITE_URL=https://phishslayer.tech
+          ENVEOF
+
+            echo "=== Rebuilding Docker container ==="
+            docker compose down --remove-orphans
+            docker compose build --no-cache
             docker compose up -d
+
+            echo "=== Waiting for container health ==="
+            sleep 15
+
+            echo "=== Verifying deployment ==="
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              http://localhost:3000/api/metrics || echo "000")
+            echo "Health check HTTP status: $STATUS"
+
+            if [ "$STATUS" != "200" ]; then
+              echo "ERROR: App not responding after deploy"
+              docker compose logs --tail=50
+              exit 1
+            fi
+
+            echo "=== Deployment successful ==="
             docker compose ps
-            echo "Deployment complete!"
+          ENDSSH
+
+      - name: Notify Discord on success
+        if: success()
+        run: |
+          curl -s -X POST "${{ secrets.DISCORD_ESCALATION_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "✅ Phish-Slayer Deployed Successfully",
+                "color": 3329330,
+                "fields": [
+                  { "name": "Branch", "value": "main", "inline": true },
+                  { "name": "Commit", "value": "${{ github.sha }}", "inline": true },
+                  { "name": "URL", "value": "https://phishslayer.tech" }
+                ],
+                "footer": { "text": "Phish-Slayer CI/CD" },
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }]
+            }'
+
+      - name: Notify Discord on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.DISCORD_ESCALATION_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "🚨 Phish-Slayer Deployment FAILED",
+                "color": 16711680,
+                "fields": [
+                  { "name": "Branch", "value": "main", "inline": true },
+                  { "name": "Commit", "value": "${{ github.sha }}", "inline": true },
+                  { "name": "Action", "value": "Check GitHub Actions logs immediately" }
+                ],
+                "footer": { "text": "Phish-Slayer CI/CD" }
+              }]
+            }'
+
+  sync-wazuh:
+    name: Sync Wazuh Config
+    runs-on: ubuntu-latest
+    needs: deploy-azure
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DO_SSH_PRIVATE_KEY_RAW }}
+
+      - name: Add DigitalOcean to known hosts
+        run: |
+          ssh-keyscan -H 167.172.85.62 >> ~/.ssh/known_hosts
+
+      - name: Sync Wazuh webhook config
+        run: |
+          ssh root@167.172.85.62 << 'ENDSSH'
+            set -e
+            echo "=== Syncing Wazuh webhook config ==="
+
+            # Ensure integration block points to latest app URL
+            CONFIG_FILE="/var/ossec/etc/ossec.conf"
+
+            # Check if custom-webhook integration exists
+            if grep -q "custom-webhook" "$CONFIG_FILE"; then
+              echo "Webhook integration already configured"
+            else
+              echo "Adding webhook integration..."
+              sed -i 's|</ossec_config>|<integration>\n  <name>custom-webhook</name>\n  <hook_url>https://phishslayer.tech/api/connectors/wazuh</hook_url>\n  <level>7</level>\n  <alert_format>json</alert_format>\n  <api_key>${{ secrets.WAZUH_WEBHOOK_SECRET }}</api_key>\n</integration>\n</ossec_config>|' "$CONFIG_FILE"
+              systemctl restart wazuh-manager
+              echo "Webhook integration added and Wazuh restarted"
+            fi
+
+            # Verify all 3 services are running
+            for service in wazuh-manager wazuh-indexer wazuh-dashboard; do
+              STATUS=$(systemctl is-active $service)
+              echo "$service: $STATUS"
+              if [ "$STATUS" != "active" ]; then
+                echo "WARNING: $service is not active, attempting restart..."
+                systemctl restart $service
+                sleep 5
+              fi
+            done
+
+            echo "=== Wazuh sync complete ==="
+          ENDSSH
+
+      - name: Notify Discord on Wazuh sync failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.DISCORD_ESCALATION_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "⚠️ Wazuh Config Sync Failed",
+                "color": 16744272,
+                "fields": [
+                  { "name": "Server", "value": "167.172.85.62 (DigitalOcean)", "inline": true },
+                  { "name": "Action", "value": "Manual SSH check required" }
+                ],
+                "footer": { "text": "Phish-Slayer CI/CD" }
+              }]
+            }'

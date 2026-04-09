@@ -1,0 +1,64 @@
+name: Emergency Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: "Commit SHA to roll back to (leave empty for previous commit)"
+        required: false
+        default: ""
+
+jobs:
+  rollback:
+    name: Rollback Azure Deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 10
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
+
+      - name: Add Azure VM to known hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.AZURE_VM_IP }} >> ~/.ssh/known_hosts
+
+      - name: Execute rollback
+        run: |
+          TARGET="${{ github.event.inputs.commit_sha }}"
+          if [ -z "$TARGET" ]; then
+            TARGET="HEAD~1"
+          fi
+
+          ssh root@${{ secrets.AZURE_VM_IP }} << ENDSSH
+            set -e
+            echo "=== ROLLING BACK to $TARGET ==="
+            cd /root/phish-slayer || cd /app || cd ~/app
+            git fetch origin
+            git reset --hard $TARGET
+            docker compose down
+            docker compose build --no-cache
+            docker compose up -d
+            sleep 15
+            STATUS=\$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/metrics)
+            echo "Post-rollback health: \$STATUS"
+            if [ "\$STATUS" != "200" ]; then
+              echo "ROLLBACK FAILED"
+              exit 1
+            fi
+            echo "=== Rollback successful ==="
+          ENDSSH
+
+      - name: Notify Discord
+        if: always()
+        run: |
+          COLOR=$([[ "${{ job.status }}" == "success" ]] && echo "3329330" || echo "16711680")
+          TITLE=$([[ "${{ job.status }}" == "success" ]] && echo "✅ Rollback Successful" || echo "🚨 Rollback FAILED")
+          curl -s -X POST "${{ secrets.DISCORD_ESCALATION_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"$TITLE\",\"color\":$COLOR,\"footer\":{\"text\":\"Phish-Slayer Emergency Rollback\"}}]}"

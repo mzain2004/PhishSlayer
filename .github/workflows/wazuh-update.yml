@@ -1,0 +1,72 @@
+name: Wazuh Server Maintenance
+
+on:
+  schedule:
+    # Run package updates every Sunday at 2 AM UTC
+    - cron: "0 2 * * 0"
+  workflow_dispatch:
+    inputs:
+      run_updates:
+        description: "Run apt package updates"
+        required: false
+        default: "false"
+
+jobs:
+  wazuh-maintenance:
+    name: Wazuh Server Maintenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DO_SSH_PRIVATE_KEY_RAW }}
+
+      - name: Add DigitalOcean to known hosts
+        run: |
+          ssh-keyscan -H 167.172.85.62 >> ~/.ssh/known_hosts
+
+      - name: Run maintenance
+        run: |
+          ssh root@167.172.85.62 << 'ENDSSH'
+            set -e
+            echo "=== Wazuh Maintenance Run ==="
+
+            echo "--- Disk usage ---"
+            df -h /var/ossec
+
+            echo "--- Memory usage ---"
+            free -m
+
+            echo "--- Active agents ---"
+            /var/ossec/bin/wazuh-control status
+
+            echo "--- Rotating old logs (keep 30 days) ---"
+            find /var/ossec/logs -name "*.log" -mtime +30 -delete 2>/dev/null || true
+            find /var/ossec/logs/archives -name "*.gz" -mtime +30 -delete 2>/dev/null || true
+
+            echo "--- Service status ---"
+            for service in wazuh-manager wazuh-indexer wazuh-dashboard; do
+              echo "$service: $(systemctl is-active $service)"
+            done
+
+            echo "=== Maintenance complete ==="
+          ENDSSH
+
+      - name: Notify Discord
+        if: always()
+        run: |
+          COLOR=$([[ "${{ job.status }}" == "success" ]] && echo "3329330" || echo "16744272")
+          curl -s -X POST "${{ secrets.DISCORD_ESCALATION_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"🔧 Wazuh Weekly Maintenance Complete\",
+                \"color\": $COLOR,
+                \"fields\": [
+                  { \"name\": \"Status\", \"value\": \"${{ job.status }}\", \"inline\": true },
+                  { \"name\": \"Server\", \"value\": \"167.172.85.62\", \"inline\": true }
+                ],
+                \"footer\": { \"text\": \"Phish-Slayer Infrastructure\" }
+              }]
+            }"

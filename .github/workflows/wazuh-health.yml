@@ -1,0 +1,46 @@
+name: Wazuh Server Health Monitor - Every 30 Minutes
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check-wazuh-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger Wazuh Health Check
+        run: |
+          RESPONSE=$(curl -s -o /tmp/health.json -w "%{http_code}" \
+            -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.NEXT_PUBLIC_APP_URL }}/api/infrastructure/wazuh-health")
+          echo "HTTP Status: $RESPONSE"
+          cat /tmp/health.json
+          if [ "$RESPONSE" != "200" ]; then
+            exit 1
+          fi
+          OVERALL=$(cat /tmp/health.json | python3 -c
+            "import sys,json; print(json.load(sys.stdin)['overall'])")
+          echo "Wazuh Health: $OVERALL"
+          if [ "$OVERALL" = "down" ]; then
+            exit 1
+          fi
+
+      - name: Notify Discord on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.DISCORD_ESCALATION_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "🚨 Wazuh Server Health Check FAILED",
+                "color": 16711680,
+                "fields": [
+                  { "name": "Server", "value": "167.172.85.62 (DigitalOcean)", "inline": true },
+                  { "name": "Action", "value": "Check /api/infrastructure/wazuh-health immediately" }
+                ],
+                "footer": { "text": "Phish-Slayer SOC | Infrastructure Monitor" }
+              }]
+            }'

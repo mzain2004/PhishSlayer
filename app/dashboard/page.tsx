@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import KpiCards from "./components/KpiCards";
 import QuickActionsPanel from "./components/QuickActionsPanel";
 import L1AgentStatusWidget from "@/components/dashboard/L1AgentStatusWidget";
+import InfrastructureHealthWidget from "@/components/dashboard/InfrastructureHealthWidget";
 import SOCTierBadge from "@/components/soc/SOCTierBadge";
 import AgentSwarmPanel from "@/components/soc/AgentSwarmPanel";
 import EscalationQueue from "@/components/soc/EscalationQueue";
@@ -220,7 +221,10 @@ export default async function DashboardOverviewPage() {
           </div>
         </div>
 
-        <L1AgentStatusWidget />
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <L1AgentStatusWidget />
+          <InfrastructureHealthWidget />
+        </div>
       </div>
 
       <div className="hidden">{maliciousScans + (intelCount ?? 0)}</div>

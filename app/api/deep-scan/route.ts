@@ -1,32 +1,32 @@
-import { NextResponse } from 'next/server';
-import { getWhoisData } from '@/lib/deep-scan/whois';
-import { checkDnsRecords } from '@/lib/deep-scan/dnsCheck';
-import { getSslProfile } from '@/lib/deep-scan/sslProfile';
-import { detectTyposquatting } from '@/lib/deep-scan/typosquat';
-import { getDomTree } from '@/lib/deep-scan/domTree';
-import { sanitizeTarget } from '@/lib/security/safeCompare';
+import { NextResponse } from "next/server";
+import { getWhoisData } from "@/lib/deep-scan/whois";
+import { checkDnsRecords } from "@/lib/deep-scan/dnsCheck";
+import { getSslProfile } from "@/lib/deep-scan/sslProfile";
+import { detectTyposquatting } from "@/lib/deep-scan/typosquat";
+import { getDomTree } from "@/lib/deep-scan/domTree";
+import { sanitizeTarget } from "@/lib/security/safeCompare";
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 function stripTarget(input: string): string {
   let d = input.trim();
-  d = d.replace(/^https?:\/\//i, '');
-  d = d.replace(/^www\./i, '');
-  d = d.replace(/\/+$/, '');
-  d = d.split('/')[0];
+  d = d.replace(/^https?:\/\//i, "");
+  d = d.replace(/^www\./i, "");
+  d = d.replace(/\/+$/, "");
+  d = d.split("/")[0];
   return d;
 }
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const rawTarget = searchParams.get('target');
+    const rawTarget = searchParams.get("target");
 
     if (!rawTarget || !rawTarget.trim()) {
       return NextResponse.json(
-        { error: 'Missing required parameter: target' },
-        { status: 400 }
+        { error: "Missing required parameter: target" },
+        { status: 400 },
       );
     }
 
@@ -36,8 +36,8 @@ export async function GET(request: Request) {
     const { target, error: sanitizeError } = sanitizeTarget(stripped);
     if (sanitizeError || !target) {
       return NextResponse.json(
-        { error: sanitizeError || 'Invalid target.' },
-        { status: 400 }
+        { error: sanitizeError || "Invalid target." },
+        { status: 400 },
       );
     }
 
@@ -51,18 +51,22 @@ export async function GET(request: Request) {
         getDomTree(target),
       ]);
 
-    const whois = whoisResult.status === 'fulfilled' ? whoisResult.value : null;
-    const dns = dnsResult.status === 'fulfilled' ? dnsResult.value : null;
-    const ssl = sslResult.status === 'fulfilled' ? sslResult.value : null;
-    const typosquat = typosquatResult.status === 'fulfilled' ? typosquatResult.value : null;
-    const domTree = domTreeResult.status === 'fulfilled' ? domTreeResult.value : null;
+    const whois = whoisResult.status === "fulfilled" ? whoisResult.value : null;
+    const dns = dnsResult.status === "fulfilled" ? dnsResult.value : null;
+    const ssl = sslResult.status === "fulfilled" ? sslResult.value : null;
+    const typosquat =
+      typosquatResult.status === "fulfilled" ? typosquatResult.value : null;
+    const domTree =
+      domTreeResult.status === "fulfilled" ? domTreeResult.value : null;
 
     // Merge all risk flags into a flat, deduplicated array
     const allRiskFlags: string[] = [];
     const flagSet = new Set<string>();
 
     const sources = [
-      whois && 'riskFlags' in whois ? (whois as Record<string, unknown>).riskFlags : null,
+      whois && "riskFlags" in whois
+        ? (whois as Record<string, unknown>).riskFlags
+        : null,
       dns?.riskFlags,
       ssl?.riskFlags,
       typosquat?.riskFlags,
@@ -72,7 +76,7 @@ export async function GET(request: Request) {
     for (const flags of sources) {
       if (Array.isArray(flags)) {
         for (const flag of flags) {
-          if (typeof flag === 'string' && !flagSet.has(flag)) {
+          if (typeof flag === "string" && !flagSet.has(flag)) {
             flagSet.add(flag);
             allRiskFlags.push(flag);
           }
@@ -92,13 +96,13 @@ export async function GET(request: Request) {
   } catch {
     // Never return 500 — return partial results
     return NextResponse.json({
-      target: '',
+      target: "",
       whois: null,
       dns: null,
       ssl: null,
       typosquat: null,
       domTree: null,
-      allRiskFlags: ['Deep scan encountered an unexpected error'],
+      allRiskFlags: ["Deep scan encountered an unexpected error"],
     });
   }
 }

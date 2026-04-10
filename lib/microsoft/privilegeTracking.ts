@@ -1,4 +1,4 @@
-import { graphClient } from "./graphClient";
+import { getGraphClient } from "./graphClient";
 import type { PrivilegeEvent } from "./types";
 
 type GraphDirectoryAudit = {
@@ -16,6 +16,7 @@ type GraphDirectoryAudit = {
 export async function fetchPrivilegeEvents(
   hoursBack: number = 24,
 ): Promise<PrivilegeEvent[]> {
+  const graphClient = getGraphClient();
   const startTime = new Date(
     Date.now() - hoursBack * 60 * 60 * 1000,
   ).toISOString();

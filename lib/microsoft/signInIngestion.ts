@@ -1,4 +1,4 @@
-import { graphClient } from "./graphClient";
+import { getGraphClient } from "./graphClient";
 import { buildCompositeKey, calculateDeviceConfidence } from "./compositeKey";
 import type { IdentityActor, SignInEvent } from "./types";
 
@@ -44,6 +44,7 @@ function toRiskLevel(input?: string): SignInEvent["riskLevel"] {
 export async function fetchRecentSignIns(
   hoursBack: number = 24,
 ): Promise<SignInEvent[]> {
+  const graphClient = getGraphClient();
   const startTime = new Date(
     Date.now() - hoursBack * 60 * 60 * 1000,
   ).toISOString();
@@ -136,6 +137,7 @@ export async function fetchRecentSignIns(
 export async function fetchNonHumanIdentities(): Promise<IdentityActor[]> {
   // Scott's insight: model managed identities as
   // first-class actors not afterthoughts
+  const graphClient = getGraphClient();
   const actors: IdentityActor[] = [];
 
   try {

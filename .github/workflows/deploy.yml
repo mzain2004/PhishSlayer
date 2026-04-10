@@ -49,6 +49,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           AGENT_SECRET: ${{ secrets.AGENT_SECRET }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_ESCALATION_WEBHOOK_URL }}
           NEXT_PUBLIC_SITE_URL: https://phishslayer.tech
 
@@ -96,6 +99,9 @@ jobs:
             AGENT_SECRET=${{ secrets.AGENT_SECRET }}
             CRON_SECRET=${{ secrets.CRON_SECRET }}
             NEXT_PUBLIC_SITE_URL=https://phishslayer.tech
+            AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
+            AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
+            AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
 
   deploy-azure:
     name: Deploy to Azure VM

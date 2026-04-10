@@ -4,7 +4,7 @@
  * are often more telling than the identity itself.
  */
 
-import { graphClient } from "./graphClient";
+import { getGraphClient } from "./graphClient";
 
 export interface NonHumanLifecycleEvent {
   identityId: string;
@@ -50,6 +50,7 @@ type GraphDirectoryAuditEvent = {
 export async function fetchNonHumanLifecycle(
   hoursBack: number = 72,
 ): Promise<NonHumanLifecycleSummary[]> {
+  const graphClient = getGraphClient();
   const startTime = new Date(
     Date.now() - hoursBack * 60 * 60 * 1000,
   ).toISOString();

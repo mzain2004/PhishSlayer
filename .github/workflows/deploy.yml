@@ -145,6 +145,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          VIRUS_TOTAL_API_KEY=${{ secrets.VIRUS_TOTAL_API_KEY }}
           CRON_SECRET=${{ secrets.CRON_SECRET }}
           AGENT_SECRET=${{ secrets.AGENT_SECRET }}
           WAZUH_WEBHOOK_SECRET=${{ secrets.WAZUH_WEBHOOK_SECRET }}
@@ -154,12 +155,14 @@ jobs:
           CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ZONE_ID=${{ secrets.CLOUDFLARE_ZONE_ID }}
           DISCORD_ESCALATION_WEBHOOK_URL=${{ secrets.DISCORD_ESCALATION_WEBHOOK_URL }}
+          AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
           NEXT_PUBLIC_SITE_URL=https://phishslayer.tech
-          NEXT_PUBLIC_APP_URL=https://phishslayer.tech
-          VIRUS_TOTAL_API_KEY=${{ secrets.VIRUS_TOTAL_API_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_PADDLE_CLIENT_TOKEN=${{ secrets.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN }}
-          NEXT_PUBLIC_PADDLE_CC_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_CC_PRICE_ID }}
           NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID }}
+          NEXT_PUBLIC_PADDLE_CC_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_CC_PRICE_ID }}
           ENVEOF
 
             echo "=== Pulling latest image from GHCR ==="
@@ -169,12 +172,8 @@ jobs:
             docker compose down --remove-orphans
             docker compose up -d --force-recreate
 
-            echo "=== Waiting for container health ==="
-            sleep 40
-
-            echo "=== Verifying deployment ==="
-            echo "=== Waiting for app health ==="
-            MAX_RETRIES=10
+            echo "=== Waiting for app to be ready ==="
+            MAX_RETRIES=12
             RETRY=0
             STATUS="000"
             while [ "$STATUS" != "200" ] && [ $RETRY -lt $MAX_RETRIES ]; do
@@ -182,16 +181,16 @@ jobs:
               STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
                 http://localhost:3000/api/metrics 2>/dev/null || echo "000")
               echo "Health check attempt $((RETRY+1)): $STATUS"
-              RETRY=$((RETRY+1))
+              RETRY=$((RETRY + 1))
             done
+
             if [ "$STATUS" != "200" ]; then
               echo "App failed to start after $((MAX_RETRIES * 10))s"
               docker compose logs --tail=50
               exit 1
             fi
-            echo "App healthy: $STATUS"
 
-            echo "=== Deployment successful ==="
+            echo "=== Deployment successful: $STATUS ==="
             docker compose ps
           ENDSSH
 

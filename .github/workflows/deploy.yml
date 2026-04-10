@@ -159,6 +159,7 @@ jobs:
           AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
           NEXT_PUBLIC_SITE_URL=https://phishslayer.tech
+          NEXT_PUBLIC_APP_URL=http://localhost:3000
           NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_PADDLE_CLIENT_TOKEN=${{ secrets.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN }}
           NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID }}

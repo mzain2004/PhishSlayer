@@ -6,6 +6,9 @@ import { detectTyposquatting } from '@/lib/deep-scan/typosquat';
 import { getDomTree } from '@/lib/deep-scan/domTree';
 import { sanitizeTarget } from '@/lib/security/safeCompare';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 function stripTarget(input: string): string {
   let d = input.trim();
   d = d.replace(/^https?:\/\//i, '');

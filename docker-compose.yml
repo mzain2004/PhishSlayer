@@ -20,4 +20,9 @@ services:
       - ./:/app
     depends_on:
       - phish-slayer
-    command: ["sh", "./scripts/start-cron.sh"]
+    command:
+      [
+        "sh",
+        "-c",
+        "chmod +x ./scripts/start-cron.sh && ./scripts/start-cron.sh",
+      ]

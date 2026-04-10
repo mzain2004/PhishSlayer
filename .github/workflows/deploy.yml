@@ -116,12 +116,12 @@ jobs:
       - name: Setup SSH agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY != '' && secrets.SSH_PRIVATE_KEY || secrets.AZURE_SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
 
       - name: Write deploy key file
         run: |
           mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY != '' && secrets.SSH_PRIVATE_KEY || secrets.AZURE_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.AZURE_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
       - name: Add Azure VM to known hosts
@@ -170,16 +170,26 @@ jobs:
             docker compose up -d --force-recreate
 
             echo "=== Waiting for container health ==="
-            sleep 20
+            sleep 40
 
             echo "=== Verifying deployment ==="
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-              http://localhost:3000/api/metrics || echo "000")
-            echo "Health check: $STATUS"
+            echo "=== Waiting for app health ==="
+            MAX_RETRIES=10
+            RETRY=0
+            STATUS="000"
+            while [ "$STATUS" != "200" ] && [ $RETRY -lt $MAX_RETRIES ]; do
+              sleep 10
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+                http://localhost:3000/api/metrics 2>/dev/null || echo "000")
+              echo "Health check attempt $((RETRY+1)): $STATUS"
+              RETRY=$((RETRY+1))
+            done
             if [ "$STATUS" != "200" ]; then
+              echo "App failed to start after $((MAX_RETRIES * 10))s"
               docker compose logs --tail=50
               exit 1
             fi
+            echo "App healthy: $STATUS"
 
             echo "=== Deployment successful ==="
             docker compose ps

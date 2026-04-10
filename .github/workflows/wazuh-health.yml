@@ -36,7 +36,7 @@ jobs:
           echo "Wazuh status: $OVERALL (acceptable)"
 
       - name: Notify Discord on failure
-        if: failure() && secrets.DISCORD_ESCALATION_WEBHOOK_URL != ''
+        if: failure()
         run: |
           WEBHOOK="${{ secrets.DISCORD_ESCALATION_WEBHOOK_URL }}"
           if [ -z "$WEBHOOK" ]; then

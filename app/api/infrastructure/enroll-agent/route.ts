@@ -95,7 +95,11 @@ function extractEnrollmentPayload(apiResponse: unknown): WazuhEnrollment {
   };
 }
 
-function requestWazuhEnrollment(agentName: string, managerIp: string, token: string): Promise<WazuhEnrollment> {
+function requestWazuhEnrollment(
+  agentName: string,
+  managerIp: string,
+  token: string,
+): Promise<WazuhEnrollment> {
   return new Promise((resolve, reject) => {
     const requestBody = JSON.stringify({ name: agentName });
 
@@ -120,8 +124,16 @@ function requestWazuhEnrollment(agentName: string, managerIp: string, token: str
         });
 
         res.on("end", () => {
-          if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
-            reject(new Error(`Wazuh API request failed with status ${res.statusCode || 0}`));
+          if (
+            !res.statusCode ||
+            res.statusCode < 200 ||
+            res.statusCode >= 300
+          ) {
+            reject(
+              new Error(
+                `Wazuh API request failed with status ${res.statusCode || 0}`,
+              ),
+            );
             return;
           }
 
@@ -227,20 +239,31 @@ export async function POST(request: NextRequest) {
   try {
     const { agentName, agentIp, agentOs, agentArch } = parsedPayload.data;
     const wazuhToken = await getWazuhApiToken();
-    const enrollment = await requestWazuhEnrollment(agentName, managerIp, wazuhToken);
+    const enrollment = await requestWazuhEnrollment(
+      agentName,
+      managerIp,
+      wazuhToken,
+    );
 
-    const installScript = buildInstallScript(agentName, agentOs, agentArch, managerIp);
+    const installScript = buildInstallScript(
+      agentName,
+      agentOs,
+      agentArch,
+      managerIp,
+    );
 
     const adminClient = getAdminClient();
-    const { error: insertError } = await adminClient.from("enrolled_agents").insert({
-      agent_id: enrollment.agentId,
-      agent_name: agentName,
-      agent_ip: agentIp,
-      agent_os: agentOs,
-      status: "pending_connection",
-      enrolled_by: user.id,
-      enrolled_at: new Date().toISOString(),
-    });
+    const { error: insertError } = await adminClient
+      .from("enrolled_agents")
+      .insert({
+        agent_id: enrollment.agentId,
+        agent_name: agentName,
+        agent_ip: agentIp,
+        agent_os: agentOs,
+        status: "pending_connection",
+        enrolled_by: user.id,
+        enrolled_at: new Date().toISOString(),
+      });
 
     if (insertError) {
       throw new Error(insertError.message);

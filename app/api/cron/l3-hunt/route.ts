@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import {
   buildL3ReasoningPrompt,
@@ -48,6 +49,93 @@ function isAuthorized(request: NextRequest): boolean {
     Boolean(process.env.CRON_SECRET) &&
     request.headers.get("authorization") === `Bearer ${process.env.CRON_SECRET}`
   );
+}
+
+function getAdminClient() {
+  return createSupabaseAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } },
+  );
+}
+
+async function triggerStaticAnalysisForFileAlerts() {
+  const internalApiBase = process.env.INTERNAL_API_URL;
+  if (!internalApiBase) {
+    return { triggered: 0, failed: 0, skipped: true };
+  }
+
+  const adminClient = getAdminClient();
+  const { data: alerts, error } = await adminClient
+    .from("alerts")
+    .select("id, file_hash_sha256, file_path")
+    .eq("source", "wazuh")
+    .eq("status", "pending")
+    .not("file_hash_sha256", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(25);
+
+  if (error || !alerts) {
+    return { triggered: 0, failed: 1, skipped: false };
+  }
+
+  let triggered = 0;
+  let failed = 0;
+
+  for (const alert of alerts) {
+    try {
+      const alertId =
+        typeof alert.id === "string" && alert.id.length > 0 ? alert.id : "";
+      const hash =
+        typeof alert.file_hash_sha256 === "string" &&
+        alert.file_hash_sha256.length > 0
+          ? alert.file_hash_sha256
+          : "";
+
+      if (!alertId || !hash) {
+        continue;
+      }
+
+      const { data: existing } = await adminClient
+        .from("static_analysis")
+        .select("id")
+        .eq("alert_id", alertId)
+        .limit(1)
+        .maybeSingle();
+
+      if (existing?.id) {
+        continue;
+      }
+
+      const response = await fetch(`${internalApiBase}/api/analysis/static`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.CRON_SECRET}`,
+        },
+        body: JSON.stringify({
+          file_name:
+            typeof alert.file_path === "string" && alert.file_path.length > 0
+              ? alert.file_path
+              : `${hash}.bin`,
+          file_content_base64: "",
+          file_hash_sha256: hash,
+          alert_id: alertId,
+        }),
+      });
+
+      if (!response.ok) {
+        failed += 1;
+        continue;
+      }
+
+      triggered += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+
+  return { triggered, failed, skipped: false };
 }
 
 async function invokeStep<T>(
@@ -106,6 +194,7 @@ export async function GET(request: NextRequest) {
       "/api/agent/hunter/review",
       ReviewerResponseSchema,
     );
+    const staticAnalysis = await triggerStaticAnalysisForFileAlerts();
     const executionTimeMs = Date.now() - reviewerStartedAt;
 
     const huntSummary = {
@@ -144,6 +233,7 @@ export async function GET(request: NextRequest) {
       reader,
       hunter,
       reviewer,
+      static_analysis: staticAnalysis,
       halted,
     });
   } catch (error) {

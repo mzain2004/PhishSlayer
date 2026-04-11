@@ -58,7 +58,10 @@ function decodeTokenFromResponse(rawBody: string): string {
   return token;
 }
 
-async function requestFreshToken(managerIp: string, password: string): Promise<string> {
+async function requestFreshToken(
+  managerIp: string,
+  password: string,
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const basicAuth = Buffer.from(`wazuh:${password}`).toString("base64");
 
@@ -81,9 +84,15 @@ async function requestFreshToken(managerIp: string, password: string): Promise<s
         });
 
         res.on("end", () => {
-          if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+          if (
+            !res.statusCode ||
+            res.statusCode < 200 ||
+            res.statusCode >= 300
+          ) {
             reject(
-              new Error(`Wazuh authenticate failed with status ${res.statusCode || 0}`),
+              new Error(
+                `Wazuh authenticate failed with status ${res.statusCode || 0}`,
+              ),
             );
             return;
           }
@@ -104,7 +113,9 @@ async function requestFreshToken(managerIp: string, password: string): Promise<s
 }
 
 function isCacheValid(nowMs: number): boolean {
-  return Boolean(tokenCache && nowMs + TOKEN_REFRESH_SKEW_MS < tokenCache.expiresAtMs);
+  return Boolean(
+    tokenCache && nowMs + TOKEN_REFRESH_SKEW_MS < tokenCache.expiresAtMs,
+  );
 }
 
 export async function getWazuhApiToken(forceRefresh = false): Promise<string> {

@@ -182,8 +182,7 @@ function toEscalationRow(row: RawEscalationRow): EscalationRow | null {
         : typeof row.recommendedAction === "string"
           ? row.recommendedAction
           : null,
-    telemetry_snapshot:
-      row.telemetry_snapshot ?? row.telemetrySnapshot ?? null,
+    telemetry_snapshot: row.telemetry_snapshot ?? row.telemetrySnapshot ?? null,
     discord_notified:
       typeof row.discord_notified === "boolean"
         ? row.discord_notified

@@ -42,10 +42,26 @@ export default function Tier0BlockFeed() {
 
   useEffect(() => {
     void loadFeed();
-    const intervalId = window.setInterval(() => {
-      void loadFeed();
-    }, 60000);
-    return () => window.clearInterval(intervalId);
+    const supabase = createClient();
+    const channel = supabase
+      .channel("tier0-block-feed")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "audit_logs",
+          filter: "action=eq.TIER0_BLOCK",
+        },
+        () => {
+          void loadFeed();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, [loadFeed]);
 
   return (

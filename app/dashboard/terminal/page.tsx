@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Terminal, Send, Loader2 } from "lucide-react";
 import PhishButton from "@/components/ui/PhishButton";
+import UpgradePrompt from "@/components/UpgradePrompt";
 
 type Entry = { role: "user" | "assistant"; text: string };
 
@@ -39,6 +40,7 @@ export default function TerminalPage() {
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 py-8 text-white">
+      <UpgradePrompt requiredTier="pro" feature="AI terminal workflows" />
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <Terminal className="w-7 h-7 text-[#2DD4BF]" />

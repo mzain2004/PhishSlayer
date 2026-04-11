@@ -33,7 +33,9 @@ function getAdminClient() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !key) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
+    );
   }
 
   return createClient(url, key, {
@@ -103,7 +105,10 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     return NextResponse.json(
-      { success: false, error: `Failed to fetch training data: ${error.message}` },
+      {
+        success: false,
+        error: `Failed to fetch training data: ${error.message}`,
+      },
       { status: 500 },
     );
   }

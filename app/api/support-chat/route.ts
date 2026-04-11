@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
   message: z.string().trim().min(1).max(2000),
+  userId: z.string().optional().nullable(),
+  userEmail: z.string().optional().nullable(),
 });
 
 export async function POST(request: Request) {
@@ -20,7 +22,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey =
+      process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
     if (!apiKey) {
       console.error("GEMINI_API_KEY is not set for /api/support-chat");
@@ -31,10 +34,13 @@ export async function POST(request: Request) {
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const prompt = `You are a helpful cybersecurity assistant for Phish-Slayer, an AI threat detection platform.
-Provide concise, practical, and professional guidance.
+    const prompt = `You are Phish-Slayer AI Support, an expert cybersecurity SOC assistant. Help users navigate the platform, understand alerts, use features, and resolve issues. Be concise and technical.
 
-User message: ${parsed.data.message}`;
+  Context:
+  - User ID: ${parsed.data.userId || "unknown"}
+  - User Email: ${parsed.data.userEmail || "unknown"}
+
+  User message: ${parsed.data.message}`;
 
     const result = await ai.models.generateContent({
       model: "gemini-2.5-flash",

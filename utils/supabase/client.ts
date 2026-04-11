@@ -1,1 +1,5 @@
-export { createClient } from "@/lib/supabase/client";
+export {
+  createClient,
+  createClientWithRememberMe,
+  setRememberMePreference,
+} from "@/lib/supabase/client";

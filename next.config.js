@@ -1,13 +1,13 @@
 const cspHeader = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.paddle.com https://app.termly.io https://public.profitwell.com",
-  "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.paddle.com https://app.termly.io https://public.profitwell.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://app.termly.io https://cdn.paddle.com",
-  "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://app.termly.io https://cdn.paddle.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://app.termly.io https://public.profitwell.com",
+  "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://app.termly.io https://public.profitwell.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://app.termly.io",
+  "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://app.termly.io",
   "img-src * data: blob:",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "connect-src 'self' https://*.paddle.com https://*.supabase.co https://*.supabase.in https://app.termly.io https://us.consent.api.termly.io wss://*.supabase.co wss://phishslayer.tech https://www.virustotal.com https://public.profitwell.com https://*.profitwell.com",
-  "frame-src https://buy.paddle.com https://*.paddle.com https://app.termly.io https://checkout-service.paddle.com",
+  "connect-src 'self' https://api.polar.sh https://*.supabase.co https://*.supabase.in https://app.termly.io https://us.consent.api.termly.io wss://*.supabase.co wss://phishslayer.tech https://www.virustotal.com https://public.profitwell.com https://*.profitwell.com",
+  "frame-src https://polar.sh https://*.polar.sh https://app.termly.io",
   "worker-src blob:",
 ].join("; ");
 
@@ -39,6 +39,11 @@ const nextConfig = {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
   experimental: {
+    optimizePackageImports: [
+      "framer-motion",
+      "lucide-react",
+      "@supabase/supabase-js",
+    ],
     serverActions: {
       allowedOrigins: [
         "phishslayer.tech",
@@ -47,6 +52,9 @@ const nextConfig = {
         "localhost:3000",
       ],
     },
+  },
+  images: {
+    formats: ["image/avif", "image/webp"],
   },
 };
 

@@ -1,9 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Key, Loader2, Lock, Save, User } from "lucide-react";
+import {
+  Key,
+  Loader2,
+  Lock,
+  QrCode,
+  Save,
+  ShieldCheck,
+  User,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import PhishButton from "@/components/ui/PhishButton";
 
@@ -38,7 +46,139 @@ export default function SettingsClient({
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [mfaLoading, setMfaLoading] = useState(false);
+  const [hasPasskey, setHasPasskey] = useState(false);
+  const [hasTotp, setHasTotp] = useState(false);
+  const [totpFactorId, setTotpFactorId] = useState<string | null>(null);
+  const [totpQr, setTotpQr] = useState<string | null>(null);
+  const [totpCode, setTotpCode] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  const refreshMfaFactors = async () => {
+    const factorsResult = await supabase.auth.mfa.listFactors();
+    const totpFactors = factorsResult.data?.totp || [];
+    const webauthnFactors = (
+      ((factorsResult.data as any)?.webauthn as Array<any> | undefined) || []
+    ).filter((factor) => factor.status === "verified");
+
+    const verifiedTotp = totpFactors.find(
+      (factor) => factor.status === "verified",
+    );
+    setHasTotp(Boolean(verifiedTotp));
+    setHasPasskey(webauthnFactors.length > 0);
+    if (verifiedTotp) {
+      setTotpFactorId(verifiedTotp.id);
+      setTotpQr(null);
+    }
+  };
+
+  const registerPasskey = () => {
+    setMfaLoading(true);
+    startTransition(async () => {
+      const enrollResult = await (supabase.auth.mfa as any).enroll({
+        factorType: "webauthn",
+        friendlyName: "Phish-Slayer Passkey",
+      });
+
+      if (enrollResult.error) {
+        toast.error(enrollResult.error.message);
+        setMfaLoading(false);
+        return;
+      }
+
+      const factorId = enrollResult.data?.id as string | undefined;
+      if (!factorId) {
+        toast.error("Unable to register passkey");
+        setMfaLoading(false);
+        return;
+      }
+
+      const verifyResult = await (supabase.auth.mfa as any).challengeAndVerify({
+        factorId,
+      });
+
+      if (verifyResult.error) {
+        toast.error(verifyResult.error.message);
+        setMfaLoading(false);
+        return;
+      }
+
+      toast.success("Passkey registered");
+      await refreshMfaFactors();
+      setMfaLoading(false);
+    });
+  };
+
+  const enableAuthenticator = () => {
+    setMfaLoading(true);
+    startTransition(async () => {
+      const enrollResult = await supabase.auth.mfa.enroll({
+        factorType: "totp",
+        friendlyName: "Phish-Slayer Authenticator",
+      });
+
+      if (enrollResult.error) {
+        toast.error(enrollResult.error.message);
+        setMfaLoading(false);
+        return;
+      }
+
+      const factorId = enrollResult.data?.id;
+      if (!factorId) {
+        toast.error("Unable to enroll authenticator factor");
+        setMfaLoading(false);
+        return;
+      }
+
+      const qrCode = enrollResult.data?.totp?.qr_code;
+      setTotpFactorId(factorId);
+      setTotpQr(qrCode || null);
+      toast.success("Authenticator enrolled. Scan QR and verify code.");
+      setMfaLoading(false);
+    });
+  };
+
+  const verifyTotp = () => {
+    if (!totpFactorId || totpCode.trim().length !== 6) {
+      toast.error("Enter a valid 6-digit code");
+      return;
+    }
+
+    setMfaLoading(true);
+    startTransition(async () => {
+      const challengeResult = await supabase.auth.mfa.challenge({
+        factorId: totpFactorId,
+      });
+
+      if (challengeResult.error) {
+        toast.error(challengeResult.error.message);
+        setMfaLoading(false);
+        return;
+      }
+
+      const verifyResult = await supabase.auth.mfa.verify({
+        factorId: totpFactorId,
+        challengeId: challengeResult.data.id,
+        code: totpCode.trim(),
+      });
+
+      if (verifyResult.error) {
+        toast.error(verifyResult.error.message);
+        setMfaLoading(false);
+        return;
+      }
+
+      toast.success("Authenticator verified");
+      setTotpCode("");
+      setTotpQr(null);
+      await refreshMfaFactors();
+      setMfaLoading(false);
+    });
+  };
+
+  useEffect(() => {
+    void refreshMfaFactors();
+  }, []);
 
   const saveProfile = () => {
     startTransition(async () => {
@@ -284,6 +424,110 @@ export default function SettingsClient({
           )}{" "}
           Regenerate API Key
         </PhishButton>
+      </motion.section>
+
+      <motion.section
+        {...hoverProps}
+        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-6 backdrop-blur-3xl"
+      >
+        <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
+          <ShieldCheck className="h-5 w-5 text-cyan-300" /> Multi-factor
+          Authentication
+        </div>
+        <p className="text-sm text-white/60">
+          Add phishing-resistant passkeys and authenticator app verification to
+          secure your account.
+        </p>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 p-4">
+            <p className="text-sm font-semibold text-white">
+              Passkey (WebAuthn)
+            </p>
+            <p className="mt-1 text-xs text-white/60">
+              Use device biometrics or a security key for passwordless
+              second-factor verification.
+            </p>
+            <p className="mt-2 text-xs text-cyan-200">
+              Status: {hasPasskey ? "Registered" : "Not configured"}
+            </p>
+            <PhishButton
+              onClick={registerPasskey}
+              disabled={isPending || mfaLoading}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="mt-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-teal-400 px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+            >
+              {mfaLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Key className="h-4 w-4" />
+              )}
+              Register Passkey
+            </PhishButton>
+          </div>
+
+          <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 p-4">
+            <p className="text-sm font-semibold text-white">
+              Authenticator App (TOTP)
+            </p>
+            <p className="mt-1 text-xs text-white/60">
+              Connect Google Authenticator/Authy and verify with a 6-digit
+              time-based code.
+            </p>
+            <p className="mt-2 text-xs text-cyan-200">
+              Status: {hasTotp ? "Verified" : "Not configured"}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <PhishButton
+                onClick={enableAuthenticator}
+                disabled={isPending || mfaLoading}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {mfaLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <QrCode className="h-4 w-4" />
+                )}
+                Enable Authenticator App
+              </PhishButton>
+            </div>
+          </div>
+        </div>
+
+        {totpQr ? (
+          <div className="mt-4 rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 p-4">
+            <p className="text-sm text-white/80 mb-3">
+              Scan this QR code and verify your 6-digit code:
+            </p>
+            <img
+              src={totpQr}
+              alt="Authenticator QR code"
+              className="h-40 w-40 rounded-lg border border-white/20 bg-white p-2"
+              loading="lazy"
+            />
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <input
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
+                maxLength={6}
+                placeholder="123456"
+                className="w-36 rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/40 px-3 py-2 text-sm tracking-[0.2em] text-white placeholder:text-white/40 focus:border-[#2DD4BF]/50 focus:outline-none"
+              />
+              <PhishButton
+                onClick={verifyTotp}
+                disabled={isPending || mfaLoading || totpCode.length !== 6}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="rounded-full bg-gradient-to-r from-cyan-400 to-teal-400 px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+              >
+                Verify Code
+              </PhishButton>
+            </div>
+          </div>
+        ) : null}
       </motion.section>
     </div>
   );

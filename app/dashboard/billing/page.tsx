@@ -1,362 +1,173 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { toast } from "sonner";
-import {
-  CreditCard,
-  FileText,
-  Loader2,
-  ExternalLink,
-  Shield,
-} from "lucide-react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import PhishButton from "@/components/ui/PhishButton";
+import { CreditCard, Loader2, Shield } from "lucide-react";
+import { toast } from "sonner";
 
-const TIER_DISPLAY: Record<
-  string,
-  { name: string; tagline: string; amount: string }
-> = {
-  recon: {
-    name: "Recon",
-    tagline: "For individuals exploring threat intelligence",
-    amount: "$0",
-  },
-  free: {
-    name: "Recon",
-    tagline: "For individuals exploring threat intelligence",
-    amount: "$0",
-  },
-  soc_pro: {
-    name: "SOC Pro",
-    tagline: "For SOC professionals managing small fleets",
-    amount: "$49",
-  },
-  command_control: {
-    name: "Command & Control",
-    tagline: "For global SOC operations and MSSPs",
-    amount: "$299",
-  },
+type BillingTier = "free" | "pro" | "enterprise";
+
+type SubscriptionPayload = {
+  tier: BillingTier;
+  status: string;
+  current_period_end: string | null;
+  features: {
+    scans: number;
+    users: number;
+    agents: number;
+    orgs: number;
+  };
 };
 
+const tierLabels: Record<BillingTier, string> = {
+  free: "Free",
+  pro: "Pro",
+  enterprise: "Enterprise",
+};
+
+function prettyLimit(value: number) {
+  return value < 0 ? "Unlimited" : String(value);
+}
+
 export default function BillingPage() {
-  const router = useRouter();
-  const [activePlan, setActivePlan] = useState("recon");
-  const [billingCustomerId, setBillingCustomerId] = useState<string | null>(
+  const [loading, setLoading] = useState(true);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [subscription, setSubscription] = useState<SubscriptionPayload | null>(
     null,
   );
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadData() {
-      const supabase = createClient();
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("subscription_tier, billing_customer_id")
-          .eq("id", userData.user.id)
-          .single();
-        if (profile?.subscription_tier) {
-          setActivePlan(profile.subscription_tier.toLowerCase());
+    async function loadSubscription() {
+      try {
+        const response = await fetch("/api/billing/subscription", {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          throw new Error("Failed to load subscription");
         }
-        if (profile?.billing_customer_id) {
-          setBillingCustomerId(profile.billing_customer_id);
-        }
+        const payload = (await response.json()) as SubscriptionPayload;
+        setSubscription(payload);
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to load billing",
+        );
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
-    loadData();
+
+    void loadSubscription();
   }, []);
 
-  const plan = TIER_DISPLAY[activePlan] || TIER_DISPLAY.recon;
-  const isPaid = activePlan !== "recon" && activePlan !== "free";
-
-  const [isPortalLoading, setIsPortalLoading] = useState(false);
-
-  const cardHover = {
-    whileHover: {
-      y: -3,
-      boxShadow: "0 18px 36px rgba(15, 23, 42, 0.42)",
-    },
-    transition: { type: "spring" as const, stiffness: 260, damping: 24 },
-  };
-
-  const handleManageSubscription = async () => {
-    if (!isPaid) {
-      toast.info("No active subscription", {
-        description: "Visit the pricing page to subscribe to a plan.",
-      });
-      return;
-    }
-
-    setIsPortalLoading(true);
+  async function openPortal() {
+    setPortalLoading(true);
     try {
-      const res = await fetch("/api/billing/portal");
-      const data = await res.json();
+      const response = await fetch("/api/billing/portal", { method: "POST" });
+      const payload = (await response.json()) as { url?: string; error?: string };
 
-      if (res.status === 400 && data?.redirect) {
-        router.push(data.redirect);
-        return;
+      if (!response.ok || !payload.url) {
+        throw new Error(payload.error || "Failed to open billing portal");
       }
 
-      if (res.status === 404) {
-        toast.error("No active billing profile found", {
-          description:
-            "Please complete a checkout first to manage your subscription.",
-        });
-        return;
-      }
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error(data.error || "Failed to get portal URL");
-      }
-    } catch (error: any) {
-      console.error("Portal Error:", error);
+      window.location.href = payload.url;
+    } catch (error) {
       toast.error(
-        error.message ||
-          "Failed to open billing portal. Please contact support.",
+        error instanceof Error ? error.message : "Failed to open billing portal",
       );
     } finally {
-      setIsPortalLoading(false);
+      setPortalLoading(false);
     }
-  };
+  }
 
-  if (loading) {
+  if (loading || !subscription) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-teal-400" />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-teal-400" />
       </div>
     );
   }
 
   return (
-    <div className="px-6 py-5 space-y-5 max-w-7xl mx-auto w-full">
-      {/* Header */}
-      <div>
-        <h1 className="text-[#e6edf3] text-2xl font-semibold tracking-tight">
-          Billing & Subscription
-        </h1>
-        <p className="text-[#8b949e] text-sm mt-0.5">
-          Manage your plan, usage, and invoices
-        </p>
-      </div>
-
-      {/* Plan Card */}
-      <motion.div
-        {...cardHover}
-        className="bg-[rgba(15,23,42,0.62)] backdrop-blur-md border border-[rgba(45,212,191,0.18)] rounded-2xl p-5 relative overflow-hidden"
-      >
-        {isPaid && (
-          <div className="h-px w-full bg-gradient-to-r from-teal-500/60 via-teal-500/20 to-transparent mb-6 -mt-6 -mx-6 px-0 rounded-t-2xl" />
-        )}
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="mx-auto w-full max-w-5xl px-6 py-8 text-white">
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <Shield className="w-5 h-5 text-teal-400" />
-              <h2 className="text-[#e6edf3] text-xl font-semibold">
-                {plan.name} Plan
-              </h2>
-              <span className="bg-teal-500/10 text-teal-400 border border-teal-500/20 text-xs px-2.5 py-0.5 rounded-full font-medium">
-                ACTIVE
-              </span>
-            </div>
-            <p className="text-[#8b949e] text-sm">{plan.tagline}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {isPaid ? (
-              <PhishButton
-                disabled={isPortalLoading}
-                onClick={handleManageSubscription}
-                whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
-                whileTap={{ scale: 0.96 }}
-                className="rounded-full flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-sm font-semibold text-white [transition:all_0.2s_ease] disabled:opacity-50"
-              >
-                {isPortalLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
-                ) : (
-                  <CreditCard className="w-4 h-4" />
-                )}
-                Manage Subscription
-              </PhishButton>
-            ) : (
-              <Link
-                href="/pricing"
-                className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-400 text-white text-sm font-medium rounded-full transition-all hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Upgrade Plan
-              </Link>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-5 grid grid-cols-1 md:grid-cols-3 border-t border-white/10 pt-4 gap-3">
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] px-3 py-2.5">
-            <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
-              Current Tier
-            </p>
-            <p className="text-[#e6edf3] text-sm font-semibold">{plan.name}</p>
-          </div>
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] px-3 py-2.5">
-            <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
-              Billing
-            </p>
-            <p className="text-[#e6edf3] text-sm font-semibold">
-              {isPaid ? "Monthly via Paddle" : "Free"}
+            <h1 className="text-2xl font-semibold">Billing</h1>
+            <p className="mt-1 text-sm text-white/70">
+              Manage your subscription and feature limits.
             </p>
           </div>
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] px-3 py-2.5">
-            <p className="text-[#6e7681] text-xs uppercase tracking-wider mb-1">
-              Monthly Amount
-            </p>
-            <p className="text-[#e6edf3] text-sm font-semibold">
-              {plan.amount}/mo
-            </p>
-          </div>
-        </div>
-      </motion.div>
 
-      {!billingCustomerId && (
-        <motion.div {...cardHover} className="liquid-glass rounded-2xl p-5">
-          <h3 className="text-[#E6EDF3] text-lg font-semibold">
-            No Active Subscription
-          </h3>
-          <p className="text-[#8B949E] text-sm mt-2 mb-4">
-            You are currently on the free Recon plan.
-          </p>
-          <PhishButton
-            onClick={() => router.push("/pricing")}
-            whileHover={{
-              scale: 1.03,
-              boxShadow: "0 0 20px rgba(45,212,191,0.4)",
-            }}
-            whileTap={{ scale: 0.96 }}
-            className="rounded-full px-5 py-2 text-sm font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)]"
-          >
-            Upgrade Your Plan
-          </PhishButton>
-        </motion.div>
-      )}
-
-      {/* Usage Section */}
-      <motion.div {...cardHover} className="liquid-glass rounded-xl p-5">
-        <h3 className="text-[#e6edf3] text-sm font-semibold mb-6">
-          Plan Limits
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3">
-            <div className="flex justify-between text-xs font-medium mb-2">
-              <span className="text-[#8b949e]">Daily Scans</span>
-              <span className="text-[#e6edf3]">
-                {activePlan === "command_control"
-                  ? "Unlimited"
-                  : activePlan === "soc_pro"
-                    ? "500/day"
-                    : "10/day"}
-              </span>
-            </div>
-            <div className="bg-[#21262d] rounded-full h-1.5 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-teal-500 to-teal-400 h-full rounded-full"
-                style={{ width: isPaid ? "100%" : "30%" }}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3">
-            <div className="flex justify-between text-xs font-medium mb-2">
-              <span className="text-[#8b949e]">Fleet Agent Slots</span>
-              <span className="text-[#e6edf3]">
-                {activePlan === "command_control"
-                  ? "Unlimited"
-                  : activePlan === "soc_pro"
-                    ? "10"
-                    : "1"}
-              </span>
-            </div>
-            <div className="bg-[#21262d] rounded-full h-1.5 overflow-hidden">
-              <div
-                className="bg-violet-500 h-full rounded-full"
-                style={{ width: isPaid ? "100%" : "10%" }}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3">
-            <div className="flex justify-between text-xs font-medium mb-2">
-              <span className="text-[#8b949e]">API Access</span>
-              <span className="text-[#e6edf3]">
-                {activePlan === "command_control"
-                  ? "Unlimited"
-                  : activePlan === "soc_pro"
-                    ? "1,000/day"
-                    : "Locked"}
-              </span>
-            </div>
-            <div className="bg-[#21262d] rounded-full h-1.5 overflow-hidden">
-              <div
-                className="bg-[#3fb950] h-full rounded-full"
-                style={{ width: isPaid ? "100%" : "0%" }}
-              />
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Invoice History */}
-      <motion.div
-        {...cardHover}
-        className="liquid-glass rounded-xl overflow-hidden"
-      >
-        <div className="bg-[#1c2128] border-b border-white/10 px-5 py-3">
-          <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#6e7681]" />
-            <span className="text-[#6e7681] text-xs uppercase tracking-wider font-semibold">
-              Invoice History
-            </span>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-white/10 text-[#6e7681] text-xs uppercase tracking-wider">
-                <th className="px-5 py-3 font-semibold">Date</th>
-                <th className="px-5 py-3 font-semibold">Amount</th>
-                <th className="px-5 py-3 font-semibold">Status</th>
-                <th className="px-5 py-3 font-semibold text-right">Invoice</th>
-              </tr>
-            </thead>
-            <tbody>
-              {!isPaid ? (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="px-5 py-8 text-center text-[#6e7681] text-sm"
-                  >
-                    No billing history available on the Recon plan.
-                  </td>
-                </tr>
+          {subscription.tier === "free" ? (
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-2 rounded-xl bg-teal-300 px-4 py-2 text-sm font-semibold text-black transition hover:bg-teal-200"
+            >
+              <Shield className="h-4 w-4" />
+              Upgrade Plan
+            </Link>
+          ) : (
+            <button
+              onClick={() => void openPortal()}
+              disabled={portalLoading}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold transition hover:bg-white/10 disabled:opacity-60"
+            >
+              {portalLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="px-5 py-8 text-center text-[#6e7681] text-sm"
-                  >
-                    Invoice history is managed by Paddle. Check your email for
-                    receipts.
-                  </td>
-                </tr>
+                <CreditCard className="h-4 w-4" />
               )}
-            </tbody>
-          </table>
+              Manage Subscription
+            </button>
+          )}
         </div>
-      </motion.div>
+
+        <div className="mt-6 grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wide text-white/50">Plan</p>
+            <p className="mt-1 text-lg font-semibold">{tierLabels[subscription.tier]}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wide text-white/50">Status</p>
+            <p className="mt-1 text-lg font-semibold capitalize">{subscription.status}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wide text-white/50">Renews</p>
+            <p className="mt-1 text-lg font-semibold">
+              {subscription.current_period_end
+                ? new Date(subscription.current_period_end).toLocaleDateString()
+                : "N/A"}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-3 md:grid-cols-4">
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wide text-white/50">Scans</p>
+            <p className="mt-1 text-lg font-semibold">
+              {prettyLimit(subscription.features.scans)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wide text-white/50">Users</p>
+            <p className="mt-1 text-lg font-semibold">
+              {prettyLimit(subscription.features.users)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wide text-white/50">Agents</p>
+            <p className="mt-1 text-lg font-semibold">
+              {prettyLimit(subscription.features.agents)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wide text-white/50">Organizations</p>
+            <p className="mt-1 text-lg font-semibold">
+              {prettyLimit(subscription.features.orgs)}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

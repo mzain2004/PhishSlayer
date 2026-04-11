@@ -74,10 +74,21 @@ export default function EscalationQueue() {
 
   useEffect(() => {
     void loadQueue();
-    const intervalId = window.setInterval(() => {
-      void loadQueue();
-    }, 30000);
-    return () => window.clearInterval(intervalId);
+    const supabase = createClient();
+    const channel = supabase
+      .channel("escalation-queue")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "escalations" },
+        () => {
+          void loadQueue();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, [loadQueue]);
 
   const patchStatus = async (id: string, action: "approve" | "dismiss") => {

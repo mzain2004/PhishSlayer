@@ -10,6 +10,7 @@ import {
   Database,
   ArrowRight,
 } from "lucide-react";
+import NetworkTelemetryChart from "@/components/dashboard/NetworkTelemetryChart";
 
 type RecentScan = {
   target: string;
@@ -161,33 +162,7 @@ export default function CommandCenterView({
             </div>
           </div>
 
-          <div className="w-full h-52 relative flex items-end justify-between gap-[2px] pt-6 overflow-hidden">
-            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-full h-[1px] bg-white border-b border-white/5"
-                ></div>
-              ))}
-            </div>
-            <div className="flex-1 flex items-end justify-between gap-[2px] h-full z-10">
-              {[...Array(72)].map((_, i) => {
-                const height = 20 + (Math.sin(i * 0.2) * 40 + 40);
-                const isAccent = i % 5 === 0;
-                return (
-                  <div
-                    key={i}
-                    className={`flex-1 rounded-t-sm transition-all duration-500 ${
-                      isAccent
-                        ? "bg-[#A78BFA]/60 shadow-[0_0_10px_rgba(167,139,250,0.3)]"
-                        : "bg-[#2DD4BF]/40 shadow-[0_0_10px_rgba(45,212,191,0.2)]"
-                    }`}
-                    style={{ height: `${height}%` }}
-                  ></div>
-                );
-              })}
-            </div>
-          </div>
+          <NetworkTelemetryChart />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -283,4 +258,3 @@ export default function CommandCenterView({
     </div>
   );
 }
-

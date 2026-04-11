@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function ResetPasswordPage() {
@@ -45,22 +46,19 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-10">
-      <h1 className="mb-2 text-2xl font-semibold text-slate-900">
-        Reset password
-      </h1>
-      <p className="mb-8 text-sm text-slate-600">
-        Enter and confirm your new password.
-      </p>
+    <main className="min-h-screen flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="w-full max-w-md rounded-2xl bg-[radial-gradient(circle_at_top,#0f172a,#020617)] border border-slate-800 shadow-[0_0_40px_rgba(20,184,166,0.15)] p-8"
+      >
+        <h1 className="text-white font-bold text-2xl text-center">Reset Password</h1>
+        <p className="text-slate-400 text-sm text-center mt-2 mb-6">
+          Enter and confirm your new password.
+        </p>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1">
-          <label
-            htmlFor="newPassword"
-            className="text-sm font-medium text-slate-800"
-          >
-            New password
-          </label>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             id="newPassword"
             name="newPassword"
@@ -70,18 +68,10 @@ export default function ResetPasswordPage() {
             minLength={8}
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+            className="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30"
             placeholder="Minimum 8 characters"
           />
-        </div>
 
-        <div className="space-y-1">
-          <label
-            htmlFor="confirmPassword"
-            className="text-sm font-medium text-slate-800"
-          >
-            Confirm password
-          </label>
           <input
             id="confirmPassword"
             name="confirmPassword"
@@ -91,43 +81,43 @@ export default function ResetPasswordPage() {
             minLength={8}
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+            className="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30"
             placeholder="Re-enter new password"
           />
-        </div>
 
-        {!passwordsMatch && confirmPassword.length > 0 && (
-          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
-            Passwords do not match.
-          </p>
-        )}
+          {!passwordsMatch && confirmPassword.length > 0 ? (
+            <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+              Passwords do not match.
+            </p>
+          ) : null}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 px-4 py-3 text-sm font-semibold text-black hover:from-teal-400 hover:to-cyan-400 hover:shadow-[0_0_20px_rgba(20,184,166,0.4)] transition-all duration-200 disabled:opacity-60"
+          >
+            {isLoading ? "Updating..." : "Update password"}
+          </button>
+
+          {errorMessage ? (
+            <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+              {errorMessage}
+            </p>
+          ) : null}
+          {successMessage ? (
+            <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+              {successMessage}
+            </p>
+          ) : null}
+        </form>
+
+        <Link
+          href="/auth/login"
+          className="mt-6 inline-block text-sm font-medium text-teal-400 hover:text-teal-300"
         >
-          {isLoading ? "Updating..." : "Update password"}
-        </button>
-
-        {errorMessage && (
-          <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {errorMessage}
-          </p>
-        )}
-        {successMessage && (
-          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-            {successMessage}
-          </p>
-        )}
-      </form>
-
-      <Link
-        href="/auth/login"
-        className="mt-6 text-sm font-medium text-slate-700 underline underline-offset-4"
-      >
-        Back to sign in
-      </Link>
+          Back to sign in
+        </Link>
+      </motion.div>
     </main>
   );
 }

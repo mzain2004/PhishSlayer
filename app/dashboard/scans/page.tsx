@@ -25,6 +25,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import PhishButton from "@/components/ui/PhishButton";
+import UpgradePrompt from "@/components/UpgradePrompt";
 
 type ScanRecord = {
   id?: string;
@@ -165,7 +166,14 @@ function ScanManagerContent() {
 
   return (
     <div className="font-sans text-slate-100 antialiased min-h-screen flex flex-col w-full">
-      <main data-stagger-container className="flex-1 px-4 sm:px-8 py-8 w-full max-w-5xl mx-auto flex flex-col gap-10">
+      <main
+        data-stagger-container
+        className="flex-1 px-4 sm:px-8 py-8 w-full max-w-5xl mx-auto flex flex-col gap-10"
+      >
+        <UpgradePrompt
+          requiredTier="pro"
+          feature="High-volume scans and sandbox analysis"
+        />
         <section className="rounded-full border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.88)] p-1">
           <div className="grid grid-cols-2 gap-2">
             <PhishButton
@@ -274,8 +282,8 @@ function ScanManagerContent() {
 
                 {isPending && (
                   <p className="mt-4 text-sm text-teal-400 font-medium animate-pulse">
-                    Analyzing target with VirusTotal + Gemini AI — this may
-                    take a moment…
+                    Analyzing target with VirusTotal + Gemini AI — this may take
+                    a moment…
                   </p>
                 )}
               </div>

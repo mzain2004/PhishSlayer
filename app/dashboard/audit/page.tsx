@@ -17,6 +17,7 @@ import {
   Activity,
 } from "lucide-react";
 import PhishButton from "@/components/ui/PhishButton";
+import { useDebounce } from "@/lib/hooks/useDebounce";
 
 export default function AuditLogPage() {
   const { role, loading: roleLoading } = useRole();
@@ -28,6 +29,7 @@ export default function AuditLogPage() {
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [actionFilter, setActionFilter] = useState("all");
 
   // Pagination
@@ -51,7 +53,7 @@ export default function AuditLogPage() {
       });
     }, 10000);
     return () => clearTimeout(timeout);
-  }, [roleLoading, role, page, actionFilter, searchTerm]);
+  }, [roleLoading, role, page, actionFilter, debouncedSearchTerm]);
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -63,9 +65,9 @@ export default function AuditLogPage() {
         query = query.eq("action", actionFilter);
       }
 
-      if (searchTerm) {
+      if (debouncedSearchTerm) {
         query = query.or(
-          `user_email.ilike.%${searchTerm}%,action.ilike.%${searchTerm}%,resource_id.ilike.%${searchTerm}%`,
+          `user_email.ilike.%${debouncedSearchTerm}%,action.ilike.%${debouncedSearchTerm}%,resource_id.ilike.%${debouncedSearchTerm}%`,
         );
       }
 

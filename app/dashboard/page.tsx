@@ -9,6 +9,7 @@ import AgentSwarmPanel from "@/components/soc/AgentSwarmPanel";
 import EscalationQueue from "@/components/soc/EscalationQueue";
 import Tier0BlockFeed from "@/components/soc/Tier0BlockFeed";
 import L1DecisionLog from "@/components/soc/L1DecisionLog";
+import NetworkTelemetryChart from "@/components/dashboard/NetworkTelemetryChart";
 
 type ScanRow = {
   target: string | null;
@@ -147,34 +148,7 @@ export default async function DashboardOverviewPage() {
             </div>
           </div>
 
-          <div className="w-full h-64 relative flex items-end justify-between gap-[2px] pt-6 overflow-hidden">
-            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={`grid-${i}`}
-                  className="w-full h-[1px] bg-white border-b border-white/5"
-                />
-              ))}
-            </div>
-
-            <div className="flex-1 flex items-end justify-between gap-[2px] h-full z-10">
-              {[...Array(80)].map((_, i) => {
-                const height = 20 + Math.sin(i * 0.2) * 40 + 40;
-                const isPurple = i % 5 === 0;
-                return (
-                  <div
-                    key={`bar-${i}`}
-                    className={`flex-1 rounded-t-sm transition-all duration-500 ${
-                      isPurple
-                        ? "bg-[#A78BFA]/60 shadow-[0_0_10px_rgba(167,139,250,0.3)]"
-                        : "bg-[#2DD4BF]/40 shadow-[0_0_10px_rgba(45,212,191,0.2)]"
-                    }`}
-                    style={{ height: `${height}%` }}
-                  />
-                );
-              })}
-            </div>
-          </div>
+          <NetworkTelemetryChart />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

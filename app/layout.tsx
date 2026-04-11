@@ -6,6 +6,7 @@ import { validateEnv } from "@/lib/config/validateEnv";
 import ConsentBanner from "@/components/ConsentBanner";
 import AnimatedGradientMesh from "@/components/AnimatedGradientMesh";
 import GlobalSupportWidget from "@/components/GlobalSupportWidget";
+import RememberMeSessionBootstrap from "@/components/auth/RememberMeSessionBootstrap";
 
 // Validate environment variables at startup (server-side only)
 validateEnv();
@@ -27,6 +28,7 @@ export default function RootLayout({
       className="dark selection:bg-teal-500/30"
     >
       <body className="bg-black text-white antialiased min-h-screen font-sans">
+        <RememberMeSessionBootstrap />
         <AnimatedGradientMesh />
         {children}
         <GlobalSupportWidget />

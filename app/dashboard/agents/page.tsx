@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -26,6 +32,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import AgentDashboard from "@/components/ui/agent-fleet/AgentDashboard";
+import UpgradePrompt from "@/components/UpgradePrompt";
 import {
   getEndpointEvents,
   getEndpointStats,
@@ -82,7 +89,7 @@ export default function AgentsPage() {
   const [isPending, startTransition] = useTransition();
   const [blockingIp, setBlockingIp] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [ev, st] = await Promise.all([
         getEndpointEvents(200),
@@ -95,7 +102,7 @@ export default function AgentsPage() {
     } finally {
       setLoaded(true);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const verifyAccess = async () => {
@@ -133,12 +140,22 @@ export default function AgentsPage() {
       return;
     }
 
-    const timer = window.setInterval(() => {
-      void fetchData();
-    }, 15000);
+    const supabase = createClient();
+    const channel = supabase
+      .channel("agents-endpoint-events")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "endpoint_events" },
+        () => {
+          void fetchData();
+        },
+      )
+      .subscribe();
 
-    return () => window.clearInterval(timer);
-  }, [activeTab]);
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [activeTab, fetchData]);
 
   const handleRefresh = () => {
     setLoaded(false);
@@ -240,7 +257,14 @@ export default function AgentsPage() {
 
   return (
     <div className="text-white font-sans min-h-screen flex flex-col w-full">
-      <main data-stagger-container className="flex-1 px-4 sm:px-8 py-8 w-full max-w-7xl mx-auto flex flex-col gap-6">
+      <main
+        data-stagger-container
+        className="flex-1 px-4 sm:px-8 py-8 w-full max-w-7xl mx-auto flex flex-col gap-6"
+      >
+        <UpgradePrompt
+          requiredTier="pro"
+          feature="Advanced endpoint fleet and live events"
+        />
         <div className="rounded-full p-1 border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.9)] w-full max-w-2xl">
           <div className="grid grid-cols-3 gap-2">
             <PhishButton

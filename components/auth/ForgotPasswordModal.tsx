@@ -11,7 +11,7 @@ type ForgotPasswordModalProps = {
 };
 
 const glassCard =
-  "bg-white/5 backdrop-blur-3xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl";
+  "bg-[radial-gradient(circle_at_top,#0f172a,#020617)] backdrop-blur-md border border-slate-800 shadow-[0_0_40px_rgba(20,184,166,0.15)] rounded-2xl";
 
 const tactileProps = {
   whileHover: { scale: 1.02 },
@@ -53,10 +53,14 @@ export default function ForgotPasswordModal({
   };
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 12, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
       className={`relative w-full max-w-md p-8 ${glassCard} flex flex-col`}
       onClick={(e) => e.stopPropagation()}
     >
+      <div className="pointer-events-none absolute inset-0 rounded-2xl border border-cyan-300/20 shadow-[0_0_0_1px_rgba(45,212,191,0.15),0_0_36px_rgba(45,212,191,0.12)]" />
       <motion.button
         {...tactileProps}
         onClick={onClose}
@@ -69,7 +73,7 @@ export default function ForgotPasswordModal({
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#A78BFA] to-[#2DD4BF] flex items-center justify-center">
           <Shield className="w-4 h-4 text-black" />
         </div>
-        <span className="font-space-grotesk font-bold text-xl tracking-tight text-white">
+        <span className="font-space-grotesk font-extrabold text-xl tracking-tight text-white">
           Phish-Slayer
         </span>
       </div>
@@ -89,7 +93,7 @@ export default function ForgotPasswordModal({
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-[#2DD4BF]/50 transition-colors"
+              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]/60 focus:border-[#2DD4BF] transition-colors"
             />
 
             {error ? (
@@ -101,14 +105,14 @@ export default function ForgotPasswordModal({
             <motion.button
               whileHover={{
                 scale: 1.02,
-                backgroundColor: "#14B8A6",
                 boxShadow: "0 0 15px rgba(45,212,191,0.5)",
               }}
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={loading}
-              className="w-full bg-[#2DD4BF] text-black font-semibold py-2.5 rounded-lg transition-colors duration-300 mt-2 disabled:opacity-60"
+              className="group relative overflow-hidden w-full bg-gradient-to-r from-cyan-400 to-teal-400 text-black font-semibold py-3 rounded-lg transition-colors duration-300 mt-2 disabled:opacity-60"
             >
+              <span className="pointer-events-none absolute inset-y-0 -left-10 w-10 bg-white/40 blur-sm group-hover:translate-x-[300px] transition-transform duration-700" />
               {loading ? "Sending..." : "Send Reset Link"}
             </motion.button>
           </form>
@@ -144,6 +148,6 @@ export default function ForgotPasswordModal({
           </button>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

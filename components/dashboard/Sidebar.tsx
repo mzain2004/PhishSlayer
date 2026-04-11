@@ -184,9 +184,9 @@ export default function Sidebar({
 
   useEffect(() => {
     let mounted = true;
+    const supabase = createClient();
 
     const loadLiveBadges = async () => {
-      const supabase = createClient();
       const sinceIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
       const [pendingEscalationsResult, huntsResult] = await Promise.all([
@@ -207,13 +207,33 @@ export default function Sidebar({
     };
 
     void loadLiveBadges();
-    const intervalId = window.setInterval(() => {
-      void loadLiveBadges();
-    }, 60000);
+
+    const escalationsChannel = supabase
+      .channel("sidebar-escalations")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "escalations" },
+        () => {
+          void loadLiveBadges();
+        },
+      )
+      .subscribe();
+
+    const huntsChannel = supabase
+      .channel("sidebar-hunts")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "hunt_findings" },
+        () => {
+          void loadLiveBadges();
+        },
+      )
+      .subscribe();
 
     return () => {
       mounted = false;
-      window.clearInterval(intervalId);
+      void supabase.removeChannel(escalationsChannel);
+      void supabase.removeChannel(huntsChannel);
     };
   }, []);
 

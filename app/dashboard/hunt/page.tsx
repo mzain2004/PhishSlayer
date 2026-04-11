@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { List, RowComponentProps } from "react-window";
 
 type HuntFindingRow = {
   id: string;
@@ -17,6 +18,10 @@ type HuntFindingRow = {
 
 type SeverityFilter = "all" | "critical" | "high" | "medium" | "low";
 type EscalationFilter = "all" | "escalated" | "not_escalated";
+
+type RowProps = {
+  rows: HuntFindingRow[];
+};
 
 function severityClasses(severity: string): string {
   const value = severity.toLowerCase();
@@ -51,6 +56,7 @@ export default function ThreatHuntsPage() {
   const [escalationFilter, setEscalationFilter] =
     useState<EscalationFilter>("all");
   const [searchText, setSearchText] = useState("");
+  const [debouncedSearchText, setDebouncedSearchText] = useState("");
 
   const fetchFindings = useCallback(async () => {
     setLoading(true);
@@ -81,19 +87,37 @@ export default function ThreatHuntsPage() {
   useEffect(() => {
     void fetchFindings();
 
-    const intervalId = window.setInterval(() => {
-      void fetchFindings();
-    }, 60000);
+    const supabase = createClient();
+    const channel = supabase
+      .channel("hunt-findings-live")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "hunt_findings" },
+        () => {
+          void fetchFindings();
+        },
+      )
+      .subscribe();
 
     return () => {
-      window.clearInterval(intervalId);
+      void supabase.removeChannel(channel);
     };
   }, [fetchFindings]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [searchText]);
 
   const filteredRows = useMemo(() => {
     return rows.filter((row) => {
       const severity = row.severity.toLowerCase();
-      const search = searchText.trim().toLowerCase();
+      const search = debouncedSearchText.trim().toLowerCase();
 
       const severityMatch =
         severityFilter === "all" || severity === severityFilter;
@@ -110,7 +134,43 @@ export default function ThreatHuntsPage() {
 
       return severityMatch && escalationMatch && searchMatch;
     });
-  }, [rows, escalationFilter, searchText, severityFilter]);
+  }, [rows, escalationFilter, debouncedSearchText, severityFilter]);
+
+  const CardRow = ({ index, style, rows }: RowComponentProps<RowProps>) => {
+    const row = rows[index];
+
+    return (
+      <div style={style} className="px-2 pb-4">
+        <div className="h-full p-5 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-lg font-semibold leading-tight">{row.title}</h2>
+            <span
+              className={`text-[10px] uppercase tracking-[0.14em] border rounded-full px-2 py-1 ${severityClasses(row.severity)}`}
+            >
+              {row.severity}
+            </span>
+          </div>
+
+          <p className="text-sm text-white/80">
+            {row.description || "No description provided."}
+          </p>
+
+          <div className="text-xs text-white/70 space-y-1">
+            <p>Hunt Type: {row.hunt_type}</p>
+            <p>Confidence: {(row.confidence * 100).toFixed(1)}%</p>
+            <p>Escalated: {row.escalated ? "Yes" : "No"}</p>
+            <p>Created: {relativeTime(row.created_at)}</p>
+          </div>
+
+          {row.escalation_id ? (
+            <div className="w-fit text-xs font-mono text-cyan-200 border border-cyan-400/40 bg-cyan-500/10 rounded-full px-2 py-1">
+              escalation: {row.escalation_id}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  };
 
   const summary = useMemo(() => {
     const sinceIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -203,42 +263,19 @@ export default function ThreatHuntsPage() {
         <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl text-white/70">
           Loading hunt findings...
         </div>
+      ) : filteredRows.length === 0 ? (
+        <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl text-white/70">
+          No findings match your filters.
+        </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filteredRows.map((row) => (
-            <div
-              key={row.id}
-              className="p-5 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl flex flex-col gap-3"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <h2 className="text-lg font-semibold leading-tight">
-                  {row.title}
-                </h2>
-                <span
-                  className={`text-[10px] uppercase tracking-[0.14em] border rounded-full px-2 py-1 ${severityClasses(row.severity)}`}
-                >
-                  {row.severity}
-                </span>
-              </div>
-
-              <p className="text-sm text-white/80">
-                {row.description || "No description provided."}
-              </p>
-
-              <div className="text-xs text-white/70 space-y-1">
-                <p>Hunt Type: {row.hunt_type}</p>
-                <p>Confidence: {(row.confidence * 100).toFixed(1)}%</p>
-                <p>Escalated: {row.escalated ? "Yes" : "No"}</p>
-                <p>Created: {relativeTime(row.created_at)}</p>
-              </div>
-
-              {row.escalation_id ? (
-                <div className="w-fit text-xs font-mono text-cyan-200 border border-cyan-400/40 bg-cyan-500/10 rounded-full px-2 py-1">
-                  escalation: {row.escalation_id}
-                </div>
-              ) : null}
-            </div>
-          ))}
+        <div className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-2">
+          <List
+            rowCount={filteredRows.length}
+            rowHeight={242}
+            rowComponent={CardRow}
+            rowProps={{ rows: filteredRows }}
+            style={{ height: 680 }}
+          />
         </div>
       )}
 

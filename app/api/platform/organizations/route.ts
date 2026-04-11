@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { createClient as createServerClient } from "@/lib/supabase/server";
+import { checkTierAccess } from "@/lib/tier-guard";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -38,6 +40,31 @@ function getAdminClient() {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
+    const access = await checkTierAccess(user.id, "multi_org");
+    if (!access.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Upgrade required",
+          required_tier: "enterprise",
+          current_tier: access.tier,
+        },
+        { status: 403 },
+      );
+    }
+
     const payload = await request.json();
     const parsed = CreateOrganizationSchema.safeParse(payload);
 

@@ -16,58 +16,38 @@ export function ParticleNetwork({ disabled = false }: Props) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animId: number;
     const particles: {
       x: number;
       y: number;
       size: number;
-      vx: number;
-      vy: number;
     }[] = [];
 
-    // Reduce particles on mobile for perf
     const isMobile = window.innerWidth < 768;
-    const maxParticles = isMobile ? 30 : 60;
-    const connectionDistance = isMobile ? 100 : 150;
+    const maxParticles = isMobile ? 24 : 40;
+    const connectionDistance = isMobile ? 90 : 130;
 
-    const resize = () => {
+    const drawStaticScene = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-    };
-    window.addEventListener("resize", resize);
-    resize();
 
-    // Init particles
-    for (let i = 0; i < maxParticles; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 2 + 0.5,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-      });
-    }
+      particles.length = 0;
+      for (let i = 0; i < maxParticles; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 2 + 0.5,
+        });
+      }
 
-    const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Update & draw particles
       for (const p of particles) {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        // Bounce off edges
-        if (p.x < 0 || p.x > canvas.width) p.vx = -p.vx;
-        if (p.y < 0 || p.y > canvas.height) p.vy = -p.vy;
-
-        // Draw dot
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(45, 212, 191, 0.5)";
+        ctx.fillStyle = "rgba(45, 212, 191, 0.4)";
         ctx.fill();
       }
 
-      // Draw connecting lines
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
@@ -75,7 +55,7 @@ export function ParticleNetwork({ disabled = false }: Props) {
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < connectionDistance) {
-            const opacity = (1 - dist / connectionDistance) * 0.15;
+            const opacity = (1 - dist / connectionDistance) * 0.12;
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
@@ -85,14 +65,23 @@ export function ParticleNetwork({ disabled = false }: Props) {
           }
         }
       }
-
-      animId = requestAnimationFrame(animate);
     };
 
-    animate();
+    let resizeTimer: number | null = null;
+    const resize = () => {
+      if (resizeTimer !== null) {
+        window.clearTimeout(resizeTimer);
+      }
+      resizeTimer = window.setTimeout(drawStaticScene, 150);
+    };
+
+    drawStaticScene();
+    window.addEventListener("resize", resize);
 
     return () => {
-      cancelAnimationFrame(animId);
+      if (resizeTimer !== null) {
+        window.clearTimeout(resizeTimer);
+      }
       window.removeEventListener("resize", resize);
     };
   }, [disabled]);

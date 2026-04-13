@@ -35,14 +35,6 @@ const securityHeaders = [
 const nextConfig = {
   output: "standalone",
   serverExternalPackages: ["ssh2"],
-  images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "picsum.photos" },
-      { protocol: "https", hostname: "*.supabase.co" },
-      { protocol: "https", hostname: "avatars.githubusercontent.com" },
-      { protocol: "https", hostname: "lh3.googleusercontent.com" },
-    ],
-  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
@@ -63,6 +55,12 @@ const nextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      { protocol: "https", hostname: "picsum.photos" },
+      { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "avatars.githubusercontent.com" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+    ],
   },
 };
 

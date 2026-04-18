@@ -1,8 +1,6 @@
 name: L3 Hunter Swarm - Every 6 Hours
 
 on:
-  schedule:
-    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:

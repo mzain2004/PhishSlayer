@@ -152,7 +152,7 @@ jobs:
           AGENT_SECRET=${{ secrets.AGENT_SECRET }}
           WAZUH_WEBHOOK_SECRET=${{ secrets.WAZUH_WEBHOOK_SECRET }}
           WAZUH_MANAGER_IP=167.172.85.62
-          WAZUH_API_TOKEN=${{ secrets.WAZUH_API_TOKEN }}
+          WAZUH_API_PASSWORD=${{ secrets.WAZUH_API_PASSWORD }}
           DO_SSH_PRIVATE_KEY=${{ secrets.DO_SSH_PRIVATE_KEY }}
           CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ZONE_ID=${{ secrets.CLOUDFLARE_ZONE_ID }}

@@ -6,7 +6,6 @@
     "dev": "node server.js",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
-    "cron": "node -r ts-node/register/transpile-only scripts/cron-runner.ts",
     "build:agent": "npx tsc lib/agent/endpointMonitor.ts --outDir dist/agent --esModuleInterop --skipLibCheck --downlevelIteration --target es2020 --moduleResolution node && pkg dist/agent/endpointMonitor.js --target node18-win-x64 --output dist/PhishSlayerSensor.exe",
     "lint": "next lint"
   },

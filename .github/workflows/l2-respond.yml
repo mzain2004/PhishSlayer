@@ -1,8 +1,6 @@
 name: L2 Responder Agent - Every 15 Minutes
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 jobs:

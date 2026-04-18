@@ -5,7 +5,6 @@ import {
   buildL2ReasoningPrompt,
   saveReasoningChain,
 } from "@/lib/reasoning-chain";
-import { generateWithFallback } from "@/lib/ollama-client";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -58,6 +57,9 @@ Rules:
 - If uncertain, always set execute: false
 - Respond with raw JSON only. No markdown.`;
 
+const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_TIMEOUT_MS = 30_000;
+
 function getAdminClient() {
   return createSupabaseAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -76,6 +78,54 @@ function stripCodeFence(text: string): string {
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/, "")
     .trim();
+}
+
+type GeminiPart = { text?: string };
+type GeminiCandidate = { content?: { parts?: GeminiPart[] } };
+type GeminiGenerateContentResponse = { candidates?: GeminiCandidate[] };
+
+async function generateGeminiText(payload: unknown): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing GEMINI_API_KEY");
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      },
+    );
+
+    if (!response.ok) {
+      const details = await response.text();
+      throw new Error(`Gemini failed (${response.status}): ${details}`);
+    }
+
+    const body = (await response.json()) as GeminiGenerateContentResponse;
+    const text =
+      body.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text || "")
+        .join("")
+        .trim() || "";
+
+    if (!text) {
+      throw new Error("Gemini returned empty response");
+    }
+
+    return text;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 function normalizeDecision(raw: Decision, escalation: EscalationRow): Decision {
@@ -183,7 +233,7 @@ function toEscalationRow(row: RawEscalationRow): EscalationRow | null {
 }
 
 async function getDecision(escalation: EscalationRow): Promise<Decision> {
-  const geminiPayload = JSON.stringify({
+  const geminiPayload = {
     systemInstruction: {
       parts: [{ text: L2_PROMPT }],
     },
@@ -193,10 +243,9 @@ async function getDecision(escalation: EscalationRow): Promise<Decision> {
         parts: [{ text: JSON.stringify(escalation) }],
       },
     ],
-  });
+  };
 
-  const ollamaPrompt = `${L2_PROMPT}\n\nEscalation JSON:\n${JSON.stringify(escalation)}`;
-  const text = await generateWithFallback(ollamaPrompt, geminiPayload);
+  const text = await generateGeminiText(geminiPayload);
 
   const cleaned = stripCodeFence(text);
 
@@ -451,7 +500,7 @@ export async function GET(request: NextRequest) {
           },
         ],
         actions_taken: actionsTaken,
-        model_used: "ollama+gemini-fallback",
+        model_used: GEMINI_MODEL,
         execution_time_ms: executionTimeMs,
       });
 

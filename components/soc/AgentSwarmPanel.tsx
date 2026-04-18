@@ -39,6 +39,14 @@ type L2DecisionItem = {
   alertSource: string;
 };
 
+type L3TelemetrySnapshot = {
+  iocsIngested: number;
+  findings24h: number;
+  confidenceScores: number[];
+  lastRun: string | null;
+  reasoningSummary: string;
+};
+
 function extractAlertSource(
   iocsConsidered: unknown,
   telemetrySnapshot: unknown,
@@ -115,6 +123,13 @@ export default function AgentSwarmPanel() {
   const [l2RecentDecisions, setL2RecentDecisions] = useState<L2DecisionItem[]>(
     [],
   );
+  const [l3Telemetry, setL3Telemetry] = useState<L3TelemetrySnapshot>({
+    iocsIngested: 0,
+    findings24h: 0,
+    confidenceScores: [],
+    lastRun: null,
+    reasoningSummary: "No L3 reasoning logged yet.",
+  });
   const [l2LastRunOverride, setL2LastRunOverride] = useState<string | null>(
     null,
   );
@@ -173,6 +188,9 @@ export default function AgentSwarmPanel() {
         l2RecentPromise,
         l3FindingsPromise,
         l3EscalatedPromise,
+        l3ReasoningPromise,
+        l3StagePromise,
+        l3FindingsDetailPromise,
       ] = await Promise.all([
         fetch("/api/agent/list", { method: "GET", credentials: "include" }),
         supabase
@@ -200,6 +218,25 @@ export default function AgentSwarmPanel() {
           .select("id", { count: "exact", head: true })
           .gte("created_at", sinceIso)
           .eq("escalated", true),
+        supabase
+          .from("agent_reasoning")
+          .select("reasoning_text, created_at")
+          .eq("agent_level", "L3")
+          .order("created_at", { ascending: false })
+          .limit(1),
+        supabase
+          .from("audit_logs")
+          .select("action, metadata, created_at")
+          .eq("action", "L3_HUNT_STAGE")
+          .gte("created_at", sinceIso)
+          .order("created_at", { ascending: false })
+          .limit(40),
+        supabase
+          .from("hunt_findings")
+          .select("id, confidence, created_at")
+          .gte("created_at", sinceIso)
+          .order("created_at", { ascending: false })
+          .limit(12),
       ]);
 
       const payload = (await agentsRes.json()) as AgentListResponse;
@@ -224,7 +261,51 @@ export default function AgentSwarmPanel() {
       const inferredL2Status = mapped[1]?.status || firstAgent.status || "idle";
       const inferredL2Run = l2LastRunOverride || mapped[1]?.last_run || null;
       const inferredL3Status = mapped[2]?.status || "idle";
-      const inferredL3Run = l3LastRunOverride || mapped[2]?.last_run || null;
+      const latestL3ReasoningRow =
+        (
+          (l3ReasoningPromise.data || []) as Array<{
+            reasoning_text: string | null;
+            created_at: string;
+          }>
+        )[0] || null;
+
+      const l3StageRows = (l3StagePromise.data || []) as Array<{
+        action: string;
+        metadata: unknown;
+        created_at: string;
+      }>;
+
+      const latestIngestStage = l3StageRows.find((row) => {
+        if (!row.metadata || typeof row.metadata !== "object") {
+          return false;
+        }
+        return (row.metadata as { stage?: unknown }).stage === "iocs_ingested";
+      });
+
+      const latestPersistStage = l3StageRows.find((row) => {
+        if (!row.metadata || typeof row.metadata !== "object") {
+          return false;
+        }
+        return (
+          (row.metadata as { stage?: unknown }).stage === "findings_persisted"
+        );
+      });
+
+      const iocsIngested =
+        latestIngestStage?.metadata &&
+        typeof latestIngestStage.metadata === "object" &&
+        typeof (latestIngestStage.metadata as { total_iocs?: unknown })
+          .total_iocs === "number"
+          ? ((latestIngestStage.metadata as { total_iocs: number })
+              .total_iocs as number)
+          : 0;
+
+      const inferredL3Run =
+        latestPersistStage?.created_at ||
+        latestL3ReasoningRow?.created_at ||
+        l3LastRunOverride ||
+        mapped[2]?.last_run ||
+        null;
 
       setL1Agent({
         id: firstAgent.id,
@@ -251,6 +332,26 @@ export default function AgentSwarmPanel() {
       setL2DecisionCount(l2CountPromise.count || 0);
       setL3FindingCount(l3FindingsPromise.count || 0);
       setL3EscalatedCount(l3EscalatedPromise.count || 0);
+
+      const l3FindingRows = (l3FindingsDetailPromise.data || []) as Array<{
+        id: string;
+        confidence: number | null;
+        created_at: string;
+      }>;
+
+      const confidenceScores = l3FindingRows
+        .map((row) => row.confidence)
+        .filter((value): value is number => typeof value === "number")
+        .slice(0, 5);
+
+      setL3Telemetry({
+        iocsIngested,
+        findings24h: l3FindingsPromise.count || 0,
+        confidenceScores,
+        lastRun: inferredL3Run,
+        reasoningSummary:
+          latestL3ReasoningRow?.reasoning_text || "No L3 reasoning logged yet.",
+      });
 
       const l2Rows = (l2RecentPromise.data || []) as Array<{
         id: string;
@@ -587,6 +688,57 @@ export default function AgentSwarmPanel() {
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 p-4 flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-white font-semibold">
+                Latest L3 Hunt Telemetry
+              </h3>
+              <span className="text-xs text-white/60">
+                Real-time from audit_logs + hunt_findings
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 px-3 py-2 text-xs text-white/80">
+                <p className="text-white/60">IOCs ingested</p>
+                <p className="mt-1 text-base font-semibold text-white">
+                  {l3Telemetry.iocsIngested}
+                </p>
+              </div>
+              <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 px-3 py-2 text-xs text-white/80">
+                <p className="text-white/60">Findings (24h)</p>
+                <p className="mt-1 text-base font-semibold text-white">
+                  {l3Telemetry.findings24h}
+                </p>
+              </div>
+              <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 px-3 py-2 text-xs text-white/80">
+                <p className="text-white/60">Confidence scores</p>
+                <p className="mt-1 text-base font-semibold text-white">
+                  {l3Telemetry.confidenceScores.length > 0
+                    ? l3Telemetry.confidenceScores
+                        .map((value) => value.toFixed(2))
+                        .join(", ")
+                    : "n/a"}
+                </p>
+              </div>
+              <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 px-3 py-2 text-xs text-white/80">
+                <p className="text-white/60">Last run</p>
+                <p className="mt-1 text-base font-semibold text-white">
+                  {l3Telemetry.lastRun
+                    ? new Date(l3Telemetry.lastRun).toLocaleString()
+                    : "Never"}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 px-3 py-2 text-xs text-white/80">
+              <p className="text-white/60">Reasoning summary</p>
+              <p className="mt-1 text-white/90">
+                {l3Telemetry.reasoningSummary}
+              </p>
+            </div>
           </div>
         </div>
       )}

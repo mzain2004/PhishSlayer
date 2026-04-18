@@ -30,6 +30,11 @@ function isAuthorized(request: NextRequest): boolean {
   );
 }
 
+function getCycleId(request: NextRequest): string | null {
+  const value = request.headers.get("x-l3-cycle-id");
+  return value && value.trim().length > 0 ? value.trim() : null;
+}
+
 function ensureStringArray(input: unknown): string[] {
   if (!Array.isArray(input)) {
     return [];
@@ -38,6 +43,79 @@ function ensureStringArray(input: unknown): string[] {
   return input
     .map((value) => (typeof value === "string" ? value.trim() : ""))
     .filter((value) => value.length > 0);
+}
+
+function parseCsvQuotedRow(row: string): string[] {
+  const trimmed = row.trim();
+  if (!trimmed.startsWith('"') || !trimmed.endsWith('"')) {
+    return [];
+  }
+
+  return trimmed
+    .slice(1, -1)
+    .split('","')
+    .map((value) => value.trim());
+}
+
+function parseCsvLooseQuotedRow(row: string): string[] {
+  return row
+    .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+    .map((value) => value.trim().replace(/^"|"$/g, ""));
+}
+
+async function fetchUrlhausCsvFallback(): Promise<RawIoc[]> {
+  const response = await fetch(
+    "https://urlhaus.abuse.ch/downloads/csv_recent/",
+    {
+      method: "GET",
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`URLhaus CSV request failed (${response.status})`);
+  }
+
+  const text = await response.text();
+  const rows = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"));
+
+  const parsed: RawIoc[] = [];
+
+  for (const row of rows) {
+    const columns = parseCsvQuotedRow(row);
+    if (columns.length < 7) {
+      continue;
+    }
+
+    const iocValue = columns[2];
+    if (!iocValue) {
+      continue;
+    }
+
+    parsed.push({
+      type: "url",
+      value: iocValue,
+      threat: columns[5] || null,
+      source: "urlhaus",
+      tags: columns[6]
+        ? columns[6]
+            .split(",")
+            .map((value) => value.trim())
+            .filter((value) => value.length > 0)
+        : [],
+      malware: null,
+      date: columns[1] || null,
+      raw_data: {
+        row,
+        source: "csv_recent",
+      },
+    });
+  }
+
+  return parsed.slice(0, 25);
 }
 
 async function fetchUrlhaus(): Promise<RawIoc[]> {
@@ -51,10 +129,10 @@ async function fetchUrlhaus(): Promise<RawIoc[]> {
   );
 
   if (!response.ok) {
-    throw new Error(`URLhaus request failed (${response.status})`);
+    return fetchUrlhausCsvFallback();
   }
 
-  const payload = (await response.json()) as {
+  let payload: {
     urls?: Array<{
       url?: string;
       threat?: string;
@@ -63,7 +141,24 @@ async function fetchUrlhaus(): Promise<RawIoc[]> {
     }>;
   };
 
+  try {
+    payload = (await response.json()) as {
+      urls?: Array<{
+        url?: string;
+        threat?: string;
+        tags?: unknown;
+        date_added?: string;
+      }>;
+    };
+  } catch {
+    return fetchUrlhausCsvFallback();
+  }
+
   const rows = payload.urls || [];
+
+  if (rows.length === 0) {
+    return fetchUrlhausCsvFallback();
+  }
 
   return rows
     .filter((row) => typeof row.url === "string" && row.url.trim().length > 0)
@@ -88,10 +183,10 @@ async function fetchThreatFox(): Promise<RawIoc[]> {
   });
 
   if (!response.ok) {
-    throw new Error(`ThreatFox request failed (${response.status})`);
+    return fetchThreatFoxCsvFallback();
   }
 
-  const payload = (await response.json()) as {
+  let payload: {
     data?: Array<{
       ioc_value?: string;
       ioc_type?: string;
@@ -103,7 +198,27 @@ async function fetchThreatFox(): Promise<RawIoc[]> {
     }>;
   };
 
+  try {
+    payload = (await response.json()) as {
+      data?: Array<{
+        ioc_value?: string;
+        ioc_type?: string;
+        threat_type?: string;
+        malware?: string;
+        tags?: unknown;
+        first_seen?: string;
+        last_seen?: string;
+      }>;
+    };
+  } catch {
+    return fetchThreatFoxCsvFallback();
+  }
+
   const rows = payload.data || [];
+
+  if (rows.length === 0) {
+    return fetchThreatFoxCsvFallback();
+  }
 
   return rows
     .filter(
@@ -125,6 +240,63 @@ async function fetchThreatFox(): Promise<RawIoc[]> {
             : null,
       raw_data: row,
     }));
+}
+
+async function fetchThreatFoxCsvFallback(): Promise<RawIoc[]> {
+  const response = await fetch(
+    "https://threatfox.abuse.ch/export/csv/recent/",
+    {
+      method: "GET",
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`ThreatFox CSV request failed (${response.status})`);
+  }
+
+  const text = await response.text();
+  const rows = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"));
+
+  const parsed: RawIoc[] = [];
+
+  for (const row of rows) {
+    const columns = parseCsvLooseQuotedRow(row);
+    if (columns.length < 15) {
+      continue;
+    }
+
+    const iocValue = columns[2];
+    if (!iocValue) {
+      continue;
+    }
+
+    const tags = columns[12]
+      ? columns[12]
+          .split(",")
+          .map((value) => value.trim())
+          .filter((value) => value.length > 0)
+      : [];
+
+    parsed.push({
+      type: columns[3] || "unknown",
+      value: iocValue,
+      threat: columns[4] || null,
+      source: "threatfox",
+      tags,
+      malware: columns[7] || null,
+      date: columns[8] || columns[0] || null,
+      raw_data: {
+        row,
+        source: "csv_recent",
+      },
+    });
+  }
+
+  return parsed.slice(0, 200);
 }
 
 async function fetchOpenPhish(): Promise<RawIoc[]> {
@@ -165,6 +337,7 @@ export async function GET(request: NextRequest) {
   }
 
   const adminClient = getAdminClient();
+  const cycleId = getCycleId(request);
 
   const settled = await Promise.allSettled([
     fetchUrlhaus(),
@@ -199,6 +372,7 @@ export async function GET(request: NextRequest) {
         action: "L3_INTEL_INGESTED",
         severity: "low",
         metadata: {
+          cycle_id: cycleId,
           source,
           status: "success",
           fetched: feedIocs.length,
@@ -209,10 +383,23 @@ export async function GET(request: NextRequest) {
         action: "L3_INTEL_INGESTED",
         severity: "medium",
         metadata: {
+          cycle_id: cycleId,
           source,
           status: "failure",
           error: String(result.reason),
         },
+      });
+
+      await adminClient.from("audit_logs").insert({
+        action: "L3_STAGE_FAILURE",
+        severity: "medium",
+        metadata: {
+          stage: "reader",
+          cycle_id: cycleId,
+          source,
+          error: String(result.reason),
+        },
+        created_at: new Date().toISOString(),
       });
     }
   }

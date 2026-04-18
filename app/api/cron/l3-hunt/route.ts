@@ -9,6 +9,23 @@ import {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const L3_STAGE_ACTION = "L3_HUNT_STAGE";
+const L3_STAGE_FAILURE_ACTION = "L3_STAGE_FAILURE";
+const L3_STATIC_ANALYSIS_STAGE_ACTION = "L3_STATIC_ANALYSIS_STAGE";
+
+type L3StageName =
+  | "reader_started"
+  | "iocs_ingested"
+  | "hunt_started"
+  | "correlations_found"
+  | "review_started"
+  | "findings_persisted";
+
+type StaticAnalysisStageName =
+  | "file_alert_received"
+  | "static_analysis_triggered"
+  | "result_stored";
+
 const ReaderResponseSchema = z.object({
   success: z.boolean(),
   total_iocs: z.number().int().nonnegative().optional(),
@@ -37,6 +54,7 @@ const HunterResponseSchema = z.object({
 const ReviewerResponseSchema = z.object({
   success: z.boolean(),
   verdict: z.enum(["NORMAL", "SUSPICIOUS", "STORM"]).optional(),
+  confidence: z.number().min(0).max(1).optional(),
   recommended: z.enum(["CONTINUE", "THROTTLE", "HALT"]).optional(),
   escalations_reviewed: z.number().int().nonnegative().optional(),
   action_taken: z.string().optional(),
@@ -59,13 +77,82 @@ function getAdminClient() {
   );
 }
 
-async function triggerStaticAnalysisForFileAlerts() {
-  const internalApiBase = process.env.INTERNAL_API_URL;
+function getInternalBaseUrl(request: NextRequest): string {
+  return process.env.INTERNAL_API_URL ?? request.nextUrl.origin;
+}
+
+async function writeAuditLogSafe(
+  adminClient: ReturnType<typeof getAdminClient>,
+  action: string,
+  severity: "low" | "medium" | "high" | "critical",
+  metadata: Record<string, unknown>,
+) {
+  const { error } = await adminClient.from("audit_logs").insert({
+    action,
+    severity,
+    metadata,
+    created_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error("[L3 cron] failed writing audit log", {
+      action,
+      severity,
+      error,
+    });
+  }
+}
+
+async function logL3Stage(
+  adminClient: ReturnType<typeof getAdminClient>,
+  cycleId: string,
+  stage: L3StageName,
+  metadata: Record<string, unknown> = {},
+) {
+  await writeAuditLogSafe(adminClient, L3_STAGE_ACTION, "low", {
+    stage,
+    cycle_id: cycleId,
+    ...metadata,
+  });
+}
+
+async function logStageFailure(
+  adminClient: ReturnType<typeof getAdminClient>,
+  cycleId: string,
+  stage: "reader" | "hunt" | "review" | "findings" | "static_analysis",
+  error: unknown,
+  extra: Record<string, unknown> = {},
+) {
+  await writeAuditLogSafe(adminClient, L3_STAGE_FAILURE_ACTION, "medium", {
+    stage,
+    cycle_id: cycleId,
+    error: error instanceof Error ? error.message : "unknown_error",
+    ...extra,
+  });
+}
+
+async function logStaticAnalysisStage(
+  adminClient: ReturnType<typeof getAdminClient>,
+  cycleId: string,
+  stage: StaticAnalysisStageName,
+  metadata: Record<string, unknown>,
+) {
+  await writeAuditLogSafe(adminClient, L3_STATIC_ANALYSIS_STAGE_ACTION, "low", {
+    cycle_id: cycleId,
+    stage,
+    ...metadata,
+  });
+}
+
+async function triggerStaticAnalysisForFileAlerts(
+  adminClient: ReturnType<typeof getAdminClient>,
+  internalApiBase: string,
+  cycleId: string,
+) {
   if (!internalApiBase) {
-    return { triggered: 0, failed: 0, skipped: true };
+    return { scanned: 0, triggered: 0, failed: 0, skipped: true };
   }
 
-  const adminClient = getAdminClient();
   const { data: alerts, error } = await adminClient
     .from("alerts")
     .select("id, file_hash_sha256, file_path")
@@ -75,10 +162,22 @@ async function triggerStaticAnalysisForFileAlerts() {
     .order("created_at", { ascending: false })
     .limit(25);
 
-  if (error || !alerts) {
-    return { triggered: 0, failed: 1, skipped: false };
+  if (error) {
+    await logStageFailure(
+      adminClient,
+      cycleId,
+      "static_analysis",
+      new Error(`Failed to query file-hash alerts: ${error.message}`),
+      { context: "alert_query" },
+    );
+    return { scanned: 0, triggered: 0, failed: 1, skipped: false };
   }
 
+  if (!alerts || alerts.length === 0) {
+    return { scanned: 0, triggered: 0, failed: 0, skipped: false };
+  }
+
+  let scanned = 0;
   let triggered = 0;
   let failed = 0;
 
@@ -96,6 +195,18 @@ async function triggerStaticAnalysisForFileAlerts() {
         continue;
       }
 
+      scanned += 1;
+
+      await logStaticAnalysisStage(
+        adminClient,
+        cycleId,
+        "file_alert_received",
+        {
+          alert_id: alertId,
+          file_hash_sha256: hash,
+        },
+      );
+
       const { data: existing } = await adminClient
         .from("static_analysis")
         .select("id")
@@ -104,8 +215,23 @@ async function triggerStaticAnalysisForFileAlerts() {
         .maybeSingle();
 
       if (existing?.id) {
+        await logStaticAnalysisStage(adminClient, cycleId, "result_stored", {
+          alert_id: alertId,
+          storage_status: "already_present",
+          static_analysis_id: existing.id,
+        });
         continue;
       }
+
+      await logStaticAnalysisStage(
+        adminClient,
+        cycleId,
+        "static_analysis_triggered",
+        {
+          alert_id: alertId,
+          file_hash_sha256: hash,
+        },
+      );
 
       const response = await fetch(`${internalApiBase}/api/analysis/static`, {
         method: "POST",
@@ -126,45 +252,109 @@ async function triggerStaticAnalysisForFileAlerts() {
 
       if (!response.ok) {
         failed += 1;
+
+        await logStaticAnalysisStage(adminClient, cycleId, "result_stored", {
+          alert_id: alertId,
+          storage_status: "failed",
+          error: `analysis_route_${response.status}`,
+        });
         continue;
       }
 
+      const { data: storedRecord } = await adminClient
+        .from("static_analysis")
+        .select("id")
+        .eq("alert_id", alertId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      await logStaticAnalysisStage(adminClient, cycleId, "result_stored", {
+        alert_id: alertId,
+        storage_status: storedRecord?.id
+          ? "stored"
+          : "not_detected_after_trigger",
+        static_analysis_id: storedRecord?.id || null,
+      });
+
       triggered += 1;
-    } catch {
+    } catch (error) {
       failed += 1;
+
+      await logStageFailure(adminClient, cycleId, "static_analysis", error, {
+        context: "analysis_trigger_loop",
+      });
+
+      await logStaticAnalysisStage(adminClient, cycleId, "result_stored", {
+        alert_id:
+          typeof alert.id === "string" && alert.id.length > 0 ? alert.id : null,
+        storage_status: "failed",
+        error: error instanceof Error ? error.message : "unknown_error",
+      });
     }
   }
 
-  return { triggered, failed, skipped: false };
+  return { scanned, triggered, failed, skipped: false };
 }
 
 async function invokeStep<T>(
-  request: NextRequest,
+  baseUrl: string,
+  cycleId: string,
   path: string,
   schema: z.ZodSchema<T>,
 ) {
-  const response = await fetch(`${process.env.INTERNAL_API_URL}${path}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${process.env.CRON_SECRET}`,
-    },
-  });
+  let payload: unknown = null;
 
-  const payload = await response.json();
-  const parsed = schema.safeParse(payload);
-  if (!parsed.success) {
-    throw new Error(`Invalid response shape from ${path}`);
+  try {
+    const response = await fetch(`${baseUrl}${path}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${process.env.CRON_SECRET}`,
+        "x-l3-cycle-id": cycleId,
+      },
+      cache: "no-store",
+    });
+
+    try {
+      payload = await response.json();
+    } catch {
+      payload = null;
+    }
+
+    if (!response.ok) {
+      return {
+        ok: false as const,
+        error: `Step failed (${response.status}) for ${path}`,
+        payload,
+      };
+    }
+
+    const parsed = schema.safeParse(payload);
+    if (!parsed.success) {
+      return {
+        ok: false as const,
+        error: `Invalid response shape from ${path}`,
+        payload,
+      };
+    }
+
+    if (!(parsed.data as { success?: boolean }).success) {
+      return {
+        ok: false as const,
+        error: `Step returned unsuccessful result for ${path}`,
+        payload,
+      };
+    }
+
+    return { ok: true as const, data: parsed.data };
+  } catch (error) {
+    return {
+      ok: false as const,
+      error:
+        error instanceof Error ? error.message : `Unknown error in ${path}`,
+      payload,
+    };
   }
-
-  if (
-    !response.ok ||
-    !parsed.data ||
-    !(parsed.data as { success?: boolean }).success
-  ) {
-    throw new Error(`Step failed: ${path}`);
-  }
-
-  return parsed.data;
 }
 
 export async function GET(request: NextRequest) {
@@ -175,39 +365,229 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  try {
-    const reader = await invokeStep(
-      request,
-      "/api/agent/hunter/reader",
-      ReaderResponseSchema,
-    );
+  const startedAt = Date.now();
+  const cycleId = `l3-cycle-${startedAt}`;
+  const adminClient = getAdminClient();
+  const baseUrl = getInternalBaseUrl(request);
+  const stageErrors: string[] = [];
 
-    const hunter = await invokeStep(
-      request,
-      "/api/agent/hunter/hunt",
-      HunterResponseSchema,
-    );
+  let reader: z.infer<typeof ReaderResponseSchema> = {
+    success: false,
+    total_iocs: 0,
+    by_source: { urlhaus: 0, threatfox: 0, openphish: 0 },
+    inserted: 0,
+    deduplicated: 0,
+    error: "reader_not_run",
+  };
 
-    const reviewerStartedAt = Date.now();
-    const reviewer = await invokeStep(
-      request,
-      "/api/agent/hunter/review",
-      ReviewerResponseSchema,
-    );
-    const staticAnalysis = await triggerStaticAnalysisForFileAlerts();
-    const executionTimeMs = Date.now() - reviewerStartedAt;
+  let hunter: z.infer<typeof HunterResponseSchema> = {
+    success: false,
+    iocs_processed: 0,
+    scans_cross_referenced: 0,
+    hits_found: 0,
+    escalations_created: 0,
+    errors: 0,
+    error: "hunter_not_run",
+  };
 
-    const huntSummary = {
-      reader,
-      hunter,
-      reviewer,
+  let reviewer: z.infer<typeof ReviewerResponseSchema> = {
+    success: true,
+    verdict: "NORMAL",
+    confidence: 0,
+    recommended: "CONTINUE",
+    escalations_reviewed: 0,
+    action_taken: "NONE",
+    reasoning: "review_stage_defaulted",
+  };
+
+  await logL3Stage(adminClient, cycleId, "reader_started", {
+    step_path: "/api/agent/hunter/reader",
+  });
+
+  const readerResult = await invokeStep(
+    baseUrl,
+    cycleId,
+    "/api/agent/hunter/reader",
+    ReaderResponseSchema,
+  );
+
+  if (readerResult.ok) {
+    reader = readerResult.data;
+  } else {
+    reader.error = readerResult.error;
+    stageErrors.push(`reader: ${readerResult.error}`);
+    await logStageFailure(adminClient, cycleId, "reader", readerResult.error, {
+      step_path: "/api/agent/hunter/reader",
+      payload: readerResult.payload,
+    });
+  }
+
+  await logL3Stage(adminClient, cycleId, "iocs_ingested", {
+    total_iocs: reader.total_iocs || 0,
+    by_source: reader.by_source || null,
+    inserted: reader.inserted || 0,
+    deduplicated: reader.deduplicated || 0,
+    reader_success: readerResult.ok,
+    reader_error: readerResult.ok ? null : readerResult.error,
+  });
+
+  await logL3Stage(adminClient, cycleId, "hunt_started", {
+    step_path: "/api/agent/hunter/hunt",
+  });
+
+  const hunterResult = await invokeStep(
+    baseUrl,
+    cycleId,
+    "/api/agent/hunter/hunt",
+    HunterResponseSchema,
+  );
+
+  if (hunterResult.ok) {
+    hunter = hunterResult.data;
+  } else {
+    hunter.error = hunterResult.error;
+    stageErrors.push(`hunt: ${hunterResult.error}`);
+    await logStageFailure(adminClient, cycleId, "hunt", hunterResult.error, {
+      step_path: "/api/agent/hunter/hunt",
+      payload: hunterResult.payload,
+    });
+  }
+
+  await logL3Stage(adminClient, cycleId, "correlations_found", {
+    iocs_processed: hunter.iocs_processed || 0,
+    scans_cross_referenced: hunter.scans_cross_referenced || 0,
+    hits_found: hunter.hits_found || 0,
+    escalations_created: hunter.escalations_created || 0,
+    hunt_errors: hunter.errors || 0,
+    hunt_success: hunterResult.ok,
+    hunt_error: hunterResult.ok ? null : hunterResult.error,
+  });
+
+  await logL3Stage(adminClient, cycleId, "review_started", {
+    step_path: "/api/agent/hunter/review",
+  });
+
+  const reviewerResult = await invokeStep(
+    baseUrl,
+    cycleId,
+    "/api/agent/hunter/review",
+    ReviewerResponseSchema,
+  );
+
+  if (reviewerResult.ok) {
+    reviewer = reviewerResult.data;
+  } else {
+    reviewer = {
+      success: true,
+      verdict: "NORMAL",
+      confidence: 0,
+      recommended: "CONTINUE",
+      escalations_reviewed: 0,
+      action_taken: "NONE",
+      reasoning: "review_stage_failed_fallback_continue",
+      error: reviewerResult.error,
     };
+    stageErrors.push(`review: ${reviewerResult.error}`);
+    await logStageFailure(
+      adminClient,
+      cycleId,
+      "review",
+      reviewerResult.error,
+      {
+        step_path: "/api/agent/hunter/review",
+        payload: reviewerResult.payload,
+        fallback_applied: true,
+      },
+    );
+  }
 
+  let staticAnalysis = {
+    scanned: 0,
+    triggered: 0,
+    failed: 0,
+    skipped: false,
+  };
+
+  try {
+    staticAnalysis = await triggerStaticAnalysisForFileAlerts(
+      adminClient,
+      baseUrl,
+      cycleId,
+    );
+  } catch (error) {
+    stageErrors.push(
+      `static_analysis: ${error instanceof Error ? error.message : "unknown_error"}`,
+    );
+    await logStageFailure(adminClient, cycleId, "static_analysis", error, {
+      context: "static_analysis_execution",
+    });
+  }
+
+  const halted = reviewer.recommended === "HALT";
+  const haltReason = halted
+    ? reviewer.reasoning || "circuit_breaker_halted_without_reason"
+    : null;
+
+  if (halted) {
+    await writeAuditLogSafe(
+      adminClient,
+      "L3_CIRCUIT_BREAKER_HALTED",
+      "critical",
+      {
+        cycle_id: cycleId,
+        halt_reason: haltReason,
+        verdict: reviewer.verdict || "STORM",
+        recommended: reviewer.recommended,
+      },
+    );
+
+    const { error: haltFindingError } = await adminClient
+      .from("hunt_findings")
+      .insert({
+        hunt_type: "escalation_burst",
+        severity: "critical",
+        confidence: reviewer.confidence || 0,
+        title: "L3 Circuit Breaker Halted Hunt Cycle",
+        description: haltReason || "L3 review halted hunt cycle",
+        indicators: {
+          cycle_id: cycleId,
+          halt_reason: haltReason,
+          reviewer_verdict: reviewer.verdict || "STORM",
+        },
+        source_records: [],
+        escalated: false,
+        escalation_id: null,
+        created_by: "l3_agent",
+        created_at: new Date().toISOString(),
+      });
+
+    if (haltFindingError) {
+      await logStageFailure(
+        adminClient,
+        cycleId,
+        "findings",
+        haltFindingError,
+        {
+          context: "halt_reason_finding_insert",
+        },
+      );
+    }
+  }
+
+  const executionTimeMs = Date.now() - startedAt;
+  const huntSummary = {
+    reader,
+    hunter,
+    reviewer,
+    static_analysis: staticAnalysis,
+  };
+
+  try {
     await saveReasoningChain({
       agent_level: "L3",
       decision:
         reviewer.recommended || reviewer.verdict || "NEEDS_INVESTIGATION",
-      confidence_score: undefined,
+      confidence_score: reviewer.confidence,
       reasoning_text:
         reviewer.reasoning ||
         "L3 reviewer completed circuit-breaker check without detailed reasoning.",
@@ -216,6 +596,7 @@ export async function GET(request: NextRequest) {
           total_iocs: reader.total_iocs || 0,
           by_source: reader.by_source || null,
           hits_found: hunter.hits_found || 0,
+          cycle_id: cycleId,
           prompt_context: buildL3ReasoningPrompt([huntSummary]),
         },
       ],
@@ -225,25 +606,33 @@ export async function GET(request: NextRequest) {
       model_used: "gemini-2.5-flash",
       execution_time_ms: executionTimeMs,
     });
-
-    const halted = reviewer.recommended === "HALT";
-
-    return NextResponse.json({
-      success: true,
-      reader,
-      hunter,
-      reviewer,
-      static_analysis: staticAnalysis,
-      halted,
-    });
   } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "L3 pipeline failed",
-        halted: false,
-      },
-      { status: 500 },
+    stageErrors.push(
+      `findings_persisted: ${error instanceof Error ? error.message : "unknown_error"}`,
     );
+    await logStageFailure(adminClient, cycleId, "findings", error, {
+      context: "save_reasoning_chain",
+    });
   }
+
+  await logL3Stage(adminClient, cycleId, "findings_persisted", {
+    findings_count: hunter.hits_found || 0,
+    confidence_score: reviewer.confidence || 0,
+    reasoning_summary: reviewer.reasoning || null,
+    halted,
+    halt_reason: haltReason,
+    execution_time_ms: executionTimeMs,
+  });
+
+  return NextResponse.json({
+    success: true,
+    cycle_id: cycleId,
+    reader,
+    hunter,
+    reviewer,
+    static_analysis: staticAnalysis,
+    halted,
+    stage_errors: stageErrors,
+    execution_time_ms: executionTimeMs,
+  });
 }

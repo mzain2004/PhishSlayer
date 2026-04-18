@@ -57,6 +57,11 @@ function getAdminClient() {
   );
 }
 
+function getCycleId(request: NextRequest): string | null {
+  const value = request.headers.get("x-l3-cycle-id");
+  return value && value.trim().length > 0 ? value.trim() : null;
+}
+
 function isAuthorized(request: NextRequest): boolean {
   return (
     Boolean(process.env.CRON_SECRET) &&
@@ -203,6 +208,7 @@ export async function GET(request: NextRequest) {
   const adminClient = getAdminClient();
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const baseUrl = request.nextUrl.origin;
+  const cycleId = getCycleId(request);
 
   const { count, error: countError } = await adminClient
     .from("escalations")
@@ -232,6 +238,18 @@ export async function GET(request: NextRequest) {
       confidence: 0,
       reasoning: "Reviewer fallback due to model failure.",
       recommended: "CONTINUE",
+    });
+    await adminClient.from("audit_logs").insert({
+      action: "L3_STAGE_FAILURE",
+      severity: "medium",
+      metadata: {
+        stage: "review",
+        failure_type: "gemini_failure",
+        cycle_id: cycleId,
+        escalations_last_hour: escalationsLastHour,
+        error: error instanceof Error ? error.message : "unknown_gemini_error",
+      },
+      created_at: new Date().toISOString(),
     });
     console.error("[L3 reviewer] Falling back due to model failure", error);
   }
@@ -285,6 +303,37 @@ export async function GET(request: NextRequest) {
       halted_at: new Date().toISOString(),
     });
 
+    await adminClient.from("audit_logs").insert({
+      action: "L3_CIRCUIT_BREAKER_HALTED",
+      severity: "critical",
+      metadata: {
+        cycle_id: cycleId,
+        halt_reason: decision.reasoning,
+        verdict: decision.verdict,
+        confidence: decision.confidence,
+        escalations_last_hour: escalationsLastHour,
+      },
+      created_at: new Date().toISOString(),
+    });
+
+    await adminClient.from("hunt_findings").insert({
+      hunt_type: "escalation_burst",
+      severity: "critical",
+      confidence: decision.confidence,
+      title: "L3 Review Circuit Breaker Halt",
+      description: decision.reasoning,
+      indicators: {
+        cycle_id: cycleId,
+        halt_reason: decision.reasoning,
+        escalations_last_hour: escalationsLastHour,
+      },
+      source_records: [],
+      escalated: false,
+      escalation_id: null,
+      created_by: "l3_agent",
+      created_at: new Date().toISOString(),
+    });
+
     actionTaken = "HALT";
   } else if (decision.verdict === "STORM") {
     await fetch(`${baseUrl}/api/actions/escalate`, {
@@ -312,7 +361,10 @@ export async function GET(request: NextRequest) {
     action: "L3_REVIEW_COMPLETE",
     severity: mapSeverity(decision.verdict),
     metadata: {
+      cycle_id: cycleId,
       verdict: decision.verdict,
+      confidence: decision.confidence,
+      reasoning: decision.reasoning,
       escalations_last_hour: escalationsLastHour,
       recommended: decision.recommended,
       action_taken: actionTaken,
@@ -322,6 +374,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: true,
     verdict: decision.verdict,
+    confidence: decision.confidence,
     recommended: decision.recommended,
     escalations_reviewed: escalationsLastHour,
     action_taken: actionTaken,

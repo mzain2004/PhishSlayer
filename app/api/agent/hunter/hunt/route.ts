@@ -72,6 +72,11 @@ function getAdminClient() {
   );
 }
 
+function getCycleId(request: NextRequest): string | null {
+  const value = request.headers.get("x-l3-cycle-id");
+  return value && value.trim().length > 0 ? value.trim() : null;
+}
+
 function isAuthorized(request: NextRequest): boolean {
   return (
     Boolean(process.env.CRON_SECRET) &&
@@ -101,6 +106,31 @@ function normalizeDecision(decision: HunterDecision): HunterDecision {
   }
 
   return decision;
+}
+
+function fallbackHunterDecision(
+  ioc: IntelRow,
+  scan: Record<string, unknown>,
+  reason: string,
+): HunterDecision {
+  const riskScore =
+    typeof scan.risk_score === "number" && Number.isFinite(scan.risk_score)
+      ? scan.risk_score
+      : 0;
+
+  const severity: HunterDecision["severity"] =
+    riskScore >= 85 ||
+    /malware|trojan|ransom|phish/i.test(ioc.threat_type || "")
+      ? "high"
+      : "medium";
+
+  return {
+    is_hit: true,
+    confidence: 0.76,
+    severity,
+    reasoning: `gemini_unavailable_heuristic_match: ${reason}`,
+    recommended_action: "MANUAL_REVIEW",
+  };
 }
 
 async function queryMatchingScans(
@@ -212,6 +242,29 @@ async function callGemini(
   return normalizeDecision(decision.data);
 }
 
+async function callGeminiWithFallback(
+  ioc: IntelRow,
+  scan: Record<string, unknown>,
+): Promise<{
+  decision: HunterDecision;
+  usedFallback: boolean;
+  fallbackReason: string | null;
+}> {
+  try {
+    const decision = await callGemini(ioc, scan);
+    return { decision, usedFallback: false, fallbackReason: null };
+  } catch (error) {
+    const fallbackReason =
+      error instanceof Error ? error.message : "unknown_gemini_error";
+    const decision = fallbackHunterDecision(ioc, scan, fallbackReason);
+    return {
+      decision,
+      usedFallback: true,
+      fallbackReason,
+    };
+  }
+}
+
 export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
     return NextResponse.json(
@@ -222,6 +275,7 @@ export async function GET(request: NextRequest) {
 
   const adminClient = getAdminClient();
   const baseUrl = request.nextUrl.origin;
+  const cycleId = getCycleId(request);
 
   const { data: intelRows, error: intelError } = await adminClient
     .from("threat_intel")
@@ -260,7 +314,25 @@ export async function GET(request: NextRequest) {
 
       for (const scan of scans) {
         try {
-          const decision = await callGemini(ioc, scan);
+          const { decision, usedFallback, fallbackReason } =
+            await callGeminiWithFallback(ioc, scan);
+
+          if (usedFallback) {
+            await adminClient.from("audit_logs").insert({
+              action: "L3_STAGE_FAILURE",
+              severity: "medium",
+              metadata: {
+                stage: "hunt",
+                failure_type: "gemini_failure",
+                cycle_id: cycleId,
+                ioc_id: ioc.id,
+                scan_id: String(scan.id || "unknown"),
+                error: fallbackReason,
+              },
+              created_at: new Date().toISOString(),
+            });
+          }
+
           if (!decision.is_hit) {
             continue;
           }
@@ -315,12 +387,35 @@ export async function GET(request: NextRequest) {
             action: "L3_HUNT_HIT",
             severity: decision.severity,
             metadata: {
+              cycle_id: cycleId,
               ioc_id: ioc.id,
               ioc_value: ioc.ioc_value,
               scan_id: scanId,
               confidence: decision.confidence,
               reasoning: decision.reasoning,
             },
+          });
+
+          await adminClient.from("hunt_findings").insert({
+            hunt_type: "campaign_cluster",
+            severity: decision.severity,
+            confidence: decision.confidence,
+            title: `L3 IOC correlation: ${ioc.ioc_value}`,
+            description: decision.reasoning,
+            indicators: {
+              cycle_id: cycleId,
+              ioc_id: ioc.id,
+              ioc_type: ioc.ioc_type,
+              ioc_value: ioc.ioc_value,
+              source: ioc.source,
+              recommended_action: decision.recommended_action,
+              halt_reason: null,
+            },
+            source_records: [scanId],
+            escalated: true,
+            escalation_id: null,
+            created_by: "l3_agent",
+            created_at: new Date().toISOString(),
           });
         } catch (scanError) {
           errors += 1;

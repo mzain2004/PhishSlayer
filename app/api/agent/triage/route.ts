@@ -83,6 +83,8 @@ type QueueRecord = ScanRecord | AlertRecord;
 
 type Decision = z.infer<typeof DecisionSchema>;
 
+type Severity = "low" | "medium" | "high" | "critical";
+
 const SYSTEM_PROMPT = `You are an autonomous Tier 1 SOC analyst for Phish-Slayer,
 a cybersecurity platform. Your job is to triage phishing and
 malware alerts. You will receive a JSON object with a source field.
@@ -112,6 +114,128 @@ function getAdminClient() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { autoRefreshToken: false, persistSession: false } },
   );
+}
+
+function isInternalAgentAuthorized(request: NextRequest): boolean {
+  const providedSecret =
+    request.headers.get("AGENT_SECRET") ||
+    request.headers.get("agent_secret") ||
+    request.headers.get("x-agent-secret");
+
+  return Boolean(
+    providedSecret && providedSecret === process.env.AGENT_SECRET,
+  );
+}
+
+function mapRuleLevelToSeverity(level: number | null): Severity {
+  if (level === null) {
+    return "low";
+  }
+
+  if (level >= 14) {
+    return "critical";
+  }
+
+  if (level >= 12) {
+    return "high";
+  }
+
+  if (level >= 9) {
+    return "medium";
+  }
+
+  return "low";
+}
+
+function deriveSeverityFromRecord(record: QueueRecord): Severity {
+  if (record.source === "wazuh") {
+    return mapRuleLevelToSeverity(record.rule_level);
+  }
+
+  const risk = Number(record.risk_score || 0);
+  if (risk >= 85) {
+    return "critical";
+  }
+  if (risk >= 70) {
+    return "high";
+  }
+  if (risk >= 35) {
+    return "medium";
+  }
+  return "low";
+}
+
+function buildFallbackDecision(record: QueueRecord, error: unknown): Decision {
+  const reason = error instanceof Error ? error.message : "unknown Gemini error";
+  return {
+    decision: "ESCALATE",
+    confidence: 0,
+    severity: deriveSeverityFromRecord(record),
+    reasoning: `Gemini unavailable or invalid response (${reason}). Escalating for manual review.`,
+    recommended_action: "MANUAL_REVIEW",
+  };
+}
+
+async function writeAuditLogSafe(
+  adminClient: ReturnType<typeof getAdminClient>,
+  action: string,
+  severity: Severity,
+  metadata: Record<string, unknown>,
+) {
+  const { error } = await adminClient.from("audit_logs").insert({
+    action,
+    severity,
+    metadata,
+    created_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error("[L1 triage] Failed to write audit log", {
+      action,
+      details: error.message,
+    });
+  }
+}
+
+async function logWazuhLifecycle(
+  adminClient: ReturnType<typeof getAdminClient>,
+  stage: "processed" | "decision" | "action_taken",
+  record: AlertRecord,
+  options?: {
+    decision?: Decision;
+    actionTaken?: string;
+    escalationId?: string | null;
+    error?: unknown;
+  },
+) {
+  const actionMap: Record<typeof stage, string> = {
+    processed: "WAZUH_ALERT_PROCESSED",
+    decision: "WAZUH_ALERT_DECISION",
+    action_taken: "WAZUH_ALERT_ACTION_TAKEN",
+  };
+
+  const severity = options?.decision?.severity || mapRuleLevelToSeverity(record.rule_level);
+  const errorText =
+    options?.error instanceof Error
+      ? options.error.message
+      : typeof options?.error === "string"
+        ? options.error
+        : null;
+
+  await writeAuditLogSafe(adminClient, actionMap[stage], severity, {
+    source: "wazuh",
+    alert_id: record.id,
+    rule_id: record.rule_id,
+    rule_level: record.rule_level,
+    rule_description: record.rule_description,
+    decision: options?.decision?.decision,
+    confidence: options?.decision?.confidence,
+    recommended_action: options?.decision?.recommended_action,
+    reasoning: options?.decision?.reasoning,
+    action_taken: options?.actionTaken || null,
+    escalation_id: options?.escalationId || null,
+    error: errorText,
+  });
 }
 
 function getAuthHeaderValue(request: NextRequest): string {
@@ -216,50 +340,50 @@ async function fetchPendingWazuhAlerts(
 }
 
 async function runGeminiTriage(record: QueueRecord): Promise<Decision> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("Missing GEMINI_API_KEY");
-  }
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: SYSTEM_PROMPT }],
-        },
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: JSON.stringify(record) }],
-          },
-        ],
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini call failed (${response.status}): ${errorText}`);
-  }
-
-  const rawResponse = await response.json();
-  const parsedGemini = GeminiApiResponseSchema.safeParse(rawResponse);
-  if (!parsedGemini.success) {
-    throw new Error("Gemini response shape validation failed");
-  }
-
-  const modelText =
-    parsedGemini.data.candidates?.[0]?.content.parts
-      .map((part) => part.text || "")
-      .join("")
-      .trim() || "";
-
   try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("Missing GEMINI_API_KEY");
+    }
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: SYSTEM_PROMPT }],
+          },
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: JSON.stringify(record) }],
+            },
+          ],
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Gemini call failed (${response.status}): ${errorText}`);
+    }
+
+    const rawResponse = await response.json();
+    const parsedGemini = GeminiApiResponseSchema.safeParse(rawResponse);
+    if (!parsedGemini.success) {
+      throw new Error("Gemini response shape validation failed");
+    }
+
+    const modelText =
+      parsedGemini.data.candidates?.[0]?.content.parts
+        .map((part) => part.text || "")
+        .join("")
+        .trim() || "";
+
     const decisionJson = JSON.parse(modelText);
     const parsedDecision = DecisionSchema.safeParse(decisionJson);
     if (!parsedDecision.success) {
@@ -267,15 +391,13 @@ async function runGeminiTriage(record: QueueRecord): Promise<Decision> {
     }
 
     return parsedDecision.data;
-  } catch {
-    return {
-      decision: "ESCALATE",
-      confidence: 0,
-      severity: "high",
-      reasoning:
-        "Model response could not be parsed as valid JSON, escalating by policy.",
-      recommended_action: "MANUAL_REVIEW",
-    };
+  } catch (error) {
+    console.warn("[L1 triage] Gemini failed, using graceful fallback", {
+      source: record.source,
+      record_id: record.id,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    return buildFallbackDecision(record, error);
   }
 }
 
@@ -283,7 +405,7 @@ async function escalateScan(
   record: QueueRecord,
   decision: Decision,
   baseUrl: string,
-) {
+): Promise<{ escalationId: string | null }> {
   const title =
     record.source === "wazuh"
       ? `L1 Agent Escalation: ${record.rule_description || record.rule_id || record.id}`
@@ -320,6 +442,17 @@ async function escalateScan(
       `Escalation endpoint failed (${response.status}): ${details}`,
     );
   }
+
+  let escalationId: string | null = null;
+  try {
+    const payload = (await response.json()) as { escalation_id?: unknown };
+    escalationId =
+      typeof payload.escalation_id === "string" ? payload.escalation_id : null;
+  } catch {
+    escalationId = null;
+  }
+
+  return { escalationId };
 }
 
 async function processBatch(request: NextRequest) {
@@ -357,8 +490,19 @@ async function processBatch(request: NextRequest) {
   const queue: QueueRecord[] = [...(alerts || []), ...(scans || [])];
 
   for (const item of queue) {
+    let decision: Decision | null = null;
+
     try {
-      const decision = await runGeminiTriage(item);
+      if (item.source === "wazuh") {
+        await logWazuhLifecycle(adminClient, "processed", item);
+      }
+
+      decision = await runGeminiTriage(item);
+
+      if (item.source === "wazuh") {
+        await logWazuhLifecycle(adminClient, "decision", item, { decision });
+      }
+
       const reviewedAt = new Date().toISOString();
 
       if (decision.decision === "CLOSE") {
@@ -410,9 +554,16 @@ async function processBatch(request: NextRequest) {
           );
         }
 
+        if (item.source === "wazuh") {
+          await logWazuhLifecycle(adminClient, "action_taken", item, {
+            decision,
+            actionTaken: "CLOSE",
+          });
+        }
+
         closed += 1;
       } else {
-        await escalateScan(item, decision, baseUrl);
+        const escalationResult = await escalateScan(item, decision, baseUrl);
 
         const updateQuery =
           item.source === "wazuh"
@@ -441,6 +592,14 @@ async function processBatch(request: NextRequest) {
           );
         }
 
+        if (item.source === "wazuh") {
+          await logWazuhLifecycle(adminClient, "action_taken", item, {
+            decision,
+            actionTaken: "ESCALATE",
+            escalationId: escalationResult.escalationId,
+          });
+        }
+
         escalated += 1;
       }
 
@@ -455,6 +614,15 @@ async function processBatch(request: NextRequest) {
       });
     } catch (error) {
       errors += 1;
+
+      if (item.source === "wazuh") {
+        await logWazuhLifecycle(adminClient, "action_taken", item, {
+          decision: decision || undefined,
+          actionTaken: "ERROR",
+          error,
+        });
+      }
+
       console.error("[L1 triage] Failed to process record", {
         source: item.source,
         record_id: item.id,
@@ -485,12 +653,14 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const authorized = await hasPrivilegedRole();
-  if (!authorized) {
-    return NextResponse.json(
-      { success: false, error: "Forbidden: insufficient privileges" },
-      { status: 403 },
-    );
+  if (!isInternalAgentAuthorized(request)) {
+    const authorized = await hasPrivilegedRole();
+    if (!authorized) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden: insufficient privileges" },
+        { status: 403 },
+      );
+    }
   }
 
   return processBatch(request);

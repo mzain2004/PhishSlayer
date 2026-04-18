@@ -134,6 +134,33 @@ function mapRuleLevelToSeverity(
   return "low";
 }
 
+async function writeAuditLogSafe(
+  action: string,
+  severity: "low" | "medium" | "high" | "critical",
+  metadata: Record<string, unknown>,
+) {
+  try {
+    const { error } = await getAdminClient().from("audit_logs").insert({
+      action,
+      severity,
+      metadata,
+      created_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      console.error("[wazuh webhook] Failed to write audit log", {
+        action,
+        details: error.message,
+      });
+    }
+  } catch (error) {
+    console.error("[wazuh webhook] Unexpected audit log failure", {
+      action,
+      error,
+    });
+  }
+}
+
 function buildAlertSummary(alert: WazuhAlert): string {
   const details = [
     `rule=${alert.rule?.description || "unknown"}`,
@@ -278,7 +305,39 @@ export async function POST(request: NextRequest) {
     };
 
     const ruleLevel = normalizedAlert.rule?.level ?? null;
+    const severity = mapRuleLevelToSeverity(ruleLevel);
+
+    await writeAuditLogSafe("WAZUH_ALERT_RECEIVED", severity, {
+      source: "wazuh",
+      external_alert_id: toText(normalizedAlert.id),
+      rule_id: toText(normalizedAlert.rule?.id),
+      rule_level: ruleLevel,
+      rule_description: normalizedAlert.rule?.description || null,
+      agent_name: normalizedAlert.agent?.name || null,
+      src_ip: normalizedAlert.data?.srcip || null,
+      dst_ip: normalizedAlert.data?.dstip || null,
+    });
+
     if ((ruleLevel ?? 0) < 7) {
+      await writeAuditLogSafe("WAZUH_ALERT_PROCESSED", severity, {
+        source: "wazuh",
+        processing_mode: "prefilter",
+        external_alert_id: toText(normalizedAlert.id),
+        rule_level: ruleLevel,
+      });
+      await writeAuditLogSafe("WAZUH_ALERT_DECISION", severity, {
+        source: "wazuh",
+        external_alert_id: toText(normalizedAlert.id),
+        decision: "CLOSE",
+        confidence: 1,
+        reasoning: "Alert rule level is below triage threshold (rule_level < 7).",
+      });
+      await writeAuditLogSafe("WAZUH_ALERT_ACTION_TAKEN", severity, {
+        source: "wazuh",
+        external_alert_id: toText(normalizedAlert.id),
+        action_taken: "IGNORED_BELOW_THRESHOLD",
+      });
+
       return NextResponse.json({
         received: true,
         level: ruleLevel,
@@ -298,9 +357,32 @@ export async function POST(request: NextRequest) {
       console.error("[wazuh webhook] Failed to insert alert", error);
     }
 
+    await writeAuditLogSafe("WAZUH_ALERT_PROCESSED", severity, {
+      source: "wazuh",
+      processing_mode: "l1_queue",
+      external_alert_id: toText(normalizedAlert.id),
+      internal_alert_id: insertedAlertId,
+      queued,
+    });
+
     if (queued) {
       const baseUrl = process.env.INTERNAL_API_URL ?? request.nextUrl.origin;
       triggerCtemExposure(baseUrl, normalizedAlert, insertedAlertId);
+    } else {
+      await writeAuditLogSafe("WAZUH_ALERT_DECISION", severity, {
+        source: "wazuh",
+        external_alert_id: toText(normalizedAlert.id),
+        internal_alert_id: insertedAlertId,
+        decision: "ESCALATE",
+        confidence: 0,
+        reasoning: "Failed to queue alert for L1 triage.",
+      });
+      await writeAuditLogSafe("WAZUH_ALERT_ACTION_TAKEN", severity, {
+        source: "wazuh",
+        external_alert_id: toText(normalizedAlert.id),
+        internal_alert_id: insertedAlertId,
+        action_taken: "QUEUE_FAILED",
+      });
     }
 
     if ((ruleLevel ?? 0) >= 12) {

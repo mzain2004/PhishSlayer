@@ -47,8 +47,9 @@ export async function GET(request: NextRequest) {
   }
 
   const startedAt = Date.now();
+  const internalBaseUrl = process.env.INTERNAL_API_URL ?? request.nextUrl.origin;
   const response = await fetch(
-    `${process.env.INTERNAL_API_URL}/api/agent/triage`,
+    `${internalBaseUrl}/api/agent/triage`,
     {
       method: "GET",
       headers: {
@@ -93,6 +94,9 @@ export async function GET(request: NextRequest) {
               full_log: payload,
             }),
           },
+        ],
+        actions_taken: [
+          result.decision === "CLOSE" ? "CLOSE" : "ESCALATE_TO_HUMAN",
         ],
         model_used: "gemini-2.5-flash",
         execution_time_ms: executionTimeMs,

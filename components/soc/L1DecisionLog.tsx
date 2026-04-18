@@ -5,11 +5,11 @@ import { createClient } from "@/lib/supabase/client";
 
 type DecisionAuditRow = {
   id: string;
-  action: "L1_AUTO_CLOSED" | "ALERT_ESCALATED";
-  metadata: {
-    reasoning?: string;
-    confidence?: number;
-  } | null;
+  agent_level: "L1";
+  decision: string;
+  reasoning_text: string;
+  confidence_score: number | null;
+  actions_taken: unknown;
   created_at: string;
 };
 
@@ -36,9 +36,11 @@ export default function L1DecisionLog() {
       try {
         const supabase = createClient();
         const { data, error } = await supabase
-          .from("audit_logs")
-          .select("id, action, metadata, created_at")
-          .in("action", ["L1_AUTO_CLOSED", "ALERT_ESCALATED"])
+          .from("agent_reasoning")
+          .select(
+            "id, agent_level, decision, reasoning_text, confidence_score, actions_taken, created_at",
+          )
+          .eq("agent_level", "L1")
           .order("created_at", { ascending: false })
           .limit(20);
 
@@ -66,11 +68,14 @@ export default function L1DecisionLog() {
           <p className="text-sm text-white/50">No autonomous decisions yet.</p>
         ) : (
           rows.map((row) => {
-            const escalated = row.action === "ALERT_ESCALATED";
+            const escalated = row.decision.toUpperCase() === "ESCALATE";
             const confidence =
-              typeof row.metadata?.confidence === "number"
-                ? `${Math.round(row.metadata.confidence * 100)}% confidence`
+              typeof row.confidence_score === "number"
+                ? `${Math.round(row.confidence_score * 100)}% confidence`
                 : "confidence unavailable";
+            const actionTaken = Array.isArray(row.actions_taken)
+              ? String(row.actions_taken[0] || "UNKNOWN")
+              : "UNKNOWN";
 
             return (
               <div
@@ -93,9 +98,11 @@ export default function L1DecisionLog() {
                 </div>
 
                 <p className="text-sm text-white/80 mt-2">
-                  {row.metadata?.reasoning || "No reasoning captured."}
+                  {row.reasoning_text || "No reasoning captured."}
                 </p>
-                <p className="text-xs text-white/60 mt-1">{confidence}</p>
+                <p className="text-xs text-white/60 mt-1">
+                  {confidence} • action: {actionTaken}
+                </p>
               </div>
             );
           })

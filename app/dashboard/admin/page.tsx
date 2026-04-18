@@ -5,17 +5,15 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   Users,
-  ShieldAlert,
   Loader2,
   Lock,
   UserPlus,
-  MoreVertical,
   CheckCircle2,
   XCircle,
   Plus,
 } from "lucide-react";
 import { useRole } from "@/lib/rbac/useRole";
-import { ROLE_COLORS, ROLE_LABELS, type UserRole } from "@/lib/rbac/roles";
+import { type UserRole } from "@/lib/rbac/roles";
 import {
   getOrgUsers,
   updateUserRole,
@@ -23,6 +21,8 @@ import {
   inviteOrgUser,
 } from "@/lib/supabase/actions";
 import PhishButton from "@/components/ui/PhishButton";
+import DashboardCard from "@/components/dashboard/DashboardCard";
+import StatusBadge from "@/components/dashboard/StatusBadge";
 
 type OrgUser = {
   id: string;
@@ -161,12 +161,12 @@ export default function UserManagementPage() {
   };
 
   return (
-    <div className="text-white font-sans min-h-screen flex flex-col w-full">
-      <main data-stagger-container className="flex-1 px-4 sm:px-8 py-8 w-full max-w-7xl mx-auto">
+    <div className="text-white font-sans flex flex-col w-full">
+      <main data-stagger-container className="flex-1 w-full max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+            <h1 className="dashboard-page-title text-white tracking-tight flex items-center gap-3">
               <Users className="w-7 h-7 text-teal-400" />
               User Management
             </h1>
@@ -185,173 +185,172 @@ export default function UserManagementPage() {
 
         {/* KPI Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <motion.div
-            {...cardHover}
-            className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
-          >
-            <p className="text-sm font-medium text-[#8B949E]">Total Users</p>
-            <p className="text-3xl font-bold text-white mt-1">{users.length}</p>
+          <motion.div {...cardHover} className="h-full">
+            <DashboardCard className="h-full p-5">
+              <p className="dashboard-card-label">Total Users</p>
+              <p className="dashboard-metric-value mt-1 text-white">
+                {users.length}
+              </p>
+            </DashboardCard>
           </motion.div>
-          <motion.div
-            {...cardHover}
-            className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
-          >
-            <p className="text-sm font-medium text-[#8B949E]">
-              Active Analysts
-            </p>
-            <p className="text-3xl font-bold text-teal-400 mt-1">
-              {activeAnalysts}
-            </p>
+          <motion.div {...cardHover} className="h-full">
+            <DashboardCard className="h-full p-5">
+              <p className="dashboard-card-label">Active Analysts</p>
+              <p className="dashboard-metric-value mt-1 text-teal-400">
+                {activeAnalysts}
+              </p>
+            </DashboardCard>
           </motion.div>
-          <motion.div
-            {...cardHover}
-            className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
-          >
-            <p className="text-sm font-medium text-[#8B949E]">Managers</p>
-            <p className="text-3xl font-bold text-indigo-400 mt-1">
-              {managers}
-            </p>
+          <motion.div {...cardHover} className="h-full">
+            <DashboardCard className="h-full p-5">
+              <p className="dashboard-card-label">Managers</p>
+              <p className="dashboard-metric-value mt-1 text-indigo-400">
+                {managers}
+              </p>
+            </DashboardCard>
           </motion.div>
-          <motion.div
-            {...cardHover}
-            className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-5"
-          >
-            <p className="text-sm font-medium text-[#8B949E]">Exec Viewers</p>
-            <p className="text-3xl font-bold text-slate-300 mt-1">{viewers}</p>
+          <motion.div {...cardHover} className="h-full">
+            <DashboardCard className="h-full p-5">
+              <p className="dashboard-card-label">Exec Viewers</p>
+              <p className="dashboard-metric-value mt-1 text-slate-300">
+                {viewers}
+              </p>
+            </DashboardCard>
           </motion.div>
         </div>
 
         {/* Users Table */}
-        <motion.div
-          {...cardHover}
-          className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl overflow-hidden"
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-[rgba(23,28,35,0.85)] border-b border-white/10">
-                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
-                    Department
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
-                    Last Active
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider text-right">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {users.map((u) => (
-                  <tr
-                    key={u.id}
-                    className={`hover:bg-white/10 transition-colors ${!u.is_active ? "opacity-60 grayscale" : ""}`}
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-[rgba(48,54,61,0.9)]">
-                          {u.avatar_url ? (
-                            <div
-                              className="w-full h-full rounded-full bg-cover bg-center"
-                              style={{
-                                backgroundImage: `url('${u.avatar_url}')`,
-                              }}
-                            />
-                          ) : (
-                            <span className="font-bold text-[#8B949E] text-sm">
-                              {u.display_name
-                                ? u.display_name.charAt(0).toUpperCase()
-                                : "?"}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-white">
-                            {u.display_name || "Unknown"}
-                          </p>
-                          <p className="text-xs text-[#8B949E]">
-                            {u.id.substring(0, 8)}...
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <select
-                        value={u.role}
-                        onChange={(e) =>
-                          handleRoleChange(u.id, e.target.value as UserRole)
-                        }
-                        disabled={isPending}
-                        className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md outline-none cursor-pointer border appearance-none pr-6 bg-transparent ${DARK_ROLE_COLORS[u.role]}`}
-                        style={{
-                          backgroundPosition: "right 0.25rem center",
-                          backgroundSize: "1em",
-                          backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                        }}
-                      >
-                        <option value="super_admin">Super Admin</option>
-                        <option value="manager">SOC Manager</option>
-                        <option value="analyst">SOC Analyst</option>
-                        <option value="viewer">Executive Viewer</option>
-                      </select>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-300">
-                        {u.department || "—"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {u.is_active ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8B949E] bg-white/10 border border-[rgba(48,54,61,0.9)] px-2.5 py-0.5 rounded-full">
-                          <XCircle className="w-3.5 h-3.5" /> Inactive
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-[#8B949E]">
-                        {u.last_active
-                          ? new Date(u.last_active).toLocaleDateString()
-                          : "Never"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <PhishButton
-                        onClick={() => handleToggleStatus(u.id, u.is_active)}
-                        disabled={isPending}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${
-                          u.is_active
-                            ? "bg-transparent border-red-500/30 text-red-400 hover:bg-red-500/10"
-                            : "bg-transparent border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
-                        }`}
-                      >
-                        {u.is_active ? "Deactivate" : "Activate"}
-                      </PhishButton>
-                    </td>
+        <motion.div {...cardHover} className="h-full">
+          <DashboardCard className="h-full overflow-hidden p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-white/5 border-b border-white/10">
+                    <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
+                      User
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
+                      Department
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider">
+                      Last Active
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-[#8B949E] uppercase tracking-wider text-right">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {users.map((u) => (
+                    <tr
+                      key={u.id}
+                      className={`hover:bg-white/10 transition-colors ${!u.is_active ? "opacity-60 grayscale" : ""}`}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                            {u.avatar_url ? (
+                              <div
+                                className="w-full h-full rounded-full bg-cover bg-center"
+                                style={{
+                                  backgroundImage: `url('${u.avatar_url}')`,
+                                }}
+                              />
+                            ) : (
+                              <span className="font-bold text-[#8B949E] text-sm">
+                                {u.display_name
+                                  ? u.display_name.charAt(0).toUpperCase()
+                                  : "?"}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-white">
+                              {u.display_name || "Unknown"}
+                            </p>
+                            <p className="text-xs text-[#8B949E]">
+                              {u.id.substring(0, 8)}...
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <select
+                          value={u.role}
+                          onChange={(e) =>
+                            handleRoleChange(u.id, e.target.value as UserRole)
+                          }
+                          disabled={isPending}
+                          className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md outline-none cursor-pointer border appearance-none pr-6 bg-transparent ${DARK_ROLE_COLORS[u.role]}`}
+                          style={{
+                            backgroundPosition: "right 0.25rem center",
+                            backgroundSize: "1em",
+                            backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                          }}
+                        >
+                          <option value="super_admin">Super Admin</option>
+                          <option value="manager">SOC Manager</option>
+                          <option value="analyst">SOC Analyst</option>
+                          <option value="viewer">Executive Viewer</option>
+                        </select>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-slate-300">
+                          {u.department || "—"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {u.is_active ? (
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            <StatusBadge status="healthy" label="Active" />
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <XCircle className="w-3.5 h-3.5 text-[#8B949E]" />
+                            <StatusBadge status="pending" label="Inactive" />
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-[#8B949E]">
+                          {u.last_active
+                            ? new Date(u.last_active).toLocaleDateString()
+                            : "Never"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <PhishButton
+                          onClick={() => handleToggleStatus(u.id, u.is_active)}
+                          disabled={isPending}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${
+                            u.is_active
+                              ? "bg-transparent border-red-500/30 text-red-400 hover:bg-red-500/10"
+                              : "bg-transparent border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                          }`}
+                        >
+                          {u.is_active ? "Deactivate" : "Activate"}
+                        </PhishButton>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </DashboardCard>
         </motion.div>
       </main>
 
       {/* Invite Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[rgba(23,28,35,0.85)] rounded-2xl border border-[rgba(48,54,61,0.9)] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white/5 rounded-2xl border border-white/10 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-teal-400" />
@@ -374,7 +373,7 @@ export default function UserManagementPage() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="colleague@company.com"
-                  className="w-full px-3 py-2 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
                 />
               </div>
               <div>
@@ -384,7 +383,7 @@ export default function UserManagementPage() {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as UserRole)}
-                  className="w-full px-3 py-2 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all appearance-none outline-none"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500 transition-all appearance-none outline-none"
                 >
                   <option value="super_admin">Super Admin</option>
                   <option value="manager">SOC Manager</option>
@@ -393,7 +392,7 @@ export default function UserManagementPage() {
                 </select>
               </div>
             </div>
-            <div className="p-6 bg-[rgba(23,28,35,0.85)] border-t border-white/10 flex justify-end gap-3">
+            <div className="p-6 bg-white/5 border-t border-white/10 flex justify-end gap-3">
               <PhishButton
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 text-sm font-semibold text-[#8B949E] hover:text-white transition-colors"
@@ -403,7 +402,7 @@ export default function UserManagementPage() {
               <PhishButton
                 onClick={handleInvite}
                 disabled={isPending || !inviteEmail}
-                className="rounded-full flex items-center gap-2 px-5 py-2 bg-teal-500 hover:bg-teal-400 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-teal-500 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-teal-400 disabled:opacity-50"
               >
                 {isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -419,3 +418,4 @@ export default function UserManagementPage() {
     </div>
   );
 }
+

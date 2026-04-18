@@ -12,6 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
+import DashboardCard from "@/components/dashboard/DashboardCard";
 
 type TelemetryPoint = {
   slot: string;
@@ -83,30 +84,30 @@ export default function NetworkTelemetryChart() {
 
   if (loading) {
     return (
-      <div className="h-64 rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-4 py-8 text-sm text-white/60">
+      <DashboardCard className="h-64 bg-black/20 px-4 py-8 text-sm text-white/60">
         Loading telemetry...
-      </div>
+      </DashboardCard>
     );
   }
 
   if (errorText) {
     return (
-      <div className="h-64 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-8 text-sm text-red-200">
+      <DashboardCard className="h-64 border-red-400/40 bg-red-500/10 px-4 py-8 text-sm text-red-200">
         {errorText}
-      </div>
+      </DashboardCard>
     );
   }
 
   if (!hasData) {
     return (
-      <div className="h-64 rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-4 py-8 text-sm text-white/60 flex items-center justify-center">
+      <DashboardCard className="flex h-64 items-center justify-center bg-black/20 px-4 py-8 text-sm text-white/60">
         No telemetry data yet
-      </div>
+      </DashboardCard>
     );
   }
 
   return (
-    <div className="h-64 rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 p-2">
+    <DashboardCard className="h-64 bg-black/20 p-2">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={points}
@@ -154,6 +155,6 @@ export default function NetworkTelemetryChart() {
           />
         </LineChart>
       </ResponsiveContainer>
-    </div>
+    </DashboardCard>
   );
 }

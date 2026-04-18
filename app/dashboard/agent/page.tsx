@@ -33,6 +33,7 @@ import {
 import { blockIp } from "@/lib/supabase/actions";
 import type { EndpointEvent, EndpointStats } from "@/lib/supabase/agentQueries";
 import PhishButton from "@/components/ui/PhishButton";
+import StatusBadge from "@/components/dashboard/StatusBadge";
 
 const ROWS_PER_PAGE = 20;
 const BAR_COLORS = ["#0d9488", "#0ea5e9", "#f97316", "#ef4444", "#8b5cf6"];
@@ -55,14 +56,11 @@ function countryFlag(code: string | null): string {
   );
 }
 
-function threatBadge(level: string) {
+function threatLevelStatus(level: string) {
   const l = level.toLowerCase();
-  if (l === "critical") return "bg-red-500/10 text-red-500 border-red-500/20";
-  if (l === "high")
-    return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-  if (l === "medium")
-    return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-  return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+  if (l === "critical" || l === "high") return "critical";
+  if (l === "medium") return "warning";
+  return "healthy";
 }
 
 export default function AgentDashboardPage() {
@@ -211,7 +209,7 @@ export default function AgentDashboardPage() {
 
   return (
     <div className="text-white font-sans min-h-screen flex flex-col w-full">
-      <main data-stagger-container className="flex-1 px-4 sm:px-8 py-8 w-full max-w-7xl mx-auto">
+      <main data-stagger-container className="flex-1 w-full max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 text-sm text-[#8B949E] mb-4">
@@ -227,7 +225,7 @@ export default function AgentDashboardPage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold text-white tracking-tight">
+                <h1 className="dashboard-page-title text-white tracking-tight">
                   Endpoint Agent
                 </h1>
                 {stats && stats.total > 0 && (
@@ -261,7 +259,7 @@ export default function AgentDashboardPage() {
                 onClick={handleRefresh}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="rounded-full flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
+                className="flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
               >
                 <RefreshCw
                   className={`w-4 h-4 ${!loaded ? "animate-spin" : ""}`}
@@ -272,7 +270,7 @@ export default function AgentDashboardPage() {
                 onClick={exportCsv}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="rounded-full flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
+                className="flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2.5 text-sm font-semibold text-[#E6EDF3]"
               >
                 <Download className="w-4 h-4" />
                 Export CSV
@@ -291,7 +289,7 @@ export default function AgentDashboardPage() {
               <p className="text-sm font-medium text-[#8B949E]">Total Events</p>
               <Shield className="text-teal-400 w-5 h-5" />
             </div>
-            <p className="text-3xl font-bold text-white mt-2">
+            <p className="dashboard-metric-value mt-2 text-white">
               {stats?.total ?? 0}
             </p>
           </motion.div>
@@ -305,7 +303,7 @@ export default function AgentDashboardPage() {
               </p>
               <AlertTriangle className="text-red-400 w-5 h-5" />
             </div>
-            <p className="text-3xl font-bold text-red-500 mt-2">
+            <p className="dashboard-metric-value mt-2 text-red-500">
               {(stats?.critical ?? 0) + (stats?.high ?? 0)}
             </p>
           </motion.div>
@@ -317,7 +315,7 @@ export default function AgentDashboardPage() {
               <p className="text-sm font-medium text-[#8B949E]">Unique IPs</p>
               <Globe className="text-blue-400 w-5 h-5" />
             </div>
-            <p className="text-3xl font-bold text-white mt-2">
+            <p className="dashboard-metric-value mt-2 text-white">
               {stats?.uniqueIps ?? 0}
             </p>
           </motion.div>
@@ -331,7 +329,7 @@ export default function AgentDashboardPage() {
               </p>
               <Activity className="text-orange-400 w-5 h-5" />
             </div>
-            <p className="text-3xl font-bold text-white mt-2">
+            <p className="dashboard-metric-value mt-2 text-white">
               {stats?.topProcesses?.length ?? 0}
             </p>
           </motion.div>
@@ -525,11 +523,10 @@ export default function AgentDashboardPage() {
                         {e.isp || "—"}
                       </td>
                       <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${threatBadge(e.threat_level)}`}
-                        >
-                          {e.threat_level}
-                        </span>
+                        <StatusBadge
+                          status={threatLevelStatus(e.threat_level)}
+                          label={e.threat_level}
+                        />
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">

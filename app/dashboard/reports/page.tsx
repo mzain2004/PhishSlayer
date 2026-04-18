@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { FileText, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import PhishButton from "@/components/ui/PhishButton";
+import DashboardCard from "@/components/dashboard/DashboardCard";
 
 export default function ReportsPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -55,9 +56,9 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-6 py-8 text-white">
+    <div className="w-full max-w-6xl mx-auto text-white">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+        <h1 className="dashboard-page-title tracking-tight flex items-center gap-3">
           <FileText className="w-7 h-7 text-[#2DD4BF]" />
           Reports
         </h1>
@@ -72,33 +73,35 @@ export default function ReportsPage() {
           boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
         }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] backdrop-blur-sm p-6"
+        className="h-full"
       >
-        <h2 className="text-lg font-semibold text-[#E6EDF3] mb-2">
-          Executive PDF Export
-        </h2>
-        <p className="text-sm text-[#8B949E] mb-6">
-          Export a clean summary report. For full deep-dive scan reports, use
-          the Threat Intelligence module.
-        </p>
+        <DashboardCard className="h-full">
+          <h2 className="dashboard-section-heading mb-2 text-[#E6EDF3]">
+            Executive PDF Export
+          </h2>
+          <p className="mb-6 text-sm text-[#8B949E]">
+            Export a clean summary report. For full deep-dive scan reports, use
+            the Threat Intelligence module.
+          </p>
 
-        <PhishButton
-          onClick={exportExecutivePdf}
-          disabled={isExporting}
-          whileHover={{
-            scale: 1.03,
-            boxShadow: "0 0 24px rgba(45,212,191,0.35)",
-          }}
-          whileTap={{ scale: 0.97 }}
-          className="rounded-full inline-flex items-center gap-2 rounded-full px-6 py-3 font-bold text-black [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-60"
-        >
-          {isExporting ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Download className="w-4 h-4" />
-          )}
-          {isExporting ? "Generating..." : "Export PDF"}
-        </PhishButton>
+          <PhishButton
+            onClick={exportExecutivePdf}
+            disabled={isExporting}
+            whileHover={{
+              scale: 1.03,
+              boxShadow: "0 0 24px rgba(45,212,191,0.35)",
+            }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex items-center gap-2 rounded-full px-6 py-3 font-bold text-black [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-60"
+          >
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            {isExporting ? "Generating..." : "Export PDF"}
+          </PhishButton>
+        </DashboardCard>
       </motion.div>
     </div>
   );

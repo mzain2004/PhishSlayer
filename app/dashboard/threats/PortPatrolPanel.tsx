@@ -238,7 +238,7 @@ export default function PortPatrolPanel({
 
       {/* Info cards grid */}
       <div className="grid grid-cols-4 gap-3">
-        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-white/5 p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <Globe className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -249,7 +249,7 @@ export default function PortPatrolPanel({
             {report.resolvedIp}
           </p>
         </div>
-        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-white/5 p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <Timer className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -260,7 +260,7 @@ export default function PortPatrolPanel({
             {(report.scanDurationMs / 1000).toFixed(1)}s
           </p>
         </div>
-        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-white/5 p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <Wifi className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -271,7 +271,7 @@ export default function PortPatrolPanel({
             {report.openPorts.length}
           </p>
         </div>
-        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-3">
+        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-white/5 p-3">
           <div className="flex items-center gap-1.5 mb-1">
             <ShieldAlert className="w-3.5 h-3.5 text-[#8B949E]" />
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
@@ -291,7 +291,7 @@ export default function PortPatrolPanel({
         <div className="rounded-xl border border-[rgba(48,54,61,0.9)] overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[rgba(23,28,35,0.85)] border-b border-white/10">
+              <tr className="bg-white/5 border-b border-white/10">
                 <th className="text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
                   Port
                 </th>
@@ -343,7 +343,7 @@ export default function PortPatrolPanel({
       )}
 
       {/* Summary */}
-      <div className="rounded-xl bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] p-4">
+      <div className="rounded-xl bg-white/5 border border-[rgba(48,54,61,0.9)] p-4">
         <p className="text-sm text-slate-300">{report.riskSummary}</p>
         <p className="text-[10px] text-[#8B949E] mt-2">
           Scanned at: {new Date(report.scannedAt).toLocaleString()}
@@ -352,3 +352,4 @@ export default function PortPatrolPanel({
     </div>
   );
 }
+

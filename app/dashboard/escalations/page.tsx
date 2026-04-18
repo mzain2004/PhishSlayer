@@ -2,9 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import DashboardCard from "@/components/dashboard/DashboardCard";
+import StatusBadge from "@/components/dashboard/StatusBadge";
 
 type EscalationStatus =
   | "pending"
+  | "awaiting_human"
+  | "auto_resolved"
   | "l2_pending_approval"
   | "l2_auto_resolved"
   | "approved"
@@ -29,30 +33,24 @@ type EscalationRow = {
 type StatusFilter = "all" | "pending" | "approved" | "dismissed";
 type SeverityFilter = "all" | "critical" | "high" | "medium" | "low";
 
-function getSeverityClasses(severity: EscalationSeverity): string {
+function severityToBadgeStatus(severity: EscalationSeverity) {
   const key = severity.toLowerCase();
-  if (key === "critical") return "bg-red-500/20 text-red-200 border-red-400/40";
-  if (key === "high")
-    return "bg-orange-500/20 text-orange-200 border-orange-400/40";
-  if (key === "medium")
-    return "bg-yellow-500/20 text-yellow-200 border-yellow-400/40";
-  return "bg-emerald-500/20 text-emerald-200 border-emerald-400/40";
+  if (key === "critical" || key === "high") return "critical";
+  if (key === "medium") return "warning";
+  return "healthy";
 }
 
-function getStatusClasses(status: EscalationStatus): string {
+function escalationToBadgeStatus(status: EscalationStatus) {
   const key = status.toLowerCase();
-  if (key === "pending") return "bg-sky-500/20 text-sky-200 border-sky-400/40";
-  if (key === "l2_pending_approval") {
-    return "bg-purple-500/20 text-purple-200 border-purple-400/40";
-  }
-  if (key === "l2_auto_resolved") {
-    return "bg-emerald-500/20 text-emerald-200 border-emerald-400/40";
-  }
-  if (key === "dismissed")
-    return "bg-slate-500/20 text-slate-200 border-slate-400/40";
-  if (key === "approved")
-    return "bg-cyan-500/20 text-cyan-200 border-cyan-400/40";
-  return "bg-white/10 text-white border-white/20";
+  if (
+    key === "approved" ||
+    key === "l2_auto_resolved" ||
+    key === "auto_resolved"
+  )
+    return "healthy";
+  if (key === "dismissed") return "warning";
+  if (key === "escalated") return "escalated";
+  return "pending";
 }
 
 function relativeTime(iso: string): string {
@@ -115,9 +113,11 @@ export default function EscalationsDashboardPage() {
       const statusMatch =
         statusFilter === "all" ||
         (statusFilter === "pending" &&
-          (status === "pending" || status === "l2_pending_approval")) ||
+          ["pending", "l2_pending_approval", "awaiting_human"].includes(
+            status,
+          )) ||
         (statusFilter === "approved" &&
-          (status === "approved" || status === "l2_auto_resolved")) ||
+          ["approved", "l2_auto_resolved", "auto_resolved"].includes(status)) ||
         (statusFilter === "dismissed" && status === "dismissed");
 
       const severityMatch =
@@ -134,12 +134,12 @@ export default function EscalationsDashboardPage() {
 
   const summary = useMemo(() => {
     const total = rows.length;
-    const pending = rows.filter(
-      (row) => row.status === "pending" || row.status === "l2_pending_approval",
+    const pending = rows.filter((row) =>
+      ["pending", "l2_pending_approval", "awaiting_human"].includes(row.status),
     ).length;
     const critical = rows.filter((row) => row.severity === "critical").length;
-    const autoResolved = rows.filter(
-      (row) => row.status === "l2_auto_resolved",
+    const autoResolved = rows.filter((row) =>
+      ["l2_auto_resolved", "auto_resolved"].includes(row.status),
     ).length;
 
     return { total, pending, critical, autoResolved };
@@ -170,40 +170,34 @@ export default function EscalationsDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6 text-white">
-      <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl flex flex-col gap-4">
-        <h1 className="text-2xl font-bold">SOC Escalations</h1>
+      <DashboardCard className="flex flex-col gap-4">
+        <h2 className="dashboard-section-heading text-white">
+          SOC Escalations
+        </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
-              Total
-            </p>
-            <p className="text-lg font-semibold">{summary.total}</p>
-          </div>
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
-              Pending
-            </p>
-            <p className="text-lg font-semibold text-sky-300">
+          <DashboardCard className="bg-black/20 px-3 py-2">
+            <p className="dashboard-card-label">Total</p>
+            <p className="dashboard-metric-value">{summary.total}</p>
+          </DashboardCard>
+          <DashboardCard className="bg-black/20 px-3 py-2">
+            <p className="dashboard-card-label">Pending</p>
+            <p className="dashboard-metric-value text-sky-300">
               {summary.pending}
             </p>
-          </div>
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
-              Critical
-            </p>
-            <p className="text-lg font-semibold text-red-300">
+          </DashboardCard>
+          <DashboardCard className="bg-black/20 px-3 py-2">
+            <p className="dashboard-card-label">Critical</p>
+            <p className="dashboard-metric-value text-red-300">
               {summary.critical}
             </p>
-          </div>
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
-              L2 Auto-Resolved
-            </p>
-            <p className="text-lg font-semibold text-emerald-300">
+          </DashboardCard>
+          <DashboardCard className="bg-black/20 px-3 py-2">
+            <p className="dashboard-card-label">L2 Auto-Resolved</p>
+            <p className="dashboard-metric-value text-emerald-300">
               {summary.autoResolved}
             </p>
-          </div>
+          </DashboardCard>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -241,38 +235,36 @@ export default function EscalationsDashboardPage() {
             className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/30 px-3 py-2 text-sm"
           />
         </div>
-      </div>
+      </DashboardCard>
 
       {loading ? (
-        <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl text-white/70">
+        <DashboardCard className="text-white/70">
           Loading escalations...
-        </div>
+        </DashboardCard>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredRows.map((row) => {
-            const isActionable =
-              row.status === "pending" || row.status === "l2_pending_approval";
+            const isActionable = [
+              "pending",
+              "l2_pending_approval",
+              "awaiting_human",
+            ].includes(row.status);
 
             return (
-              <div
-                key={row.id}
-                className="p-5 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl flex flex-col gap-3"
-              >
+              <DashboardCard key={row.id} className="flex flex-col gap-3 p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <h2 className="text-lg font-semibold leading-tight">
+                  <h3 className="dashboard-section-heading leading-tight">
                     {row.title}
-                  </h2>
+                  </h3>
                   <div className="flex flex-col gap-2 items-end">
-                    <span
-                      className={`text-[10px] uppercase tracking-[0.14em] border rounded-full px-2 py-1 ${getSeverityClasses(row.severity)}`}
-                    >
-                      {row.severity}
-                    </span>
-                    <span
-                      className={`text-[10px] uppercase tracking-[0.14em] border rounded-full px-2 py-1 ${getStatusClasses(row.status)}`}
-                    >
-                      {row.status}
-                    </span>
+                    <StatusBadge
+                      status={severityToBadgeStatus(row.severity)}
+                      label={row.severity}
+                    />
+                    <StatusBadge
+                      status={escalationToBadgeStatus(row.status)}
+                      label={row.status}
+                    />
                   </div>
                 </div>
 
@@ -288,9 +280,10 @@ export default function EscalationsDashboardPage() {
                 </div>
 
                 {row.l2_function_called ? (
-                  <div className="w-fit text-xs font-mono text-cyan-200 border border-cyan-400/40 bg-cyan-500/10 rounded-full px-2 py-1">
-                    {row.l2_function_called}
-                  </div>
+                  <StatusBadge
+                    status="escalated"
+                    label={row.l2_function_called}
+                  />
                 ) : null}
 
                 {isActionable ? (
@@ -319,16 +312,16 @@ export default function EscalationsDashboardPage() {
                     </button>
                   </div>
                 ) : null}
-              </div>
+              </DashboardCard>
             );
           })}
         </div>
       )}
 
       {errorText ? (
-        <div className="p-4 rounded-xl border border-red-400/40 bg-red-500/10 text-red-200 text-sm">
+        <DashboardCard className="border-red-400/40 bg-red-500/10 p-4 text-sm text-red-200">
           {errorText}
-        </div>
+        </DashboardCard>
       ) : null}
     </div>
   );

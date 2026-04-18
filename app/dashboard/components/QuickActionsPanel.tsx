@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import PhishButton from "@/components/ui/PhishButton";
+import DashboardCard from "@/components/dashboard/DashboardCard";
+import StatusBadge from "@/components/dashboard/StatusBadge";
 
 export default function QuickActionsPanel() {
   const [diagnosticLoading, setDiagnosticLoading] = useState(false);
@@ -186,8 +188,10 @@ export default function QuickActionsPanel() {
   };
 
   return (
-    <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl flex flex-col gap-4">
-      <h2 className="text-xl font-bold text-white mb-2">Quick Actions</h2>
+    <DashboardCard className="flex flex-col gap-4">
+      <h2 className="dashboard-section-heading mb-2 text-white">
+        Quick Actions
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <PhishButton
           onClick={runSystemDiagnostic}
@@ -269,20 +273,16 @@ export default function QuickActionsPanel() {
 
       {diagnosticHealth && (
         <div className="mt-1">
-          <span
-            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${
-              diagnosticHealth === "healthy"
-                ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-300"
-                : "border-red-400/40 bg-red-500/15 text-red-300"
+          <StatusBadge
+            status={diagnosticHealth === "healthy" ? "healthy" : "warning"}
+            label={`${diagnosticHealth === "healthy" ? "Healthy" : "Degraded"}${
+              diagnosticDetails
+                ? ` | Up ${diagnosticDetails.uptime}s | ${new Date(
+                    diagnosticDetails.timestamp,
+                  ).toLocaleTimeString()}`
+                : ""
             }`}
-          >
-            {diagnosticHealth === "healthy" ? "Healthy" : "Degraded"}
-            {diagnosticDetails
-              ? ` | Up ${diagnosticDetails.uptime}s | ${new Date(
-                  diagnosticDetails.timestamp,
-                ).toLocaleTimeString()}`
-              : ""}
-          </span>
+          />
         </div>
       )}
 
@@ -590,6 +590,6 @@ export default function QuickActionsPanel() {
           </motion.div>
         </div>
       )}
-    </div>
+    </DashboardCard>
   );
 }

@@ -178,7 +178,7 @@ export default function UserProfilePage() {
         <PhishButton
           onClick={handleSave}
           disabled={isPending}
-          className="rounded-full px-6 py-2 bg-teal-500 hover:bg-teal-400 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-teal-500/10 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-teal-500 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-teal-500/10 transition-colors hover:bg-teal-400 disabled:opacity-50"
         >
           {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
           {isPending ? "Saving..." : "Save Changes"}
@@ -203,7 +203,7 @@ export default function UserProfilePage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-3xl font-bold text-teal-400">
+                    <span className="text-2xl font-bold text-teal-400">
                       {getInitials()}
                     </span>
                   )}

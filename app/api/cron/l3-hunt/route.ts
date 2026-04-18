@@ -382,9 +382,7 @@ type L3RunOptions = {
   } | null;
 };
 
-function parseL2Context(
-  value: unknown,
-): L3RunOptions["l2Context"] {
+function parseL2Context(value: unknown): L3RunOptions["l2Context"] {
   if (!value || typeof value !== "object") {
     return null;
   }

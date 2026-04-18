@@ -255,7 +255,9 @@ export async function GET() {
         }
       : null,
     success_rate_last_10:
-      lastTen.length > 0 ? Number((successCount / lastTen.length).toFixed(2)) : 0,
+      lastTen.length > 0
+        ? Number((successCount / lastTen.length).toFixed(2))
+        : 0,
     average_duration_ms:
       lastTen.length > 0 ? Math.round(durationSum / lastTen.length) : 0,
     sample_size: lastTen.length,

@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic";
 
 type AlertRow = {
   created_at: string | null;
-  severity: string | null;
+  severity?: string | null;
+  rule_level?: number | null;
 };
 
 type TelemetryPoint = {
@@ -35,11 +36,32 @@ export async function GET() {
     const now = new Date();
     const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    const { data, error } = await supabase
+    let useRuleLevelFallback = false;
+
+    const primary = await supabase
       .from("alerts")
       .select("created_at, severity")
       .gte("created_at", since.toISOString())
       .order("created_at", { ascending: true });
+
+    let data = (primary.data ?? null) as AlertRow[] | null;
+    let error = primary.error;
+
+    if (
+      error &&
+      /column\s+.*severity\s+does\s+not\s+exist/i.test(error.message)
+    ) {
+      useRuleLevelFallback = true;
+
+      const fallback = await supabase
+        .from("alerts")
+        .select("created_at, rule_level")
+        .gte("created_at", since.toISOString())
+        .order("created_at", { ascending: true });
+
+      data = (fallback.data ?? null) as AlertRow[] | null;
+      error = fallback.error;
+    }
 
     if (error) {
       return NextResponse.json(
@@ -80,7 +102,13 @@ export async function GET() {
       }
 
       existing.total += 1;
-      if ((row.severity ?? "").toLowerCase() === "critical") {
+      const isCriticalBySeverity =
+        typeof row.severity === "string" &&
+        row.severity.toLowerCase() === "critical";
+      const isCriticalByRuleLevel =
+        typeof row.rule_level === "number" && row.rule_level >= 14;
+
+      if (isCriticalBySeverity || isCriticalByRuleLevel) {
         existing.critical += 1;
       }
     }
@@ -95,6 +123,7 @@ export async function GET() {
       points,
       hasData,
       rangeHours: 24,
+      sourceField: useRuleLevelFallback ? "rule_level" : "severity",
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {

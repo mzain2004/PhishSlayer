@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import DashboardCard from "@/components/dashboard/DashboardCard";
+import StatusBadge from "@/components/dashboard/StatusBadge";
 
 type Props = {
   timeToContain: string;
@@ -25,55 +27,51 @@ export default function KpiCards({
 }: Props) {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      <motion.div
-        {...hoverProps}
-        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(48,54,61,0.9)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
-      >
-        <div className="flex items-start justify-between">
-          <span className="font-medium text-white/70">Time to Contain</span>
-        </div>
-        <div className="mt-2 text-3xl font-bold text-white">
-          {timeToContain}
-        </div>
+      <motion.div {...hoverProps} className="h-full">
+        <DashboardCard className="flex h-full flex-col gap-2">
+          <div className="flex items-start justify-between">
+            <span className="dashboard-card-label">Time to Contain</span>
+          </div>
+          <div className="dashboard-metric-value mt-2 text-white">
+            {timeToContain}
+          </div>
+        </DashboardCard>
       </motion.div>
 
-      <motion.div
-        {...hoverProps}
-        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(48,54,61,0.9)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
-      >
-        <div className="flex items-start justify-between">
-          <span className="font-medium text-white/70">Active Incidents</span>
-          <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-xs font-bold text-red-500">
-            {resolvedIncidents > 0 ? `-${resolvedIncidents}` : "+0"}
-          </span>
-        </div>
-        <div className="mt-2 text-3xl font-bold text-white">
-          {activeIncidents}
-        </div>
+      <motion.div {...hoverProps} className="h-full">
+        <DashboardCard className="flex h-full flex-col gap-2">
+          <div className="flex items-start justify-between">
+            <span className="dashboard-card-label">Active Incidents</span>
+            <StatusBadge
+              status={resolvedIncidents > 0 ? "warning" : "healthy"}
+              label={resolvedIncidents > 0 ? `-${resolvedIncidents}` : "+0"}
+            />
+          </div>
+          <div className="dashboard-metric-value mt-2 text-white">
+            {activeIncidents}
+          </div>
+        </DashboardCard>
       </motion.div>
 
-      <motion.div
-        {...hoverProps}
-        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(48,54,61,0.9)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
-      >
-        <div className="flex items-start justify-between">
-          <span className="font-medium text-white/70">API Latency</span>
-        </div>
-        <div className="mt-2 text-3xl font-bold text-white">14ms</div>
+      <motion.div {...hoverProps} className="h-full">
+        <DashboardCard className="flex h-full flex-col gap-2">
+          <div className="flex items-start justify-between">
+            <span className="dashboard-card-label">API Latency</span>
+          </div>
+          <div className="dashboard-metric-value mt-2 text-white">14ms</div>
+        </DashboardCard>
       </motion.div>
 
-      <motion.div
-        {...hoverProps}
-        className="flex flex-col gap-2 rounded-[12px] border border-[rgba(48,54,61,0.9)] [background:rgba(255,255,255,0.05)] p-6 backdrop-blur-[8px]"
-      >
-        <div className="flex items-start justify-between">
-          <span className="font-medium text-white/70">Global Risk Score</span>
-        </div>
-        <div className="mt-2 text-3xl font-bold text-[#2DD4BF]">
-          {formattedRiskScore}
-        </div>
+      <motion.div {...hoverProps} className="h-full">
+        <DashboardCard className="flex h-full flex-col gap-2">
+          <div className="flex items-start justify-between">
+            <span className="dashboard-card-label">Global Risk Score</span>
+          </div>
+          <div className="dashboard-metric-value mt-2 text-[#2DD4BF]">
+            {formattedRiskScore}
+          </div>
+        </DashboardCard>
       </motion.div>
     </div>
   );
 }
-

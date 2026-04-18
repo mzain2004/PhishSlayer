@@ -99,7 +99,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
       onClick={onClose}
     >
       <div
-        className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
+        className="bg-white/5 border border-[rgba(48,54,61,0.9)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -193,7 +193,7 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
         </div>
 
         {/* Action buttons */}
-        <div className="flex flex-wrap gap-2 p-5 border-t border-white/10 bg-[rgba(23,28,35,0.85)] rounded-b-2xl">
+        <div className="flex flex-wrap gap-2 p-5 border-t border-white/10 bg-white/5 rounded-b-2xl">
           <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
             onClick={handleCopy}
             className="rounded-full flex items-center gap-2 px-4 py-2.5 bg-indigo-500 text-white text-xs font-bold rounded-lg hover:bg-indigo-400 transition-colors"
@@ -259,3 +259,4 @@ Reported via Phish-Slayer Threat Intelligence Platform`;
     </div>
   );
 }
+

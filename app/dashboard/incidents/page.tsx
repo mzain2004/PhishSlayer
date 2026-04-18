@@ -31,6 +31,8 @@ import {
 import { useRole } from "@/lib/rbac/useRole";
 import { canAssignIncidents, isReadOnly } from "@/lib/rbac/roles";
 import PhishButton from "@/components/ui/PhishButton";
+import DashboardCard from "@/components/dashboard/DashboardCard";
+import StatusBadge from "@/components/dashboard/StatusBadge";
 
 type Incident = {
   id: string;
@@ -53,20 +55,18 @@ type OrgUser = {
   role: string;
 };
 
-function severityBadge(severity: string) {
+function severityTone(severity: string) {
   const s = severity?.toLowerCase() || "medium";
-  if (s === "critical") return "bg-red-500/10 text-red-400 border-red-500/20";
-  if (s === "high")
-    return "bg-orange-500/10 text-orange-400 border-orange-500/20";
-  if (s === "low") return "bg-slate-500/10 text-[#8B949E] border-slate-500/20";
-  return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+  if (s === "critical" || s === "high") return "critical";
+  if (s === "low") return "healthy";
+  return "warning";
 }
 
-function statusBadge(status: string) {
+function incidentStatusTone(status: string) {
   const s = status?.toLowerCase() || "";
-  if (s.includes("resolved"))
-    return "bg-green-500/10 text-green-400 border-green-500/20";
-  return "bg-teal-500/10 text-teal-400 border-teal-500/20";
+  if (s.includes("resolved") || s.includes("approved")) return "healthy";
+  if (s.includes("escalated")) return "escalated";
+  return "pending";
 }
 
 export default function IncidentReportsPage() {
@@ -354,8 +354,8 @@ export default function IncidentReportsPage() {
   ];
 
   return (
-    <div className="text-slate-100 font-sans min-h-screen flex w-full flex-col overflow-x-hidden">
-      <main data-stagger-container className="flex-1 px-4 sm:px-8 py-8 w-full max-w-7xl mx-auto">
+    <div className="text-slate-100 font-sans flex w-full flex-col overflow-x-hidden">
+      <main data-stagger-container className="flex-1 w-full max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 text-sm text-[#8B949E] mb-4">
@@ -371,7 +371,7 @@ export default function IncidentReportsPage() {
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">
+              <h1 className="dashboard-page-title text-white tracking-tight">
                 Incident Reports
               </h1>
               <p className="text-[#8B949E] font-medium mt-1">
@@ -411,7 +411,7 @@ export default function IncidentReportsPage() {
                 onClick={exportToExcel}
                 whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
                 whileTap={{ scale: 0.96 }}
-                className="rounded-full flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-sm font-semibold text-white [transition:all_0.2s_ease]"
+                className="flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-sm font-semibold text-white [transition:all_0.2s_ease]"
               >
                 <Download className="w-4 h-4" />
                 Export
@@ -452,17 +452,17 @@ export default function IncidentReportsPage() {
                   scale: 1.02,
                   boxShadow: "0 8px 32px rgba(45, 212, 191, 0.15)",
                 }}
-                className="flex flex-col gap-1 rounded-[12px] border border-[rgba(255,255,255,0.12)] [background:rgba(23,28,35,0.85)] p-5 backdrop-blur-[8px]"
+                className="h-full"
               >
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-[#8B949E]">
-                    {card.label}
+                <DashboardCard className="flex h-full flex-col gap-1 p-5">
+                  <div className="flex items-center justify-between">
+                    <p className="dashboard-card-label">{card.label}</p>
+                    <Icon className={`h-5 w-5 ${card.iconClass}`} />
+                  </div>
+                  <p className="dashboard-metric-value mt-2 text-white">
+                    {card.value}
                   </p>
-                  <Icon className={`h-5 w-5 ${card.iconClass}`} />
-                </div>
-                <p className="mt-2 text-3xl font-bold text-white">
-                  {card.value}
-                </p>
+                </DashboardCard>
               </motion.div>
             );
           })}
@@ -528,22 +528,16 @@ export default function IncidentReportsPage() {
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${severityBadge(
-                              incident.severity,
-                            )}`}
-                          >
-                            {incident.severity}
-                          </span>
+                          <StatusBadge
+                            status={severityTone(incident.severity)}
+                            label={incident.severity}
+                          />
                         </td>
                         <td className="px-6 py-4 hidden sm:table-cell">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusBadge(
-                              incident.status,
-                            )}`}
-                          >
-                            {incident.status}
-                          </span>
+                          <StatusBadge
+                            status={incidentStatusTone(incident.status)}
+                            label={incident.status}
+                          />
                         </td>
                         <td className="px-6 py-4 hidden lg:table-cell">
                           {canAssign ? (
@@ -786,7 +780,7 @@ export default function IncidentReportsPage() {
                       boxShadow: "0 0 20px rgba(45,212,191,0.4)",
                     }}
                     whileTap={{ scale: 0.96 }}
-                    className="rounded-full flex-1 rounded-full px-5 py-2 font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-50"
+                    className="flex-1 rounded-full px-5 py-2 font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-50"
                   >
                     {isPending ? (
                       <div className="flex items-center justify-center gap-2">

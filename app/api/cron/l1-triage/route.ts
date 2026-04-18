@@ -54,10 +54,10 @@ export async function GET(request: NextRequest) {
   const response = await fetch(
     `${internalBaseUrl}/api/agent/triage?alert_min_age_minutes=5&include_scans=true`,
     {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${process.env.CRON_SECRET}`,
-    },
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${process.env.CRON_SECRET}`,
+      },
     },
   );
 

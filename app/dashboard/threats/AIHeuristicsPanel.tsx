@@ -221,7 +221,7 @@ export default function AIHeuristicsPanel({
             <span className="text-lg">/100</span>
           </p>
         </div>
-        <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-4">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
             Confidence
           </p>
@@ -236,7 +236,7 @@ export default function AIHeuristicsPanel({
       </div>
 
       {/* Manipulation Tactics */}
-      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-4">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-2 mb-3">
           <Eye className="w-4 h-4 text-orange-400" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -262,7 +262,7 @@ export default function AIHeuristicsPanel({
       </div>
 
       {/* Credential Harvesting */}
-      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-4">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-2 mb-3">
           <Lock className="w-4 h-4 text-red-400" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -288,7 +288,7 @@ export default function AIHeuristicsPanel({
       </div>
 
       {/* Key Indicators */}
-      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-4">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-2 mb-3">
           <ShieldAlert className="w-4 h-4 text-[#8B949E]" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -315,7 +315,7 @@ export default function AIHeuristicsPanel({
       </div>
 
       {/* AI Summary */}
-      <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-4">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
         <h4 className="text-xs font-bold uppercase tracking-wider text-[#8B949E] mb-2">
           AI Threat Summary
         </h4>
@@ -329,3 +329,4 @@ export default function AIHeuristicsPanel({
     </div>
   );
 }
+

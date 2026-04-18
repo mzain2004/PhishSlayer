@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CreditCard, Loader2, Shield } from "lucide-react";
 import { toast } from "sonner";
+import DashboardCard from "@/components/dashboard/DashboardCard";
+import StatusBadge from "@/components/dashboard/StatusBadge";
 
 type BillingTier = "free" | "pro" | "enterprise";
 
@@ -63,7 +65,10 @@ export default function BillingPage() {
     setPortalLoading(true);
     try {
       const response = await fetch("/api/billing/portal", { method: "POST" });
-      const payload = (await response.json()) as { url?: string; error?: string };
+      const payload = (await response.json()) as {
+        url?: string;
+        error?: string;
+      };
 
       if (!response.ok || !payload.url) {
         throw new Error(payload.error || "Failed to open billing portal");
@@ -72,7 +77,9 @@ export default function BillingPage() {
       window.location.href = payload.url;
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to open billing portal",
+        error instanceof Error
+          ? error.message
+          : "Failed to open billing portal",
       );
     } finally {
       setPortalLoading(false);
@@ -88,11 +95,13 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-8 text-white">
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+    <div className="mx-auto w-full max-w-5xl text-white">
+      <DashboardCard>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">Billing</h1>
+            <h2 className="dashboard-section-heading text-white">
+              Billing Overview
+            </h2>
             <p className="mt-1 text-sm text-white/70">
               Manage your subscription and feature limits.
             </p>
@@ -123,51 +132,60 @@ export default function BillingPage() {
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-3">
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-wide text-white/50">Plan</p>
-            <p className="mt-1 text-lg font-semibold">{tierLabels[subscription.tier]}</p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-wide text-white/50">Status</p>
-            <p className="mt-1 text-lg font-semibold capitalize">{subscription.status}</p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-wide text-white/50">Renews</p>
-            <p className="mt-1 text-lg font-semibold">
+          <DashboardCard className="bg-black/20 p-4">
+            <p className="dashboard-card-label">Plan</p>
+            <p className="dashboard-metric-value mt-1">
+              {tierLabels[subscription.tier]}
+            </p>
+          </DashboardCard>
+          <DashboardCard className="bg-black/20 p-4">
+            <p className="dashboard-card-label">Status</p>
+            <div className="mt-2">
+              <StatusBadge
+                status={
+                  subscription.status === "active" ? "healthy" : "pending"
+                }
+                label={subscription.status}
+              />
+            </div>
+          </DashboardCard>
+          <DashboardCard className="bg-black/20 p-4">
+            <p className="dashboard-card-label">Renews</p>
+            <p className="dashboard-metric-value mt-1">
               {subscription.current_period_end
                 ? new Date(subscription.current_period_end).toLocaleDateString()
                 : "N/A"}
             </p>
-          </div>
+          </DashboardCard>
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-4">
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-wide text-white/50">Scans</p>
-            <p className="mt-1 text-lg font-semibold">
+          <DashboardCard className="bg-black/20 p-4">
+            <p className="dashboard-card-label">Scans</p>
+            <p className="dashboard-metric-value mt-1">
               {prettyLimit(subscription.features.scans)}
             </p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-wide text-white/50">Users</p>
-            <p className="mt-1 text-lg font-semibold">
+          </DashboardCard>
+          <DashboardCard className="bg-black/20 p-4">
+            <p className="dashboard-card-label">Users</p>
+            <p className="dashboard-metric-value mt-1">
               {prettyLimit(subscription.features.users)}
             </p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-wide text-white/50">Agents</p>
-            <p className="mt-1 text-lg font-semibold">
+          </DashboardCard>
+          <DashboardCard className="bg-black/20 p-4">
+            <p className="dashboard-card-label">Agents</p>
+            <p className="dashboard-metric-value mt-1">
               {prettyLimit(subscription.features.agents)}
             </p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-wide text-white/50">Organizations</p>
-            <p className="mt-1 text-lg font-semibold">
+          </DashboardCard>
+          <DashboardCard className="bg-black/20 p-4">
+            <p className="dashboard-card-label">Organizations</p>
+            <p className="dashboard-metric-value mt-1">
               {prettyLimit(subscription.features.orgs)}
             </p>
-          </div>
+          </DashboardCard>
         </div>
-      </div>
+      </DashboardCard>
     </div>
   );
 }

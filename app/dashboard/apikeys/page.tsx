@@ -21,6 +21,7 @@ import {
 import { useTier } from "@/hooks/useTier";
 import { UpgradeBanner } from "@/components/ui/UpgradeBanner";
 import PhishButton from "@/components/ui/PhishButton";
+import DashboardCard from "@/components/dashboard/DashboardCard";
 
 export default function ApiKeysPage() {
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -102,9 +103,9 @@ export default function ApiKeysPage() {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl mx-auto w-full flex flex-col min-h-screen font-sans">
+    <div className="max-w-5xl w-full flex flex-col font-sans">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
+        <h1 className="dashboard-page-title text-white tracking-tight flex items-center gap-3">
           <Key className="w-8 h-8 text-teal-600" />
           API Keys
         </h1>
@@ -113,149 +114,148 @@ export default function ApiKeysPage() {
         </p>
       </div>
 
-      <motion.div
-        {...cardHover}
-        className="bg-black rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.5)] border border-[rgba(48,54,61,0.9)] overflow-hidden mb-8"
-      >
-        <div className="p-6 border-b border-white/10 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-[#e6edf3]">
-            Production Key
-          </h3>
-          {!apiKey && (
-            <PhishButton
-              onClick={handleGenerate}
-              disabled={isPending}
-              className="rounded-full flex items-center gap-2 px-4 py-2 bg-[#2dd4bf] hover:bg-teal-400 text-black font-bold text-sm rounded-lg transition-colors disabled:opacity-50"
-            >
-              {isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <RefreshCw className="w-4 h-4" />
-              )}
-              Generate Key
-            </PhishButton>
-          )}
-        </div>
-
-        <div className="p-6 md:p-8">
-          {apiKey ? (
-            <div className="space-y-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-[#e6edf3]">
-                  Your API Secret Key
-                </label>
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <input
-                      type={showKey ? "text" : "password"}
-                      value={apiKey}
-                      readOnly
-                      className="w-full pl-4 pr-12 py-3 bg-black border border-[rgba(48,54,61,0.9)] rounded-lg text-teal-400 font-mono text-sm tracking-wider focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
-                    <PhishButton
-                      onClick={() => setShowKey(!showKey)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B949E] hover:text-slate-300"
-                      title={showKey ? "Hide key" : "Show key"}
-                    >
-                      {showKey ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </PhishButton>
-                  </div>
-                  <PhishButton
-                    onClick={handleCopy}
-                    className="rounded-full px-4 py-3 liquid-glass hover:bg-[#1c2128] text-[#e6edf3] font-semibold rounded-lg shadow-sm transition-colors flex justify-center items-center"
-                    title="Copy to clipboard"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </PhishButton>
-                </div>
-                <p className="text-xs text-amber-600 mt-2 bg-amber-50 px-3 py-2 rounded border border-amber-100 italic">
-                  Warning: Do not share this key or commit it to version
-                  control. It provides full access to your organization's data.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3 pt-4 border-t border-white/10">
-                <PhishButton
-                  onClick={handleGenerate}
-                  disabled={isPending}
-                  className="rounded-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-[#e6edf3] liquid-glass hover:bg-[#1c2128] rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="w-4 h-4" />
-                  )}
-                  Regenerate Key
-                </PhishButton>
-                <PhishButton
-                  onClick={handleRevoke}
-                  disabled={isPending}
-                  className="rounded-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Revoke Key
-                </PhishButton>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Key className="w-12 h-12 text-[#8B949E] mx-auto mb-3" />
-              <h4 className="text-lg font-bold text-[#e6edf3] mb-1">
-                No API Key Configured
-              </h4>
-              <p className="text-sm text-[#8B949E] mb-6 max-w-sm mx-auto">
-                Generate an API key to integrate Phish-Slayer scanning natively
-                into your CI/CD pipelines or SOAR playbook.
-              </p>
+      <motion.div {...cardHover} className="mb-8 h-full">
+        <DashboardCard className="overflow-hidden bg-black p-0">
+          <div className="flex items-center justify-between border-b border-white/10 p-6">
+            <h3 className="text-lg font-semibold text-[#e6edf3]">
+              Production Key
+            </h3>
+            {!apiKey && (
               <PhishButton
                 onClick={handleGenerate}
                 disabled={isPending}
-                className="rounded-full inline-flex items-center gap-2 px-6 py-2.5 bg-[#2dd4bf] hover:bg-teal-400 text-black font-bold text-sm rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-[#2dd4bf] px-4 py-2 text-sm font-bold text-black transition-colors hover:bg-teal-400 disabled:opacity-50"
               >
                 {isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <RefreshCw className="w-4 h-4" />
                 )}
-                Generate API Key
+                Generate Key
               </PhishButton>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+
+          <div className="p-6 md:p-8">
+            {apiKey ? (
+              <div className="space-y-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-[#e6edf3]">
+                    Your API Secret Key
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type={showKey ? "text" : "password"}
+                        value={apiKey}
+                        readOnly
+                        className="w-full pl-4 pr-12 py-3 bg-black border border-[rgba(48,54,61,0.9)] rounded-lg text-teal-400 font-mono text-sm tracking-wider focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                      <PhishButton
+                        onClick={() => setShowKey(!showKey)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B949E] hover:text-slate-300"
+                        title={showKey ? "Hide key" : "Show key"}
+                      >
+                        {showKey ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </PhishButton>
+                    </div>
+                    <PhishButton
+                      onClick={handleCopy}
+                      className="flex items-center justify-center rounded-lg px-4 py-3 font-semibold text-[#e6edf3] shadow-sm transition-colors liquid-glass hover:bg-[#1c2128]"
+                      title="Copy to clipboard"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </PhishButton>
+                  </div>
+                  <p className="text-xs text-amber-600 mt-2 bg-amber-50 px-3 py-2 rounded border border-amber-100 italic">
+                    Warning: Do not share this key or commit it to version
+                    control. It provides full access to your organization's
+                    data.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 pt-4 border-t border-white/10">
+                  <PhishButton
+                    onClick={handleGenerate}
+                    disabled={isPending}
+                    className="flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-[#e6edf3] transition-colors liquid-glass hover:bg-[#1c2128] disabled:opacity-50"
+                  >
+                    {isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                    Regenerate Key
+                  </PhishButton>
+                  <PhishButton
+                    onClick={handleRevoke}
+                    disabled={isPending}
+                    className="flex items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Revoke Key
+                  </PhishButton>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Key className="w-12 h-12 text-[#8B949E] mx-auto mb-3" />
+                <h4 className="text-lg font-bold text-[#e6edf3] mb-1">
+                  No API Key Configured
+                </h4>
+                <p className="text-sm text-[#8B949E] mb-6 max-w-sm mx-auto">
+                  Generate an API key to integrate Phish-Slayer scanning
+                  natively into your CI/CD pipelines or SOAR playbook.
+                </p>
+                <PhishButton
+                  onClick={handleGenerate}
+                  disabled={isPending}
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#2dd4bf] px-6 py-2.5 text-sm font-bold text-black transition-colors hover:bg-teal-400 disabled:opacity-50"
+                >
+                  {isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                  Generate API Key
+                </PhishButton>
+              </div>
+            )}
+          </div>
+        </DashboardCard>
       </motion.div>
 
-      <motion.div
-        {...cardHover}
-        className="bg-[rgba(23,28,35,0.85)] rounded-xl shadow-sm border border-[rgba(48,54,61,0.9)] overflow-hidden text-slate-300 p-6 md:p-8"
-      >
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Terminal className="w-5 h-5 text-teal-400" /> Usage Examples
-        </h3>
-        <p className="text-sm mb-6">
-          Use your API key as a Bearer token in the{" "}
-          <code className="bg-white/10 px-1 py-0.5 rounded text-white">
-            Authorization
-          </code>{" "}
-          header.
-        </p>
+      <motion.div {...cardHover} className="h-full">
+        <DashboardCard className="h-full text-slate-300 md:p-8">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-white">
+            <Terminal className="w-5 h-5 text-teal-400" /> Usage Examples
+          </h3>
+          <p className="mb-6 text-sm">
+            Use your API key as a Bearer token in the{" "}
+            <code className="rounded bg-white/10 px-1 py-0.5 text-white">
+              Authorization
+            </code>{" "}
+            header.
+          </p>
 
-        <div className="space-y-4">
-          <div>
-            <span className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-2 inline-block">
-              cURL Example
-            </span>
-            <code className="block bg-[#0f172a] p-4 rounded-lg font-mono text-sm border border-[rgba(48,54,61,0.9)] whitespace-pre overflow-x-auto text-emerald-300">
-              curl -X POST https://api.phish-slayer.com/v1/scans \<br />
-              &nbsp;&nbsp;-H "Authorization: Bearer YOUR_API_KEY" \<br />
-              &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
-              &nbsp;&nbsp;-d '&#123;"target":"suspicious-url.com"&#125;'
-            </code>
+          <div className="space-y-4">
+            <div>
+              <span className="mb-2 inline-block text-xs font-bold uppercase tracking-widest text-teal-400">
+                cURL Example
+              </span>
+              <code className="block whitespace-pre overflow-x-auto rounded-lg border border-[rgba(48,54,61,0.9)] bg-[#0f172a] p-4 font-mono text-sm text-emerald-300">
+                curl -X POST https://api.phish-slayer.com/v1/scans \<br />
+                &nbsp;&nbsp;-H "Authorization: Bearer YOUR_API_KEY" \<br />
+                &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
+                &nbsp;&nbsp;-d '&#123;"target":"suspicious-url.com"&#125;'
+              </code>
+            </div>
           </div>
-        </div>
+        </DashboardCard>
       </motion.div>
     </div>
   );

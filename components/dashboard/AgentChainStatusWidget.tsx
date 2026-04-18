@@ -128,14 +128,11 @@ export default function AgentChainStatusWidget() {
             <p className="dashboard-card-label">Current Chain Execution</p>
             {data?.current_execution?.running ? (
               <div className="mt-2 space-y-1 text-sm text-white/80">
+                <p>Alert: {data.current_execution.alert_id || "unknown"}</p>
+                <p>Running: {formatMs(data.current_execution.elapsed_ms)}</p>
                 <p>
-                  Alert: {data.current_execution.alert_id || "unknown"}
-                </p>
-                <p>
-                  Running: {formatMs(data.current_execution.elapsed_ms)}
-                </p>
-                <p>
-                  Stages: {data.current_execution.stages_executed.join(" -> ") || "L1"}
+                  Stages:{" "}
+                  {data.current_execution.stages_executed.join(" -> ") || "L1"}
                 </p>
               </div>
             ) : (
@@ -177,7 +174,8 @@ export default function AgentChainStatusWidget() {
           </div>
 
           <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3 text-sm text-white/70">
-            Stages from last run: {data?.last_execution?.stages_executed.join(" -> ") || "N/A"}
+            Stages from last run:{" "}
+            {data?.last_execution?.stages_executed.join(" -> ") || "N/A"}
           </div>
         </>
       )}

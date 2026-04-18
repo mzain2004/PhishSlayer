@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Terminal, Send, Loader2 } from "lucide-react";
 import PhishButton from "@/components/ui/PhishButton";
 import UpgradePrompt from "@/components/UpgradePrompt";
+import DashboardCard from "@/components/dashboard/DashboardCard";
 
 type Entry = { role: "user" | "assistant"; text: string };
 
@@ -39,10 +40,10 @@ export default function TerminalPage() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-6 py-8 text-white">
+    <div className="w-full max-w-6xl mx-auto text-white">
       <UpgradePrompt requiredTier="pro" feature="AI terminal workflows" />
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+        <h1 className="dashboard-page-title tracking-tight flex items-center gap-3">
           <Terminal className="w-7 h-7 text-[#2DD4BF]" />
           AI Terminal
         </h1>
@@ -57,52 +58,54 @@ export default function TerminalPage() {
           boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
         }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] backdrop-blur-sm overflow-hidden"
+        className="h-full"
       >
-        <div className="border-b border-white/10 px-4 py-3 text-xs uppercase tracking-widest text-[#8B949E]">
-          Session Output
-        </div>
+        <DashboardCard className="overflow-hidden p-0">
+          <div className="border-b border-white/10 px-4 py-3 text-xs uppercase tracking-widest text-[#8B949E]">
+            Session Output
+          </div>
 
-        <div className="h-[360px] overflow-y-auto px-4 py-4 space-y-3 bg-[rgba(15,23,42,0.45)]">
-          {entries.map((entry, idx) => (
-            <div
-              key={`${entry.role}-${idx}`}
-              className={`rounded-lg px-3 py-2 text-sm ${entry.role === "user" ? "bg-white/10 text-[#E6EDF3]" : "bg-[#2DD4BF]/10 text-[#2DD4BF]"}`}
+          <div className="h-[360px] space-y-3 overflow-y-auto bg-[rgba(15,23,42,0.45)] px-4 py-4">
+            {entries.map((entry, idx) => (
+              <div
+                key={`${entry.role}-${idx}`}
+                className={`rounded-lg px-3 py-2 text-sm ${entry.role === "user" ? "bg-white/10 text-[#E6EDF3]" : "bg-[#2DD4BF]/10 text-[#2DD4BF]"}`}
+              >
+                {entry.role === "user" ? "> " : "< "}
+                {entry.text}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 border-t border-white/10 p-3">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submit();
+              }}
+              placeholder="Type command or prompt..."
+              className="flex-1 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-4 py-2 text-sm text-[#E6EDF3] focus:border-[#2DD4BF] focus:outline-none"
+            />
+            <PhishButton
+              onClick={submit}
+              disabled={running || !input.trim()}
+              whileHover={{
+                scale: 1.03,
+                boxShadow: "0 0 24px rgba(45,212,191,0.35)",
+              }}
+              whileTap={{ scale: 0.97 }}
+              className="flex items-center gap-2 rounded-full px-4 py-2 font-semibold text-black [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-50"
             >
-              {entry.role === "user" ? "> " : "< "}
-              {entry.text}
-            </div>
-          ))}
-        </div>
-
-        <div className="border-t border-white/10 p-3 flex items-center gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") submit();
-            }}
-            placeholder="Type command or prompt..."
-            className="flex-1 rounded-full bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.15)] px-4 py-2 text-sm text-[#E6EDF3] focus:outline-none focus:border-[#2DD4BF]"
-          />
-          <PhishButton
-            onClick={submit}
-            disabled={running || !input.trim()}
-            whileHover={{
-              scale: 1.03,
-              boxShadow: "0 0 24px rgba(45,212,191,0.35)",
-            }}
-            whileTap={{ scale: 0.97 }}
-            className="rounded-full rounded-full px-4 py-2 font-semibold text-black [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-50 flex items-center gap-2"
-          >
-            {running ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-            Run
-          </PhishButton>
-        </div>
+              {running ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              Run
+            </PhishButton>
+          </div>
+        </DashboardCard>
       </motion.div>
     </div>
   );

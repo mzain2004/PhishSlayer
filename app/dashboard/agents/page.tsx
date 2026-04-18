@@ -41,6 +41,7 @@ import type { EndpointEvent, EndpointStats } from "@/lib/supabase/agentQueries";
 import { blockIp } from "@/lib/supabase/actions";
 import { createClient } from "@/lib/supabase/client";
 import PhishButton from "@/components/ui/PhishButton";
+import StatusBadge from "@/components/dashboard/StatusBadge";
 
 type TabKey = "fleet" | "monitor" | "events";
 
@@ -67,14 +68,11 @@ function countryFlag(code: string | null): string {
   );
 }
 
-function threatBadge(level: string) {
+function threatLevelToStatus(level: string) {
   const l = level.toLowerCase();
-  if (l === "critical") return "bg-red-500/10 text-red-500 border-red-500/20";
-  if (l === "high")
-    return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-  if (l === "medium")
-    return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-  return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+  if (l === "critical" || l === "high") return "critical";
+  if (l === "medium") return "warning";
+  return "healthy";
 }
 
 export default function AgentsPage() {
@@ -259,7 +257,7 @@ export default function AgentsPage() {
     <div className="text-white font-sans min-h-screen flex flex-col w-full">
       <main
         data-stagger-container
-        className="flex-1 px-4 sm:px-8 py-8 w-full max-w-7xl mx-auto flex flex-col gap-6"
+        className="flex-1 w-full max-w-7xl mx-auto flex flex-col gap-6"
       >
         <UpgradePrompt
           requiredTier="pro"
@@ -309,7 +307,7 @@ export default function AgentsPage() {
           <>
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
-                <h1 className="text-3xl font-bold text-white tracking-tight">
+                <h1 className="dashboard-page-title text-white tracking-tight">
                   Endpoint Monitor
                 </h1>
                 <p className="text-[#8B949E] font-medium mt-1">
@@ -359,7 +357,7 @@ export default function AgentsPage() {
                   </p>
                   <Shield className="text-teal-400 w-5 h-5" />
                 </div>
-                <p className="text-3xl font-bold text-white mt-2">
+                <p className="dashboard-metric-value mt-2 text-white">
                   {stats?.total ?? 0}
                 </p>
               </motion.div>
@@ -370,7 +368,7 @@ export default function AgentsPage() {
                   </p>
                   <AlertTriangle className="text-red-400 w-5 h-5" />
                 </div>
-                <p className="text-3xl font-bold text-red-500 mt-2">
+                <p className="dashboard-metric-value mt-2 text-red-500">
                   {(stats?.critical ?? 0) + (stats?.high ?? 0)}
                 </p>
               </motion.div>
@@ -381,7 +379,7 @@ export default function AgentsPage() {
                   </p>
                   <Globe className="text-blue-400 w-5 h-5" />
                 </div>
-                <p className="text-3xl font-bold text-white mt-2">
+                <p className="dashboard-metric-value mt-2 text-white">
                   {stats?.uniqueIps ?? 0}
                 </p>
               </motion.div>
@@ -392,7 +390,7 @@ export default function AgentsPage() {
                   </p>
                   <Activity className="text-orange-400 w-5 h-5" />
                 </div>
-                <p className="text-3xl font-bold text-white mt-2">
+                <p className="dashboard-metric-value mt-2 text-white">
                   {stats?.topProcesses?.length ?? 0}
                 </p>
               </motion.div>
@@ -588,11 +586,10 @@ export default function AgentsPage() {
                           {e.isp || "-"}
                         </td>
                         <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${threatBadge(e.threat_level)}`}
-                          >
-                            {e.threat_level}
-                          </span>
+                          <StatusBadge
+                            status={threatLevelToStatus(e.threat_level)}
+                            label={e.threat_level}
+                          />
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">

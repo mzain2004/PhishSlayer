@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import DashboardCard from "@/components/dashboard/DashboardCard";
 
 type Decision = "CLOSE" | "ESCALATE";
 type Severity = "low" | "medium" | "high" | "critical";
@@ -114,10 +115,12 @@ export default function L1AgentStatusWidget() {
   };
 
   return (
-    <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl flex flex-col gap-4">
+    <DashboardCard className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white">L1 Autonomous Triage</h2>
+          <h2 className="dashboard-section-heading text-white">
+            L1 Autonomous Triage
+          </h2>
           <p className="text-xs text-white/50 mt-1">Last Run: {lastRunLabel}</p>
         </div>
 
@@ -140,42 +143,32 @@ export default function L1AgentStatusWidget() {
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3">
-          <p className="text-[11px] uppercase tracking-wider text-white/50">
-            Processed
-          </p>
-          <p className="text-lg font-semibold text-white">
+          <p className="dashboard-card-label">Processed</p>
+          <p className="dashboard-metric-value text-white">
             {lastRun?.processed ?? 0}
           </p>
         </div>
         <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3">
-          <p className="text-[11px] uppercase tracking-wider text-white/50">
-            Closed
-          </p>
-          <p className="text-lg font-semibold text-emerald-400">
+          <p className="dashboard-card-label">Closed</p>
+          <p className="dashboard-metric-value text-emerald-400">
             {lastRun?.closed ?? 0}
           </p>
         </div>
         <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3">
-          <p className="text-[11px] uppercase tracking-wider text-white/50">
-            Escalated
-          </p>
-          <p className="text-lg font-semibold text-red-400">
+          <p className="dashboard-card-label">Escalated</p>
+          <p className="dashboard-metric-value text-red-400">
             {lastRun?.escalated ?? 0}
           </p>
         </div>
         <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3">
-          <p className="text-[11px] uppercase tracking-wider text-white/50">
-            Errors
-          </p>
-          <p className="text-lg font-semibold text-amber-400">
+          <p className="dashboard-card-label">Errors</p>
+          <p className="dashboard-metric-value text-amber-400">
             {lastRun?.errors ?? 0}
           </p>
         </div>
         <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/20 p-3 col-span-2 md:col-span-1">
-          <p className="text-[11px] uppercase tracking-wider text-white/50">
-            Success
-          </p>
-          <p className="text-lg font-semibold text-white">
+          <p className="dashboard-card-label">Success</p>
+          <p className="dashboard-metric-value text-white">
             {lastRun?.success ? "true" : "false"}
           </p>
         </div>
@@ -212,6 +205,6 @@ export default function L1AgentStatusWidget() {
           </div>
         )}
       </div>
-    </div>
+    </DashboardCard>
   );
 }

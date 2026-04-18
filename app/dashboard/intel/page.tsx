@@ -24,6 +24,7 @@ import { canManageIntelVault } from "@/lib/rbac/roles";
 import { useTier } from "@/hooks/useTier";
 import { UpgradeBanner } from "@/components/ui/UpgradeBanner";
 import PhishButton from "@/components/ui/PhishButton";
+import StatusBadge from "@/components/dashboard/StatusBadge";
 
 const cardHover = {
   whileHover: {
@@ -32,27 +33,6 @@ const cardHover = {
   },
   transition: { type: "spring" as const, stiffness: 300, damping: 20 },
 };
-
-/* ── Severity Badge ───────────────────────────────────────────────── */
-function SeverityBadge({ severity }: { severity: string }) {
-  const s = severity?.toLowerCase() ?? "";
-  let bg = "bg-white/10 text-[#E6EDF3] border border-[rgba(48,54,61,0.9)]";
-  if (s === "critical") {
-    bg =
-      "bg-[rgba(248,81,73,0.2)] text-[#F85149] border border-[rgba(248,81,73,0.35)]";
-  } else if (s === "high") {
-    bg =
-      "bg-[rgba(227,179,65,0.2)] text-[#E3B341] border border-[rgba(227,179,65,0.35)]";
-  }
-
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-[10px] py-[2px] text-[11px] font-bold uppercase tracking-wider ${bg}`}
-    >
-      {severity || "Unknown"}
-    </span>
-  );
-}
 
 function TypeBadge({ value }: { value: string | null }) {
   const t = (value || "").toUpperCase();
@@ -138,10 +118,10 @@ export default function IntelVaultPage() {
   /* ── Page ─────────────────────────────────────────────────────────── */
   return (
     <div className="text-white font-sans min-h-screen flex flex-col w-full overflow-x-hidden">
-      <main data-stagger-container className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10">
+      <main data-stagger-container className="flex-1 w-full max-w-7xl mx-auto">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+          <h1 className="dashboard-page-title text-white tracking-tight flex items-center gap-3">
             <Database className="w-7 h-7 text-teal-400" />
             Intel Vault
           </h1>
@@ -352,7 +332,7 @@ export default function IntelVaultPage() {
 
                     {/* Severity */}
                     <div className="col-span-2">
-                      <SeverityBadge severity={item.severity} />
+                      <StatusBadge status={item.severity || "pending"} />
                     </div>
 
                     {/* Source */}

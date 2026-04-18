@@ -221,7 +221,7 @@ export default function SupportPage() {
   return (
     <div className="w-full font-sans pb-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+        <h1 className="dashboard-page-title text-white tracking-tight flex items-center gap-3">
           <Headset className="w-8 h-8 text-teal-400" />
           Support Center
         </h1>
@@ -241,7 +241,7 @@ export default function SupportPage() {
         >
           <a
             href="mailto:support@phishslayer.tech"
-            className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-6 hover:border-teal-500/50 transition-colors cursor-pointer block group"
+            className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-teal-500/50 transition-colors cursor-pointer block group"
           >
             <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center mb-4 group-hover:bg-teal-500/20 transition-colors">
               <Mail className="w-5 h-5 text-teal-400" />
@@ -265,7 +265,7 @@ export default function SupportPage() {
             href="https://discord.com/invite/phishslayer"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-6 hover:border-[#5865F2]/50 transition-colors cursor-pointer block group"
+            className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-[#5865F2]/50 transition-colors cursor-pointer block group"
           >
             <div className="w-10 h-10 rounded-lg bg-[#5865F2]/10 flex items-center justify-center mb-4 group-hover:bg-[#5865F2]/20 transition-colors">
               <MessageSquare className="w-5 h-5 text-[#5865F2]" />
@@ -283,7 +283,7 @@ export default function SupportPage() {
         >
           <Link
             href="/dashboard/intel"
-            className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-6 hover:border-indigo-500/50 transition-colors cursor-pointer block group"
+            className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-indigo-500/50 transition-colors cursor-pointer block group"
           >
             <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4 group-hover:bg-indigo-500/20 transition-colors">
               <BookOpen className="w-5 h-5 text-indigo-400" />
@@ -299,9 +299,9 @@ export default function SupportPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
         {/* Ticket Form */}
         <div className="xl:col-span-2">
-          <div className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-6">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-white tracking-tight">
+              <h2 className="dashboard-section-heading text-white tracking-tight">
                 Submit a Support Ticket
               </h2>
               <p className="text-sm text-[#8B949E] mt-1">
@@ -320,7 +320,7 @@ export default function SupportPage() {
                     required
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none"
                     placeholder="Brief description of the issue"
                   />
                 </div>
@@ -332,7 +332,7 @@ export default function SupportPage() {
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
                     >
                       <option>General Question</option>
                       <option>Bug Report</option>
@@ -354,7 +354,7 @@ export default function SupportPage() {
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm appearance-none outline-none"
                   >
                     <option>Low</option>
                     <option>Medium</option>
@@ -374,7 +374,7 @@ export default function SupportPage() {
                   rows={6}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  className="w-full px-4 py-3 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none resize-none"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white placeholder:text-[#8B949E] focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 rounded-lg text-sm outline-none resize-none"
                   placeholder="Please describe your issue in detail..."
                 />
               </div>
@@ -391,7 +391,7 @@ export default function SupportPage() {
                   <PhishButton
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[rgba(48,54,61,0.9)] text-slate-300 text-sm hover:border-slate-500 hover:text-white transition-colors"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-white/10 text-slate-300 text-sm hover:border-slate-500 hover:text-white transition-colors"
                   >
                     <Paperclip className="w-4 h-4" />
                     {attachedFile ? attachedFile.name : "Attach File (Max 5MB)"}
@@ -425,7 +425,7 @@ export default function SupportPage() {
 
         {/* System Status Sidebar */}
         <div className="flex flex-col gap-6">
-          <div className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl p-6">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 System Status
@@ -443,7 +443,7 @@ export default function SupportPage() {
               {SYSTEM_STATUS.map((sys, idx) => (
                 <div
                   key={idx}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-[rgba(23,28,35,0.85)] rounded-lg border border-[rgba(48,54,61,0.9)]"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white/5 rounded-lg border border-white/10"
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500"></div>
@@ -484,7 +484,7 @@ export default function SupportPage() {
             return (
               <div
                 key={idx}
-                className="bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-xl overflow-hidden transition-all duration-200"
+                className="bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-200"
               >
                 <PhishButton
                   onClick={() => toggleFaq(idx)}
@@ -541,3 +541,4 @@ export default function SupportPage() {
     </div>
   );
 }
+

@@ -168,7 +168,7 @@ function ScanManagerContent() {
     <div className="font-sans text-slate-100 antialiased min-h-screen flex flex-col w-full">
       <main
         data-stagger-container
-        className="flex-1 px-4 sm:px-8 py-8 w-full max-w-5xl mx-auto flex flex-col gap-10"
+        className="flex-1 w-full max-w-5xl mx-auto flex flex-col gap-6"
       >
         <UpgradePrompt
           requiredTier="pro"
@@ -208,7 +208,7 @@ function ScanManagerContent() {
             {/* Hero Scanner Section */}
             <motion.section
               {...cardHover}
-              className="relative rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] backdrop-blur-[12px] p-10 overflow-hidden"
+              className="relative overflow-hidden rounded-xl border border-white/10 bg-white/5 p-10"
             >
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-20 -right-20 w-80 h-80 bg-teal-900/20 rounded-full blur-3xl opacity-60"></div>
@@ -261,7 +261,7 @@ function ScanManagerContent() {
                         boxShadow: "0 0 24px rgba(45,212,191,0.4)",
                       }}
                       whileTap={{ scale: 0.97 }}
-                      className="rounded-full flex min-w-[160px] items-center justify-center gap-2 whitespace-nowrap rounded-full px-7 py-3 text-base font-bold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex min-w-[160px] items-center justify-center gap-2 whitespace-nowrap rounded-full px-7 py-3 text-base font-bold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {isPending ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -292,7 +292,9 @@ function ScanManagerContent() {
             {/* Toolbar & Filters */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-white">Scan History</h2>
+                <h2 className="dashboard-section-heading text-white">
+                  Scan History
+                </h2>
                 {role === "analyst" && (
                   <span className="text-xs font-semibold bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2.5 py-1 rounded-full">
                     Viewing your scans
@@ -343,7 +345,7 @@ function ScanManagerContent() {
             {/* Scans Table */}
             <section>
               {paginatedScans.length === 0 ? (
-                <div className="bg-[rgba(23,28,35,0.85)] rounded-xl border border-[rgba(48,54,61,0.9)] p-16 text-center">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-16 text-center">
                   <FileWarning className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-slate-300 mb-1">
                     No scans found
@@ -356,7 +358,7 @@ function ScanManagerContent() {
               ) : (
                 <motion.div
                   {...cardHover}
-                  className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.88)] backdrop-blur-[8px] overflow-hidden flex flex-col"
+                  className="flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white/5"
                 >
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">

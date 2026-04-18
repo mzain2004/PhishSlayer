@@ -134,10 +134,10 @@ export default function AuditLogPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full flex flex-col min-h-screen">
+    <div className="max-w-7xl w-full flex flex-col">
       <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+          <h1 className="dashboard-page-title text-white tracking-tight flex items-center gap-3">
             <FileText className="w-8 h-8 text-teal-400" />
             Audit Log
           </h1>
@@ -150,10 +150,10 @@ export default function AuditLogPage() {
 
       <motion.div
         {...cardHover}
-        className="bg-[rgba(23,28,35,0.85)] rounded-xl border border-[rgba(48,54,61,0.9)] overflow-hidden flex flex-col flex-1"
+        className="flex flex-1 flex-col overflow-hidden rounded-xl border border-white/10 bg-white/5"
       >
         {/* Toolbar */}
-        <div className="p-4 border-b border-white/10 bg-[rgba(23,28,35,0.85)] flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col gap-4 border-b border-white/10 bg-black/20 p-4 sm:flex-row">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8B949E]" />
             <input
@@ -192,9 +192,9 @@ export default function AuditLogPage() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto flex-1 h-[500px]">
+        <div className="h-[500px] flex-1 overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-[rgba(23,28,35,0.85)] text-[#8B949E] sticky top-0 border-b border-white/10">
+            <thead className="sticky top-0 border-b border-white/10 bg-black/20 text-[#8B949E]">
               <tr>
                 <th className="px-6 py-4 font-bold tracking-widest uppercase text-[10px]">
                   Timestamp / IP
@@ -316,7 +316,7 @@ export default function AuditLogPage() {
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-4 border-t border-white/10 bg-[rgba(23,28,35,0.85)] flex items-center justify-between">
+        <div className="flex items-center justify-between border-t border-white/10 bg-black/20 p-4">
           <p className="text-sm text-[#8B949E]">
             Showing{" "}
             <span className="font-semibold text-white">

@@ -150,7 +150,7 @@ export default function ThreatIntelligencePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
         <Radar className="w-16 h-16 text-[#8B949E] mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">
+        <h2 className="dashboard-section-heading text-white mb-2">
           No threat data available
         </h2>
         <p className="text-sm text-[#8B949E] max-w-md">
@@ -406,13 +406,13 @@ export default function ThreatIntelligencePage() {
     <div className="flex-1 grid grid-cols-1 xl:grid-cols-2 gap-0 min-h-[400px]">
       {/* Visual Sandbox */}
       <div className="flex-1 bg-black/80 p-6 flex flex-col items-center justify-center relative border-r border-white/10">
-        <div className="w-full max-w-md bg-[rgba(23,28,35,0.85)] rounded-2xl shadow-md overflow-hidden border border-[rgba(48,54,61,0.9)] relative">
+        <div className="w-full max-w-md bg-white/5 rounded-2xl shadow-md overflow-hidden border border-[rgba(48,54,61,0.9)] relative">
           <div className="bg-black/80 border-b border-white/10 p-2.5 flex items-center justify-between">
             <div className="flex gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
               <div className="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
             </div>
-            <div className="bg-[rgba(23,28,35,0.85)] px-3 py-1 rounded-md text-[9px] text-[#8B949E] font-mono w-2/3 truncate text-center shadow-sm">
+            <div className="bg-white/5 px-3 py-1 rounded-md text-[9px] text-[#8B949E] font-mono w-2/3 truncate text-center shadow-sm">
               {scan.target}
             </div>
             <div className="w-8"></div>
@@ -460,7 +460,7 @@ export default function ThreatIntelligencePage() {
             </div>
             {riskScore >= 40 && (
               <div
-                className={`absolute top-[55%] left-1/2 -translate-x-1/2 w-[85%] border-2 ${theme.border} bg-[rgba(23,28,35,0.85)] rounded-[6px] p-2 animate-pulse shadow-lg`}
+                className={`absolute top-[55%] left-1/2 -translate-x-1/2 w-[85%] border-2 ${theme.border} bg-white/5 rounded-[6px] p-2 animate-pulse shadow-lg`}
               >
                 <div className="flex items-center gap-2">
                   <AlertTriangle className={`w-4 h-4 ${theme.text}`} />
@@ -481,7 +481,7 @@ export default function ThreatIntelligencePage() {
         </div>
       </div>
       {/* Source Analysis */}
-      <div className="w-full flex flex-col bg-[rgba(23,28,35,0.85)] text-white font-mono text-[11px] overflow-hidden">
+      <div className="w-full flex flex-col bg-white/5 text-white font-mono text-[11px] overflow-hidden">
         <div className="bg-black/50 px-4 py-3 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Code className="w-4 h-4 text-[#2DD4BF]" />
@@ -632,7 +632,7 @@ export default function ThreatIntelligencePage() {
             boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
           }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="liquid-glass bg-[rgba(23,28,35,0.85)] backdrop-blur shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] border border-[rgba(48,54,61,0.9)] rounded-2xl px-6 py-4 pointer-events-auto"
+          className="liquid-glass bg-white/5 backdrop-blur shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] border border-[rgba(48,54,61,0.9)] rounded-2xl px-6 py-4 pointer-events-auto"
         >
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-6 w-full lg:w-auto">
@@ -664,8 +664,8 @@ export default function ThreatIntelligencePage() {
                         />
                       </PhishButton>
                       {selectorOpen && (
-                        <div className="absolute top-full left-0 mt-2 w-80 bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] rounded-2xl shadow-xl z-50 overflow-hidden">
-                          <div className="px-3 py-2 border-b border-white/10 bg-[rgba(23,28,35,0.85)]">
+                        <div className="absolute top-full left-0 mt-2 w-80 bg-white/5 border border-[rgba(48,54,61,0.9)] rounded-2xl shadow-xl z-50 overflow-hidden">
+                          <div className="px-3 py-2 border-b border-white/10 bg-white/5">
                             <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
                               Recent Scans
                             </span>
@@ -781,8 +781,8 @@ export default function ThreatIntelligencePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
           {/* Scan Summary Panel */}
           <div className="lg:col-span-1 flex flex-col">
-            <div className="liquid-glass bg-[rgba(23,28,35,0.85)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] rounded-2xl border border-[rgba(48,54,61,0.9)] flex flex-col h-full overflow-hidden">
-              <div className="p-4 border-b border-white/10 flex justify-between items-center bg-[rgba(23,28,35,0.85)]">
+            <div className="liquid-glass bg-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] rounded-xl border border-white/10 flex flex-col h-full overflow-hidden">
+              <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
                 <h3 className="font-bold text-sm text-white flex items-center gap-2 uppercase tracking-wide">
                   <Activity className="w-5 h-5 text-[#2DD4BF]" />
                   Scan Summary
@@ -879,9 +879,9 @@ export default function ThreatIntelligencePage() {
 
           {/* Sandbox & Deep Scan Panel */}
           <div className="lg:col-span-2 flex flex-col gap-6">
-            <div className="liquid-glass bg-[rgba(23,28,35,0.85)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] rounded-2xl border border-[rgba(48,54,61,0.9)] flex flex-col overflow-hidden h-full">
+            <div className="liquid-glass bg-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] rounded-xl border border-white/10 flex flex-col overflow-hidden h-full">
               {/* Tab Header */}
-              <div className="flex items-center bg-[rgba(23,28,35,0.85)] border-b border-white/10 px-4 pt-2.5 overflow-x-auto">
+              <div className="flex items-center bg-white/5 border-b border-white/10 px-4 pt-2.5 overflow-x-auto">
                 <div className="flex gap-1">
                   {TABS.map((tab) => (
                     <PhishButton
@@ -889,7 +889,7 @@ export default function ThreatIntelligencePage() {
                       onClick={() => setActiveTab(tab.key)}
                       className={`px-4 py-2.5 text-[11px] font-black tracking-wide whitespace-nowrap transition-colors ${
                         activeTab === tab.key
-                          ? "bg-[rgba(23,28,35,0.85)] border-t border-x border-white/10 rounded-t-lg text-[#2DD4BF] border-b-2 border-b-[#0f1629] z-10"
+                          ? "bg-white/5 border-t border-x border-white/10 rounded-t-lg text-[#2DD4BF] border-b-2 border-b-[#0f1629] z-10"
                           : "text-[#8B949E] hover:text-white"
                       }`}
                     >
@@ -914,7 +914,7 @@ export default function ThreatIntelligencePage() {
 
             {/* Risk Flag Summary Strip */}
             {allRiskFlags.length > 0 && (
-              <div className="bg-[rgba(23,28,35,0.85)] rounded-2xl border border-[#E3B341]/30 shadow-sm p-4">
+              <div className="bg-white/5 rounded-2xl border border-[#E3B341]/30 shadow-sm p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <AlertTriangle className="w-4 h-4 text-[#E3B341]" />
                   <span className="text-[10px] font-black text-[#E3B341] uppercase tracking-widest">
@@ -946,7 +946,7 @@ export default function ThreatIntelligencePage() {
 
             {/* Quick Intel Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="liquid-glass bg-[rgba(23,28,35,0.85)] p-4 rounded-2xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col gap-1">
+              <div className="liquid-glass bg-white/5 p-4 rounded-xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col gap-1">
                 <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
                   Engine Detection
                 </span>
@@ -959,7 +959,7 @@ export default function ThreatIntelligencePage() {
                     : "No engine data"}
                 </span>
               </div>
-              <div className="liquid-glass bg-[rgba(23,28,35,0.85)] p-4 rounded-2xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col gap-1">
+              <div className="liquid-glass bg-white/5 p-4 rounded-xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col gap-1">
                 <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
                   Verdict
                 </span>
@@ -977,7 +977,7 @@ export default function ThreatIntelligencePage() {
                   Risk: {riskScore}/100
                 </span>
               </div>
-              <div className="liquid-glass bg-[rgba(23,28,35,0.85)] p-4 rounded-2xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col gap-1">
+              <div className="liquid-glass bg-white/5 p-4 rounded-xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col gap-1">
                 <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
                   Category
                 </span>

@@ -281,9 +281,9 @@ export default function SettingsClient({
     <div className="flex flex-col gap-6 text-white">
       <motion.header
         {...hoverProps}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-6 backdrop-blur-3xl"
+        className="rounded-xl border border-white/10 bg-white/5 p-6"
       >
-        <h1 className="text-3xl font-bold">Platform Settings</h1>
+        <h1 className="dashboard-page-title">Platform Settings</h1>
         <p className="mt-2 text-sm text-white/60">
           Manage profile information, account security, and API access.
         </p>
@@ -291,7 +291,7 @@ export default function SettingsClient({
 
       <motion.section
         {...hoverProps}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-6 backdrop-blur-3xl"
+        className="rounded-xl border border-white/10 bg-white/5 p-6"
       >
         <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
           <User className="h-5 w-5 text-[#2DD4BF]" /> Profile
@@ -304,7 +304,7 @@ export default function SettingsClient({
               className="h-16 w-16 rounded-full border border-white/20 object-cover"
             />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/10 text-xl font-bold text-[#E6EDF3]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/10 text-lg font-semibold text-[#E6EDF3]">
               {(profileName.trim() || userEmail || "U").charAt(0).toUpperCase()}
             </div>
           )}
@@ -347,7 +347,7 @@ export default function SettingsClient({
             boxShadow: "0 0 20px rgba(45,212,191,0.4)",
           }}
           whileTap={{ scale: 0.96 }}
-          className="rounded-full mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] text-sm font-semibold text-black disabled:opacity-60"
+          className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-60"
         >
           {isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -360,7 +360,7 @@ export default function SettingsClient({
 
       <motion.section
         {...hoverProps}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-6 backdrop-blur-3xl"
+        className="rounded-xl border border-white/10 bg-white/5 p-6"
       >
         <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
           <Lock className="h-5 w-5 text-[#A78BFA]" /> Password
@@ -386,7 +386,7 @@ export default function SettingsClient({
           disabled={isPending}
           whileHover={{ backgroundColor: "rgba(255,255,255,0.14)" }}
           whileTap={{ scale: 0.96 }}
-          className="rounded-full mt-4 inline-flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-sm font-semibold text-white [transition:all_0.2s_ease] disabled:opacity-60"
+          className="mt-4 inline-flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] px-5 py-2 text-sm font-semibold text-white [transition:all_0.2s_ease] disabled:opacity-60"
         >
           {isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -399,7 +399,7 @@ export default function SettingsClient({
 
       <motion.section
         {...hoverProps}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-6 backdrop-blur-3xl"
+        className="rounded-xl border border-white/10 bg-white/5 p-6"
       >
         <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
           <Key className="h-5 w-5 text-[#2DD4BF]" /> API Key
@@ -415,7 +415,7 @@ export default function SettingsClient({
             boxShadow: "0 0 20px rgba(45,212,191,0.4)",
           }}
           whileTap={{ scale: 0.96 }}
-          className="rounded-full mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] text-sm font-semibold text-black disabled:opacity-60"
+          className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-60"
         >
           {isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -428,7 +428,7 @@ export default function SettingsClient({
 
       <motion.section
         {...hoverProps}
-        className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-6 backdrop-blur-3xl"
+        className="rounded-xl border border-white/10 bg-white/5 p-6"
       >
         <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
           <ShieldCheck className="h-5 w-5 text-cyan-300" /> Multi-factor

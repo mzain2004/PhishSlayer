@@ -10,10 +10,16 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const PROCESSING_WINDOW_MS = 5 * 60 * 1000;
+const SWEEP_ESCALATION_MIN_AGE_MINUTES = 5;
 
 const GeminiDecisionSchema = z.object({
   execute: z.boolean(),
-  action: z.enum(["ISOLATE_IDENTITY", "BLOCK_IP", "MANUAL_REVIEW"]),
+  action: z.enum([
+    "ISOLATE_IDENTITY",
+    "BLOCK_IP",
+    "HUNT",
+    "MANUAL_REVIEW",
+  ]),
   confidence: z.number().min(0).max(1),
   reasoning: z.string().min(1),
 });
@@ -40,11 +46,12 @@ type Decision = z.infer<typeof GeminiDecisionSchema>;
 type ProcessResult = {
   escalation_id: string;
   execute: boolean;
-  action: "ISOLATE_IDENTITY" | "BLOCK_IP" | "MANUAL_REVIEW";
+  action: "ISOLATE_IDENTITY" | "BLOCK_IP" | "HUNT" | "MANUAL_REVIEW";
   confidence: number;
   reasoning: string;
   outcome: "completed" | "failed";
   status: string;
+  duration_ms?: number;
 };
 
 const L2_PROMPT = `You are an autonomous Tier 2 SOC responder for Phish-Slayer.
@@ -54,7 +61,7 @@ You will receive an escalation JSON payload.
 Respond ONLY with a valid JSON object in this exact format:
 {
   'execute': true or false,
-  'action': 'ISOLATE_IDENTITY' or 'BLOCK_IP' or 'MANUAL_REVIEW',
+  'action': 'ISOLATE_IDENTITY' or 'BLOCK_IP' or 'HUNT' or 'MANUAL_REVIEW',
   'confidence': float between 0.0 and 1.0,
   'reasoning': 'one sentence max'
 }
@@ -64,6 +71,8 @@ Rules:
   severity is critical or high
 - BLOCK_IP if affected_ip exists and severity is
   critical or high
+- HUNT if severity is critical or high and active threat
+  context requires deeper IOC correlation
 - MANUAL_REVIEW if confidence < 0.85 or severity
   is low or medium
 - If uncertain, always set execute: false
@@ -151,6 +160,29 @@ function fallbackDecision(reasoning = "gemini_unavailable"): Decision {
 
 function normalizeDecision(raw: Decision, escalation: EscalationRow): Decision {
   const isHighSeverity = ["critical", "high"].includes(escalation.severity);
+
+  if (raw.action === "HUNT") {
+    if (!isHighSeverity) {
+      return {
+        execute: false,
+        action: "MANUAL_REVIEW",
+        confidence: raw.confidence,
+        reasoning: raw.reasoning,
+      };
+    }
+
+    if (!raw.execute || raw.confidence < 0.85) {
+      return {
+        execute: false,
+        action: "MANUAL_REVIEW",
+        confidence: raw.confidence,
+        reasoning: raw.reasoning,
+      };
+    }
+
+    return raw;
+  }
+
   if (raw.confidence < 0.85 || !isHighSeverity) {
     return {
       execute: false,
@@ -295,10 +327,21 @@ async function getDecision(escalation: EscalationRow): Promise<Decision> {
   }
 }
 
-function isAuthorized(request: NextRequest): boolean {
+function isCronAuthorized(request: NextRequest): boolean {
   return (
     Boolean(process.env.CRON_SECRET) &&
     request.headers.get("authorization") === `Bearer ${process.env.CRON_SECRET}`
+  );
+}
+
+function isInternalAgentAuthorized(request: NextRequest): boolean {
+  const providedSecret =
+    request.headers.get("AGENT_SECRET") ||
+    request.headers.get("agent_secret") ||
+    request.headers.get("x-agent-secret");
+
+  return Boolean(
+    providedSecret && providedSecret === process.env.AGENT_SECRET,
   );
 }
 
@@ -515,23 +558,38 @@ async function resetEscalationClaim(
     .eq("status", "l2_processing");
 }
 
-export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
-    return NextResponse.json(
-      { success: false, error: "Unauthorized" },
-      { status: 401 },
-    );
-  }
+type L2RunOptions = {
+  escalationId?: string;
+  minAgeMinutes?: number;
+  triggerMode: "sweep" | "event";
+  l1Result?: Record<string, unknown> | null;
+};
 
+async function runL2Responder(request: NextRequest, options: L2RunOptions) {
   const adminClient = getAdminClient();
   const baseUrl = process.env.INTERNAL_API_URL ?? request.nextUrl.origin;
 
-  const { data, error } = await adminClient
-    .from("escalations")
-    .select("*")
-    .eq("status", "pending")
-    .order("created_at", { ascending: true })
-    .limit(10);
+  const minAgeMinutes =
+    typeof options.minAgeMinutes === "number" && options.minAgeMinutes > 0
+      ? options.minAgeMinutes
+      : 0;
+
+  let query = adminClient.from("escalations").select("*").eq("status", "pending");
+
+  if (options.escalationId) {
+    query = query.eq("id", options.escalationId).limit(1);
+  } else {
+    if (minAgeMinutes > 0) {
+      const cutoffIso = new Date(
+        Date.now() - minAgeMinutes * 60 * 1000,
+      ).toISOString();
+      query = query.lte("created_at", cutoffIso);
+    }
+
+    query = query.order("created_at", { ascending: true }).limit(10);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json(
@@ -550,6 +608,7 @@ export async function GET(request: NextRequest) {
   let processed = 0;
   let autoResolved = 0;
   let manualReview = 0;
+  let huntTriggered = 0;
   let errors = 0;
   let skipped = 0;
 
@@ -557,6 +616,7 @@ export async function GET(request: NextRequest) {
 
   for (const escalation of escalations) {
     let decision: Decision | null = null;
+    const startedAt = Date.now();
 
     try {
       const claimState = await claimEscalation(adminClient, escalation);
@@ -564,12 +624,14 @@ export async function GET(request: NextRequest) {
         skipped += 1;
         await writeLifecycleAudit(adminClient, "skipped", escalation, {
           skip_reason: claimState,
+          trigger_mode: options.triggerMode,
         });
         continue;
       }
 
       await writeLifecycleAudit(adminClient, "received", escalation, {
         status_before: escalation.status,
+        trigger_mode: options.triggerMode,
       });
 
       const decisionStartedAt = Date.now();
@@ -623,6 +685,19 @@ export async function GET(request: NextRequest) {
         actionFired = true;
 
         autoResolved += 1;
+      } else if (decision.execute && decision.action === "HUNT") {
+        await writeLifecycleAudit(adminClient, "action_taken", escalation, {
+          action: "HUNT",
+          execute: true,
+          reason: decision.reasoning,
+          l1_result: options.l1Result || null,
+        });
+
+        statusAfter = "hunt_requested";
+        outcomeAction = "hunt";
+        actionFired = true;
+
+        huntTriggered += 1;
       } else {
         await writeLifecycleAudit(adminClient, "action_taken", escalation, {
           action: "MANUAL_REVIEW",
@@ -643,6 +718,7 @@ export async function GET(request: NextRequest) {
           confidence: decision.confidence,
           reasoning: decision.reasoning,
           executed: actionFired,
+          trigger_mode: options.triggerMode,
         },
       );
 
@@ -691,6 +767,7 @@ export async function GET(request: NextRequest) {
         reasoning: decision.reasoning,
         outcome: "completed",
         status: statusAfter,
+        duration_ms: Date.now() - startedAt,
       });
     } catch (batchError) {
       errors += 1;
@@ -712,6 +789,7 @@ export async function GET(request: NextRequest) {
         reasoning: decision?.reasoning || "processing_failed",
         outcome: "failed",
         status: "pending",
+        duration_ms: Date.now() - startedAt,
       });
 
       console.error("[L2 responder] escalation processing failed", {
@@ -723,11 +801,71 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     success: true,
+    trigger_mode: options.triggerMode,
     processed,
     auto_resolved: autoResolved,
     manual_review: manualReview,
+    hunt_triggered: huntTriggered,
     errors,
     skipped,
     results,
+  });
+}
+
+export async function GET(request: NextRequest) {
+  if (!isCronAuthorized(request)) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
+  return runL2Responder(request, {
+    triggerMode: "sweep",
+    minAgeMinutes: SWEEP_ESCALATION_MIN_AGE_MINUTES,
+  });
+}
+
+export async function POST(request: NextRequest) {
+  if (!isInternalAgentAuthorized(request) && !isCronAuthorized(request)) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
+  let body: Record<string, unknown> = {};
+
+  try {
+    const parsed = (await request.json()) as Record<string, unknown>;
+    body = parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    body = {};
+  }
+
+  const escalationId =
+    typeof body.escalation_id === "string" &&
+    body.escalation_id.trim().length > 0
+      ? body.escalation_id.trim()
+      : undefined;
+  const minAgeRaw =
+    typeof body.min_age_minutes === "number"
+      ? body.min_age_minutes
+      : typeof body.min_age_minutes === "string"
+        ? Number(body.min_age_minutes)
+        : NaN;
+  const minAgeMinutes = Number.isFinite(minAgeRaw)
+    ? Math.max(0, minAgeRaw)
+    : undefined;
+  const l1Result =
+    body.l1_result && typeof body.l1_result === "object"
+      ? (body.l1_result as Record<string, unknown>)
+      : null;
+
+  return runL2Responder(request, {
+    escalationId,
+    minAgeMinutes,
+    triggerMode: "event",
+    l1Result,
   });
 }

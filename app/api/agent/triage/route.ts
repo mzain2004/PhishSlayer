@@ -85,6 +85,12 @@ type Decision = z.infer<typeof DecisionSchema>;
 
 type Severity = "low" | "medium" | "high" | "critical";
 
+type ProcessBatchOptions = {
+  alertId?: string;
+  alertMinAgeMinutes?: number;
+  includeScans?: boolean;
+};
+
 const SYSTEM_PROMPT = `You are an autonomous Tier 1 SOC analyst for Phish-Slayer,
 a cybersecurity platform. Your job is to triage phishing and
 malware alerts. You will receive a JSON object with a source field.
@@ -122,9 +128,7 @@ function isInternalAgentAuthorized(request: NextRequest): boolean {
     request.headers.get("agent_secret") ||
     request.headers.get("x-agent-secret");
 
-  return Boolean(
-    providedSecret && providedSecret === process.env.AGENT_SECRET,
-  );
+  return Boolean(providedSecret && providedSecret === process.env.AGENT_SECRET);
 }
 
 function mapRuleLevelToSeverity(level: number | null): Severity {
@@ -166,7 +170,8 @@ function deriveSeverityFromRecord(record: QueueRecord): Severity {
 }
 
 function buildFallbackDecision(record: QueueRecord, error: unknown): Decision {
-  const reason = error instanceof Error ? error.message : "unknown Gemini error";
+  const reason =
+    error instanceof Error ? error.message : "unknown Gemini error";
   return {
     decision: "ESCALATE",
     confidence: 0,
@@ -214,7 +219,8 @@ async function logWazuhLifecycle(
     action_taken: "WAZUH_ALERT_ACTION_TAKEN",
   };
 
-  const severity = options?.decision?.severity || mapRuleLevelToSeverity(record.rule_level);
+  const severity =
+    options?.decision?.severity || mapRuleLevelToSeverity(record.rule_level);
   const errorText =
     options?.error instanceof Error
       ? options.error.message
@@ -308,20 +314,44 @@ async function fetchUnreviewedScans(
 
 async function fetchPendingWazuhAlerts(
   adminClient: ReturnType<typeof getAdminClient>,
+  options: {
+    alertId?: string;
+    minAgeMinutes?: number;
+  } = {},
 ): Promise<{ data: AlertRecord[] | null; error: { message: string } | null }> {
   const sinceIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const minAgeMinutes =
+    typeof options.minAgeMinutes === "number" && options.minAgeMinutes > 0
+      ? options.minAgeMinutes
+      : 0;
+  const maxCreatedAtIso =
+    minAgeMinutes > 0
+      ? new Date(Date.now() - minAgeMinutes * 60 * 1000).toISOString()
+      : null;
 
-  const result = await adminClient
+  let query = adminClient
     .from("alerts")
     .select(
       "id, status, source, rule_level, rule_id, rule_description, rule_groups, agent_id, agent_name, agent_ip, src_ip, dest_ip, process_name, process_id, file_path, file_hash_sha256, mitre_technique_id, mitre_tactic, full_payload, created_at, reviewed_by, reviewed_at",
     )
     .eq("status", "pending")
-    .eq("source", "wazuh")
-    .gte("created_at", sinceIso)
-    .order("rule_level", { ascending: false })
-    .order("created_at", { ascending: true })
-    .limit(20);
+    .eq("source", "wazuh");
+
+  if (options.alertId) {
+    query = query.eq("id", options.alertId).limit(1);
+  } else {
+    query = query
+      .gte("created_at", sinceIso)
+      .order("rule_level", { ascending: false })
+      .order("created_at", { ascending: true })
+      .limit(20);
+  }
+
+  if (maxCreatedAtIso) {
+    query = query.lte("created_at", maxCreatedAtIso);
+  }
+
+  const result = await query;
 
   if (result.error || !result.data) {
     return {
@@ -416,7 +446,8 @@ async function escalateScan(
       ? record.src_ip || record.dest_ip || record.agent_ip || null
       : null;
 
-  const affectedUserId = record.source === "scans" ? record.user_id || undefined : undefined;
+  const affectedUserId =
+    record.source === "scans" ? record.user_id || undefined : undefined;
 
   const response = await fetch(`${baseUrl}/api/actions/escalate`, {
     method: "POST",
@@ -455,18 +486,37 @@ async function escalateScan(
   return { escalationId };
 }
 
-async function processBatch(request: NextRequest) {
+async function processBatch(
+  request: NextRequest,
+  options: ProcessBatchOptions = {},
+) {
   const adminClient = getAdminClient();
-  const { data: scans, error: scansError } =
-    await fetchUnreviewedScans(adminClient);
+  const includeScans = options.includeScans ?? !options.alertId;
+  const alertMinAgeMinutes =
+    typeof options.alertMinAgeMinutes === "number" &&
+    options.alertMinAgeMinutes >= 0
+      ? options.alertMinAgeMinutes
+      : 0;
+
+  const scansResult = includeScans
+    ? await fetchUnreviewedScans(adminClient)
+    : { data: [] as ScanRecord[], error: null as { message: string } | null };
+
+  const { data: scans, error: scansError } = scansResult;
   const { data: alerts, error: alertsError } =
-    await fetchPendingWazuhAlerts(adminClient);
+    await fetchPendingWazuhAlerts(adminClient, {
+      alertId: options.alertId,
+      minAgeMinutes: alertMinAgeMinutes,
+    });
 
   if (scansError || alertsError) {
     return NextResponse.json(
       {
         success: false,
-        error: scansError?.message || alertsError?.message || "Failed to fetch queue",
+        error:
+          scansError?.message ||
+          alertsError?.message ||
+          "Failed to fetch queue",
       },
       { status: 500 },
     );
@@ -479,14 +529,18 @@ async function processBatch(request: NextRequest) {
 
   const results: Array<{
     item_id: string;
+    alert_id: string | null;
+    scan_id: string | null;
     source: QueueRecord["source"];
     decision: Decision["decision"];
     confidence: number;
     severity: Decision["severity"];
     reasoning: string;
+    recommended_action: Decision["recommended_action"];
+    escalation_id: string | null;
   }> = [];
 
-  const baseUrl = request.nextUrl.origin;
+  const baseUrl = process.env.INTERNAL_API_URL ?? request.nextUrl.origin;
   const queue: QueueRecord[] = [...(alerts || []), ...(scans || [])];
 
   for (const item of queue) {
@@ -562,6 +616,19 @@ async function processBatch(request: NextRequest) {
         }
 
         closed += 1;
+
+        results.push({
+          item_id: item.id,
+          alert_id: item.source === "wazuh" ? item.id : null,
+          scan_id: item.source === "scans" ? item.id : null,
+          source: item.source,
+          decision: decision.decision,
+          confidence: decision.confidence,
+          severity: decision.severity,
+          reasoning: decision.reasoning,
+          recommended_action: decision.recommended_action,
+          escalation_id: null,
+        });
       } else {
         const escalationResult = await escalateScan(item, decision, baseUrl);
 
@@ -601,17 +668,22 @@ async function processBatch(request: NextRequest) {
         }
 
         escalated += 1;
+
+        results.push({
+          item_id: item.id,
+          alert_id: item.source === "wazuh" ? item.id : null,
+          scan_id: item.source === "scans" ? item.id : null,
+          source: item.source,
+          decision: decision.decision,
+          confidence: decision.confidence,
+          severity: decision.severity,
+          reasoning: decision.reasoning,
+          recommended_action: decision.recommended_action,
+          escalation_id: escalationResult.escalationId,
+        });
       }
 
       processed += 1;
-      results.push({
-        item_id: item.id,
-        source: item.source,
-        decision: decision.decision,
-        confidence: decision.confidence,
-        severity: decision.severity,
-        reasoning: decision.reasoning,
-      });
     } catch (error) {
       errors += 1;
 
@@ -649,7 +721,23 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return processBatch(request);
+  const alertId = request.nextUrl.searchParams.get("alert_id") || undefined;
+  const includeScansParam = request.nextUrl.searchParams.get("include_scans");
+  const includeScans =
+    includeScansParam === null
+      ? undefined
+      : includeScansParam.toLowerCase() === "true";
+  const minAgeRaw = request.nextUrl.searchParams.get("alert_min_age_minutes");
+  const parsedMinAge = minAgeRaw ? Number(minAgeRaw) : NaN;
+  const alertMinAgeMinutes = Number.isFinite(parsedMinAge)
+    ? Math.max(0, parsedMinAge)
+    : undefined;
+
+  return processBatch(request, {
+    alertId,
+    includeScans,
+    alertMinAgeMinutes,
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -663,5 +751,34 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return processBatch(request);
+  let body: Record<string, unknown> = {};
+
+  try {
+    const parsed = (await request.json()) as Record<string, unknown>;
+    body = parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    body = {};
+  }
+
+  const alertId =
+    typeof body.alert_id === "string" && body.alert_id.trim().length > 0
+      ? body.alert_id.trim()
+      : undefined;
+  const includeScans =
+    typeof body.include_scans === "boolean" ? body.include_scans : undefined;
+  const parsedMinAge =
+    typeof body.alert_min_age_minutes === "number"
+      ? body.alert_min_age_minutes
+      : typeof body.alert_min_age_minutes === "string"
+        ? Number(body.alert_min_age_minutes)
+        : NaN;
+  const alertMinAgeMinutes = Number.isFinite(parsedMinAge)
+    ? Math.max(0, parsedMinAge)
+    : undefined;
+
+  return processBatch(request, {
+    alertId,
+    includeScans,
+    alertMinAgeMinutes,
+  });
 }

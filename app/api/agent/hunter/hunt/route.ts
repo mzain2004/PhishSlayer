@@ -276,14 +276,28 @@ export async function GET(request: NextRequest) {
   const adminClient = getAdminClient();
   const baseUrl = request.nextUrl.origin;
   const cycleId = getCycleId(request);
+  const minAgeRaw = request.nextUrl.searchParams.get("min_age_minutes");
+  const parsedMinAge = minAgeRaw ? Number(minAgeRaw) : NaN;
+  const minAgeMinutes = Number.isFinite(parsedMinAge)
+    ? Math.max(0, parsedMinAge)
+    : 0;
 
-  const { data: intelRows, error: intelError } = await adminClient
+  let intelQuery = adminClient
     .from("threat_intel")
     .select(
       "id, ioc_type, ioc_value, threat_type, source, tags, malware, raw_data",
     )
     .eq("hunted", false)
     .limit(50);
+
+  if (minAgeMinutes > 0) {
+    const cutoffIso = new Date(
+      Date.now() - minAgeMinutes * 60 * 1000,
+    ).toISOString();
+    intelQuery = intelQuery.lte("ingested_at", cutoffIso);
+  }
+
+  const { data: intelRows, error: intelError } = await intelQuery;
 
   if (intelError) {
     return NextResponse.json(
@@ -443,6 +457,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     success: true,
+    min_age_minutes: minAgeMinutes,
     iocs_processed: iocsProcessed,
     scans_cross_referenced: scansCrossReferenced,
     hits_found: hitsFound,

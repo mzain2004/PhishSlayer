@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import KpiCards from "./components/KpiCards";
 import QuickActionsPanel from "./components/QuickActionsPanel";
 import L1AgentStatusWidget from "@/components/dashboard/L1AgentStatusWidget";
+import AgentChainStatusWidget from "@/components/dashboard/AgentChainStatusWidget";
 import InfrastructureHealthWidget from "@/components/dashboard/InfrastructureHealthWidget";
 import SOCTierBadge from "@/components/soc/SOCTierBadge";
 import AgentSwarmPanel from "@/components/soc/AgentSwarmPanel";
@@ -10,6 +11,8 @@ import EscalationQueue from "@/components/soc/EscalationQueue";
 import Tier0BlockFeed from "@/components/soc/Tier0BlockFeed";
 import L1DecisionLog from "@/components/soc/L1DecisionLog";
 import NetworkTelemetryChart from "@/components/dashboard/NetworkTelemetryChart";
+import DashboardCard from "@/components/dashboard/DashboardCard";
+import StatusBadge from "@/components/dashboard/StatusBadge";
 
 type ScanRow = {
   target: string | null;
@@ -78,41 +81,33 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div className="flex flex-col gap-6 text-white">
-      <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <DashboardCard className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <SOCTierBadge tier={1} />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full lg:w-auto">
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
-              Total Scans
-            </p>
-            <p className="text-lg font-semibold text-white">{totalScans}</p>
-          </div>
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
-              Malicious
-            </p>
-            <p className="text-lg font-semibold text-red-300">
+          <DashboardCard className="bg-black/20 px-3 py-2">
+            <p className="dashboard-card-label">Total Scans</p>
+            <p className="dashboard-metric-value text-white">{totalScans}</p>
+          </DashboardCard>
+          <DashboardCard className="bg-black/20 px-3 py-2">
+            <p className="dashboard-card-label">Malicious</p>
+            <p className="dashboard-metric-value text-red-300">
               {maliciousScans}
             </p>
-          </div>
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
-              Incidents
-            </p>
-            <p className="text-lg font-semibold text-orange-200">
+          </DashboardCard>
+          <DashboardCard className="bg-black/20 px-3 py-2">
+            <p className="dashboard-card-label">Incidents</p>
+            <p className="dashboard-metric-value text-orange-200">
               {activeIncidents}
             </p>
-          </div>
-          <div className="rounded-xl border border-[rgba(48,54,61,0.9)] bg-black/20 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">
-              Intel Records
-            </p>
-            <p className="text-lg font-semibold text-cyan-200">
+          </DashboardCard>
+          <DashboardCard className="bg-black/20 px-3 py-2">
+            <p className="dashboard-card-label">Intel Records</p>
+            <p className="dashboard-metric-value text-cyan-200">
               {intelCount ?? 0}
             </p>
-          </div>
+          </DashboardCard>
         </div>
-      </div>
+      </DashboardCard>
 
       <AgentSwarmPanel />
 
@@ -135,29 +130,26 @@ export default async function DashboardOverviewPage() {
           formattedRiskScore={formattedRiskScore}
         />
 
-        <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl flex flex-col gap-6">
+        <DashboardCard className="flex flex-col gap-6">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="dashboard-section-heading text-white">
               Network Telemetry (Live)
             </h2>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs text-white/50 uppercase tracking-wider">
-                Live
-              </span>
-            </div>
+            <StatusBadge status="healthy" label="Live" />
           </div>
 
           <NetworkTelemetryChart />
-        </div>
+        </DashboardCard>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <QuickActionsPanel />
 
-          <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl flex flex-col gap-4">
+          <DashboardCard className="flex flex-col gap-4">
             <div className="flex justify-between items-center mb-2">
-              <h2 className="text-xl font-bold text-white">Event Feed</h2>
-              <span className="text-xs text-[#2DD4BF]">Recent scans</span>
+              <h2 className="dashboard-section-heading text-white">
+                Event Feed
+              </h2>
+              <StatusBadge status="healthy" label="Recent scans" />
             </div>
 
             <div className="flex flex-col gap-3">
@@ -167,9 +159,9 @@ export default async function DashboardOverviewPage() {
                 </div>
               ) : (
                 recentScans.map((scan, index) => (
-                  <div
+                  <DashboardCard
                     key={`${scan.target}-${index}`}
-                    className="p-3 rounded-lg bg-[rgba(23,28,35,0.85)] border border-[rgba(48,54,61,0.9)] flex items-start gap-3"
+                    className="flex items-start gap-3 p-3"
                   >
                     <div
                       className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
@@ -188,15 +180,16 @@ export default async function DashboardOverviewPage() {
                         {scan.dateLabel} • Risk {scan.riskScore}
                       </span>
                     </div>
-                  </div>
+                  </DashboardCard>
                 ))
               )}
             </div>
-          </div>
+          </DashboardCard>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <L1AgentStatusWidget />
+          <AgentChainStatusWidget />
           <InfrastructureHealthWidget />
         </div>
       </div>

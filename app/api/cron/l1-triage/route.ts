@@ -17,8 +17,10 @@ const TriageSummarySchema = z.object({
   results: z
     .array(
       z.object({
-        scan_id: z.string().optional(),
+        scan_id: z.string().nullable().optional(),
         item_id: z.string().optional(),
+        alert_id: z.string().nullable().optional(),
+        escalation_id: z.string().nullable().optional(),
         source: z.enum(["wazuh", "scans"]).optional(),
         decision: z.enum(["CLOSE", "ESCALATE"]),
         confidence: z.number(),
@@ -47,14 +49,15 @@ export async function GET(request: NextRequest) {
   }
 
   const startedAt = Date.now();
-  const internalBaseUrl = process.env.INTERNAL_API_URL ?? request.nextUrl.origin;
+  const internalBaseUrl =
+    process.env.INTERNAL_API_URL ?? request.nextUrl.origin;
   const response = await fetch(
-    `${internalBaseUrl}/api/agent/triage`,
+    `${internalBaseUrl}/api/agent/triage?alert_min_age_minutes=5&include_scans=true`,
     {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${process.env.CRON_SECRET}`,
-      },
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${process.env.CRON_SECRET}`,
+    },
     },
   );
 
@@ -75,8 +78,9 @@ export async function GET(request: NextRequest) {
   if (parsed.data.results?.length) {
     const saves = parsed.data.results.map((result) => {
       const recordId = result.item_id || result.scan_id;
+      const normalizedRecordId = recordId ?? undefined;
       return saveReasoningChain({
-        alert_id: result.source === "wazuh" ? recordId : undefined,
+        alert_id: result.source === "wazuh" ? normalizedRecordId : undefined,
         agent_level: "L1",
         decision: result.decision,
         confidence_score: result.confidence,

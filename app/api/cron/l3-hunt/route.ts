@@ -9,6 +9,8 @@ import {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const SWEEP_HUNT_MIN_AGE_MINUTES = 30;
+
 const L3_STAGE_ACTION = "L3_HUNT_STAGE";
 const L3_STAGE_FAILURE_ACTION = "L3_STAGE_FAILURE";
 const L3_STATIC_ANALYSIS_STAGE_ACTION = "L3_STATIC_ANALYSIS_STAGE";
@@ -66,6 +68,17 @@ function isAuthorized(request: NextRequest): boolean {
   return (
     Boolean(process.env.CRON_SECRET) &&
     request.headers.get("authorization") === `Bearer ${process.env.CRON_SECRET}`
+  );
+}
+
+function isInternalAgentAuthorized(request: NextRequest): boolean {
+  const providedSecret =
+    request.headers.get("AGENT_SECRET") ||
+    request.headers.get("agent_secret") ||
+    request.headers.get("x-agent-secret");
+
+  return Boolean(
+    providedSecret && providedSecret === process.env.AGENT_SECRET,
   );
 }
 
@@ -357,19 +370,22 @@ async function invokeStep<T>(
   }
 }
 
-export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
-    return NextResponse.json(
-      { success: false, error: "Unauthorized" },
-      { status: 401 },
-    );
-  }
+type L3RunOptions = {
+  triggerMode: "sweep" | "event";
+  minHuntRecordAgeMinutes: number;
+  triggerReason?: string;
+};
 
+async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
   const startedAt = Date.now();
   const cycleId = `l3-cycle-${startedAt}`;
   const adminClient = getAdminClient();
   const baseUrl = getInternalBaseUrl(request);
   const stageErrors: string[] = [];
+  const hunterPath =
+    options.minHuntRecordAgeMinutes > 0
+      ? `/api/agent/hunter/hunt?min_age_minutes=${options.minHuntRecordAgeMinutes}`
+      : "/api/agent/hunter/hunt";
 
   let reader: z.infer<typeof ReaderResponseSchema> = {
     success: false,
@@ -402,6 +418,8 @@ export async function GET(request: NextRequest) {
 
   await logL3Stage(adminClient, cycleId, "reader_started", {
     step_path: "/api/agent/hunter/reader",
+    trigger_mode: options.triggerMode,
+    trigger_reason: options.triggerReason || null,
   });
 
   const readerResult = await invokeStep(
@@ -432,13 +450,14 @@ export async function GET(request: NextRequest) {
   });
 
   await logL3Stage(adminClient, cycleId, "hunt_started", {
-    step_path: "/api/agent/hunter/hunt",
+    step_path: hunterPath,
+    min_hunt_record_age_minutes: options.minHuntRecordAgeMinutes,
   });
 
   const hunterResult = await invokeStep(
     baseUrl,
     cycleId,
-    "/api/agent/hunter/hunt",
+    hunterPath,
     HunterResponseSchema,
   );
 
@@ -448,7 +467,7 @@ export async function GET(request: NextRequest) {
     hunter.error = hunterResult.error;
     stageErrors.push(`hunt: ${hunterResult.error}`);
     await logStageFailure(adminClient, cycleId, "hunt", hunterResult.error, {
-      step_path: "/api/agent/hunter/hunt",
+      step_path: hunterPath,
       payload: hunterResult.payload,
     });
   }
@@ -627,6 +646,9 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: true,
     cycle_id: cycleId,
+    trigger_mode: options.triggerMode,
+    trigger_reason: options.triggerReason || null,
+    min_hunt_record_age_minutes: options.minHuntRecordAgeMinutes,
     reader,
     hunter,
     reviewer,
@@ -634,5 +656,58 @@ export async function GET(request: NextRequest) {
     halted,
     stage_errors: stageErrors,
     execution_time_ms: executionTimeMs,
+  });
+}
+
+export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
+  return runL3Pipeline(request, {
+    triggerMode: "sweep",
+    minHuntRecordAgeMinutes: SWEEP_HUNT_MIN_AGE_MINUTES,
+    triggerReason: "cron_sweep",
+  });
+}
+
+export async function POST(request: NextRequest) {
+  if (!isInternalAgentAuthorized(request) && !isAuthorized(request)) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
+  let body: Record<string, unknown> = {};
+
+  try {
+    const parsed = (await request.json()) as Record<string, unknown>;
+    body = parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    body = {};
+  }
+
+  const triggerReason =
+    typeof body.trigger_reason === "string" && body.trigger_reason.trim().length > 0
+      ? body.trigger_reason.trim()
+      : "event_driven_trigger";
+  const minAgeRaw =
+    typeof body.min_hunt_record_age_minutes === "number"
+      ? body.min_hunt_record_age_minutes
+      : typeof body.min_hunt_record_age_minutes === "string"
+        ? Number(body.min_hunt_record_age_minutes)
+        : NaN;
+  const minHuntRecordAgeMinutes = Number.isFinite(minAgeRaw)
+    ? Math.max(0, minAgeRaw)
+    : 0;
+
+  return runL3Pipeline(request, {
+    triggerMode: "event",
+    minHuntRecordAgeMinutes,
+    triggerReason,
   });
 }

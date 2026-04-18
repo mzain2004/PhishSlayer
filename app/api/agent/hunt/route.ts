@@ -46,7 +46,10 @@ async function hasPrivilegedRole(): Promise<boolean> {
   return ["admin", "manager", "super_admin"].includes(profile.role);
 }
 
-async function runUnifiedL3Pipeline(request: NextRequest) {
+async function runUnifiedL3Pipeline(
+  request: NextRequest,
+  mode: "sweep" | "manual",
+) {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
     return NextResponse.json(
@@ -56,13 +59,28 @@ async function runUnifiedL3Pipeline(request: NextRequest) {
   }
 
   const baseUrl = process.env.INTERNAL_API_URL ?? request.nextUrl.origin;
-  const response = await fetch(`${baseUrl}/api/cron/l3-hunt`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${cronSecret}`,
-    },
-    cache: "no-store",
-  });
+  const response =
+    mode === "manual"
+      ? await fetch(`${baseUrl}/api/cron/l3-hunt`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${cronSecret}`,
+            AGENT_SECRET: process.env.AGENT_SECRET || "",
+          },
+          body: JSON.stringify({
+            min_hunt_record_age_minutes: 0,
+            trigger_reason: "manual_hunt_trigger",
+          }),
+          cache: "no-store",
+        })
+      : await fetch(`${baseUrl}/api/cron/l3-hunt`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${cronSecret}`,
+          },
+          cache: "no-store",
+        });
 
   let payload: unknown;
   try {
@@ -82,7 +100,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return runUnifiedL3Pipeline(request);
+  return runUnifiedL3Pipeline(request, "sweep");
 }
 
 export async function POST(request: NextRequest) {
@@ -95,5 +113,5 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return runUnifiedL3Pipeline(request);
+  return runUnifiedL3Pipeline(request, "manual");
 }

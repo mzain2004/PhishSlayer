@@ -55,12 +55,15 @@ const HunterResponseSchema = z.object({
 
 const ReviewerResponseSchema = z.object({
   success: z.boolean(),
-  verdict: z.enum(["NORMAL", "SUSPICIOUS", "STORM"]).optional(),
+  verdict: z.enum(["PROCEED", "HALT", "REDUCE_SCOPE"]).optional(),
   confidence: z.number().min(0).max(1).optional(),
-  recommended: z.enum(["CONTINUE", "THROTTLE", "HALT"]).optional(),
+  halt_reason: z.string().optional(),
+  quality_issues: z.array(z.string()).optional(),
+  approved_findings: z.array(z.number().int().nonnegative()).optional(),
+  rejected_findings: z.array(z.string()).optional(),
+  reviewer_notes: z.string().optional(),
   escalations_reviewed: z.number().int().nonnegative().optional(),
   action_taken: z.string().optional(),
-  reasoning: z.string().optional(),
   error: z.string().optional(),
 });
 
@@ -453,12 +456,15 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
 
   let reviewer: z.infer<typeof ReviewerResponseSchema> = {
     success: true,
-    verdict: "NORMAL",
+    verdict: "PROCEED",
     confidence: 0,
-    recommended: "CONTINUE",
+    halt_reason: undefined,
+    quality_issues: [],
+    approved_findings: [],
+    rejected_findings: [],
+    reviewer_notes: "review_stage_defaulted",
     escalations_reviewed: 0,
     action_taken: "NONE",
-    reasoning: "review_stage_defaulted",
   };
 
   await logL3Stage(adminClient, cycleId, "reader_started", {
@@ -545,12 +551,15 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
   } else {
     reviewer = {
       success: true,
-      verdict: "NORMAL",
+      verdict: "PROCEED",
       confidence: 0,
-      recommended: "CONTINUE",
+      halt_reason: undefined,
+      quality_issues: ["review_stage_failed_fallback"],
+      approved_findings: [],
+      rejected_findings: [],
+      reviewer_notes: "review_stage_failed_fallback_proceed",
       escalations_reviewed: 0,
       action_taken: "NONE",
-      reasoning: "review_stage_failed_fallback_continue",
       error: reviewerResult.error,
     };
     stageErrors.push(`review: ${reviewerResult.error}`);
@@ -589,9 +598,12 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
     });
   }
 
-  const halted = reviewer.recommended === "HALT";
+  const halted = reviewer.verdict === "HALT";
+  const reducedScope = reviewer.verdict === "REDUCE_SCOPE";
   const haltReason = halted
-    ? reviewer.reasoning || "circuit_breaker_halted_without_reason"
+    ? reviewer.halt_reason ||
+      reviewer.reviewer_notes ||
+      "circuit_breaker_halted_without_reason"
     : null;
 
   if (halted) {
@@ -602,8 +614,9 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
       {
         cycle_id: cycleId,
         halt_reason: haltReason,
-        verdict: reviewer.verdict || "STORM",
-        recommended: reviewer.recommended,
+        verdict: reviewer.verdict || "HALT",
+        reduced_scope: reducedScope,
+        quality_issues: reviewer.quality_issues || [],
       },
     );
 
@@ -618,7 +631,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
         indicators: {
           cycle_id: cycleId,
           halt_reason: haltReason,
-          reviewer_verdict: reviewer.verdict || "STORM",
+          reviewer_verdict: reviewer.verdict || "HALT",
         },
         source_records: [],
         escalated: false,
@@ -651,11 +664,10 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
   try {
     await saveReasoningChain({
       agent_level: "L3",
-      decision:
-        reviewer.recommended || reviewer.verdict || "NEEDS_INVESTIGATION",
+      decision: reviewer.verdict || "PROCEED",
       confidence_score: reviewer.confidence,
       reasoning_text:
-        reviewer.reasoning ||
+        reviewer.reviewer_notes ||
         "L3 reviewer completed circuit-breaker check without detailed reasoning.",
       iocs_considered: [
         {
@@ -663,13 +675,12 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
           by_source: reader.by_source || null,
           hits_found: hunter.hits_found || 0,
           cycle_id: cycleId,
+          reduced_scope: reducedScope,
           l2_context: options.l2Context || null,
           prompt_context: buildL3ReasoningPrompt([huntSummary]),
         },
       ],
-      actions_taken: [
-        reviewer.action_taken || reviewer.recommended || "CONTINUE",
-      ],
+      actions_taken: [reviewer.action_taken || reviewer.verdict || "PROCEED"],
       model_used: "gemini-2.5-flash",
       execution_time_ms: executionTimeMs,
     });
@@ -685,8 +696,9 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
   await logL3Stage(adminClient, cycleId, "findings_persisted", {
     findings_count: hunter.hits_found || 0,
     confidence_score: reviewer.confidence || 0,
-    reasoning_summary: reviewer.reasoning || null,
+    reasoning_summary: reviewer.reviewer_notes || null,
     halted,
+    reduced_scope: reducedScope,
     halt_reason: haltReason,
     execution_time_ms: executionTimeMs,
     l2_context: options.l2Context || null,
@@ -704,6 +716,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
     reviewer,
     static_analysis: staticAnalysis,
     halted,
+    reduced_scope: reducedScope,
     stage_errors: stageErrors,
     execution_time_ms: executionTimeMs,
   });

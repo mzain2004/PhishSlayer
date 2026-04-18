@@ -265,7 +265,7 @@ async function writeAuditLogSafe(
 
 async function logWazuhLifecycle(
   adminClient: ReturnType<typeof getAdminClient>,
-  stage: "processed" | "decision" | "action_taken",
+  stage: "received" | "processed" | "decision" | "action_taken",
   record: AlertRecord,
   options?: {
     decision?: Decision;
@@ -275,6 +275,7 @@ async function logWazuhLifecycle(
   },
 ) {
   const actionMap: Record<typeof stage, string> = {
+    received: "WAZUH_ALERT_RECEIVED",
     processed: "WAZUH_ALERT_PROCESSED",
     decision: "WAZUH_ALERT_DECISION",
     action_taken: "WAZUH_ALERT_ACTION_TAKEN",
@@ -611,6 +612,7 @@ async function processBatch(
 
     try {
       if (item.source === "wazuh") {
+        await logWazuhLifecycle(adminClient, "received", item);
         await logWazuhLifecycle(adminClient, "processed", item);
       }
 

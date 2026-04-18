@@ -1,0 +1,38 @@
+name: VM Diagnostics
+
+on:
+  workflow_dispatch:
+
+jobs:
+  vm-diagnostics:
+    name: VM Diagnostics
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
+
+      - name: Add Azure VM to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.AZURE_VM_IP }} >> ~/.ssh/known_hosts
+
+      - name: Run VM diagnostics
+        run: |
+          ssh mzain2004@${{ secrets.AZURE_VM_IP }} << 'ENDSSH'
+            set -e
+            cd /home/mzain2004/Phish-Slayer
+
+            echo "=== docker ps ==="
+            docker ps
+
+            echo "=== docker logs cron-runner --tail 50 ==="
+            docker logs cron-runner --tail 50 || \
+              docker logs phish-slayer-cron-runner-1 --tail 50 || true
+
+            echo "=== docker logs phish-slayer --tail 20 ==="
+            docker logs phish-slayer --tail 20 || \
+              docker logs phish-slayer-phish-slayer-1 --tail 20 || true
+          ENDSSH

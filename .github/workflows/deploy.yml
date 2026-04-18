@@ -162,10 +162,10 @@ jobs:
           AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
           OLLAMA_BASE_URL=http://localhost:11434
           OLLAMA_MODEL=llama3.1:8b
+          CRON_BASE_URL=https://phishslayer.tech
           NEXT_PUBLIC_SITE_URL=https://phishslayer.tech
           NEXT_PUBLIC_APP_URL=http://localhost:3000
           INTERNAL_API_URL=http://localhost:3000
-          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_PADDLE_CLIENT_TOKEN=${{ secrets.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN }}
           NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID }}
           NEXT_PUBLIC_PADDLE_CC_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_CC_PRICE_ID }}
@@ -265,15 +265,39 @@ jobs:
             # Ensure integration block points to latest app URL
             CONFIG_FILE="/var/ossec/etc/ossec.conf"
 
-            # Check if custom-webhook integration exists
-            if grep -q "custom-webhook" "$CONFIG_FILE"; then
-              echo "Webhook integration already configured"
-            else
-              echo "Adding webhook integration..."
-              sed -i 's|</ossec_config>|<integration>\n  <name>custom-webhook</name>\n  <hook_url>https://phishslayer.tech/api/connectors/wazuh</hook_url>\n  <level>7</level>\n  <alert_format>json</alert_format>\n  <api_key>${{ secrets.WAZUH_WEBHOOK_SECRET }}</api_key>\n</integration>\n</ossec_config>|' "$CONFIG_FILE"
-              systemctl restart wazuh-manager
-              echo "Webhook integration added and Wazuh restarted"
-            fi
+            echo "Rewriting custom-webhook integration to current secret..."
+            python3 - << 'PY'
+            import pathlib
+            import re
+
+            config_path = pathlib.Path("/var/ossec/etc/ossec.conf")
+            text = config_path.read_text(encoding="utf-8")
+
+            text = re.sub(
+                r"\s*<integration>\s*<name>custom-webhook</name>.*?</integration>\s*",
+                "\n",
+                text,
+                flags=re.S,
+            )
+
+            block = """  <integration>
+                <name>custom-webhook</name>
+                <hook_url>https://phishslayer.tech/api/connectors/wazuh</hook_url>
+                <level>7</level>
+                <alert_format>json</alert_format>
+                <api_key>${{ secrets.WAZUH_WEBHOOK_SECRET }}</api_key>
+              </integration>
+            """
+
+            if "</ossec_config>" not in text:
+                raise RuntimeError("Missing </ossec_config> in ossec.conf")
+
+            text = text.replace("</ossec_config>", f"{block}\n</ossec_config>")
+            config_path.write_text(text, encoding="utf-8")
+            PY
+
+            systemctl restart wazuh-manager
+            echo "Webhook integration synced and Wazuh restarted"
 
             # Verify all 3 services are running
             for service in wazuh-manager wazuh-indexer wazuh-dashboard; do

@@ -72,6 +72,7 @@ type L1ChainResult = {
 type L2ChainResult = {
   action: "ISOLATE_IDENTITY" | "BLOCK_IP" | "HUNT" | "MANUAL_REVIEW";
   confidence: number;
+  reasoning: string | null;
   duration_ms: number;
   timed_out: boolean;
   error: string | null;
@@ -143,9 +144,7 @@ function withTimeout<T>(
   ]);
 }
 
-function mapRuleLevelToSeverity(
-  level: number | null,
-): Severity {
+function mapRuleLevelToSeverity(level: number | null): Severity {
   if (level === null) {
     return "low";
   }
@@ -267,7 +266,10 @@ async function callStageJson(
   }
 }
 
-function extractL1Result(data: unknown, alertId: string): {
+function extractL1Result(
+  data: unknown,
+  alertId: string,
+): {
   decision: "CLOSE" | "ESCALATE";
   confidence: number;
   escalation_id: string | null;
@@ -326,13 +328,18 @@ function extractL1Result(data: unknown, alertId: string): {
   };
 }
 
-function extractL2Result(data: unknown, escalationId: string | null): {
+function extractL2Result(
+  data: unknown,
+  escalationId: string | null,
+): {
   action: "ISOLATE_IDENTITY" | "BLOCK_IP" | "HUNT" | "MANUAL_REVIEW";
   confidence: number;
+  reasoning: string | null;
 } {
   const fallback = {
     action: "HUNT" as const,
     confidence: 0,
+    reasoning: null,
   };
 
   if (!data || typeof data !== "object") {
@@ -358,7 +365,11 @@ function extractL2Result(data: unknown, escalationId: string | null): {
     return fallback;
   }
 
-  const row = match as { action?: unknown; confidence?: unknown };
+  const row = match as {
+    action?: unknown;
+    confidence?: unknown;
+    reasoning?: unknown;
+  };
   const action =
     row.action === "ISOLATE_IDENTITY" ||
     row.action === "BLOCK_IP" ||
@@ -370,8 +381,12 @@ function extractL2Result(data: unknown, escalationId: string | null): {
     typeof row.confidence === "number" && Number.isFinite(row.confidence)
       ? row.confidence
       : 0;
+  const reasoning =
+    typeof row.reasoning === "string" && row.reasoning.trim().length > 0
+      ? row.reasoning
+      : null;
 
-  return { action, confidence };
+  return { action, confidence, reasoning };
 }
 
 function extractL3FindingsCount(data: unknown): number {
@@ -388,7 +403,9 @@ function extractL3FindingsCount(data: unknown): number {
   return typeof hits === "number" && Number.isFinite(hits) ? hits : 0;
 }
 
-async function getEscalationIdByAlertId(alertId: string): Promise<string | null> {
+async function getEscalationIdByAlertId(
+  alertId: string,
+): Promise<string | null> {
   try {
     const adminClient = getAdminClient();
     const { data, error } = await adminClient
@@ -481,6 +498,7 @@ async function runEventDrivenAgentChain(
       l2Result = {
         action: "HUNT",
         confidence: 0,
+        reasoning: "Escalation id missing after L1 escalation decision.",
         duration_ms: 0,
         timed_out: false,
         error: "ESCALATION_ID_MISSING",
@@ -493,6 +511,7 @@ async function runEventDrivenAgentChain(
         escalation_id: null,
         action: l2Result.action,
         confidence: l2Result.confidence,
+        reasoning: l2Result.reasoning,
         duration_ms: l2Result.duration_ms,
         timed_out: l2Result.timed_out,
         error: l2Result.error,
@@ -517,11 +536,16 @@ async function runEventDrivenAgentChain(
         : {
             action: "HUNT" as const,
             confidence: 0,
+            reasoning:
+              typeof l2Stage.error === "string"
+                ? `L2 stage failed: ${l2Stage.error}`
+                : null,
           };
 
       l2Result = {
         action: l2Extracted.action,
         confidence: l2Extracted.confidence,
+        reasoning: l2Extracted.reasoning,
         duration_ms: l2Stage.duration_ms,
         timed_out: l2Stage.timed_out,
         error: l2Stage.error,
@@ -534,6 +558,7 @@ async function runEventDrivenAgentChain(
         escalation_id: l1Result.escalation_id,
         action: l2Result.action,
         confidence: l2Result.confidence,
+        reasoning: l2Result.reasoning,
         duration_ms: l2Result.duration_ms,
         timed_out: l2Result.timed_out,
         error: l2Result.error,
@@ -541,10 +566,20 @@ async function runEventDrivenAgentChain(
     }
 
     if (L3_TRIGGER_ACTIONS.has(l2Result.action)) {
+      const l2Context = {
+        action: l2Result.action,
+        confidence: l2Result.confidence,
+        reasoning: l2Result.reasoning,
+        duration_ms: l2Result.duration_ms,
+        timed_out: l2Result.timed_out,
+        error: l2Result.error,
+      };
+
       await writeAuditLogSafe("L3_TRIGGERED", severity, {
         alert_id: alertId,
         escalation_id: l1Result.escalation_id,
         reason: l2Result.action,
+        l2_context: l2Context,
       });
 
       const l3Stage = await callStageJson(
@@ -552,6 +587,7 @@ async function runEventDrivenAgentChain(
         {
           trigger_reason: `l2_action_${l2Result.action}`,
           min_hunt_record_age_minutes: 0,
+          l2_context: l2Context,
         },
         STAGE_TIMEOUT_MS,
       );
@@ -881,8 +917,7 @@ export async function POST(request: NextRequest) {
       failed: failedCount,
       level: firstResult?.level ?? null,
       queued: firstResult?.queued ?? false,
-      triggered_l1:
-        firstResult?.chain?.stages_executed.includes("L1") ?? false,
+      triggered_l1: firstResult?.chain?.stages_executed.includes("L1") ?? false,
       results: successfulResults,
     });
   } catch (error) {

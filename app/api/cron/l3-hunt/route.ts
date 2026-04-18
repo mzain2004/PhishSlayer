@@ -77,9 +77,7 @@ function isInternalAgentAuthorized(request: NextRequest): boolean {
     request.headers.get("agent_secret") ||
     request.headers.get("x-agent-secret");
 
-  return Boolean(
-    providedSecret && providedSecret === process.env.AGENT_SECRET,
-  );
+  return Boolean(providedSecret && providedSecret === process.env.AGENT_SECRET);
 }
 
 function getAdminClient() {
@@ -374,7 +372,56 @@ type L3RunOptions = {
   triggerMode: "sweep" | "event";
   minHuntRecordAgeMinutes: number;
   triggerReason?: string;
+  l2Context?: {
+    action: "ISOLATE_IDENTITY" | "BLOCK_IP" | "HUNT" | "MANUAL_REVIEW";
+    confidence: number;
+    reasoning: string | null;
+    duration_ms: number;
+    timed_out: boolean;
+    error: string | null;
+  } | null;
 };
+
+function parseL2Context(
+  value: unknown,
+): L3RunOptions["l2Context"] {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const raw = value as Record<string, unknown>;
+  const action = raw.action;
+
+  if (
+    action !== "ISOLATE_IDENTITY" &&
+    action !== "BLOCK_IP" &&
+    action !== "HUNT" &&
+    action !== "MANUAL_REVIEW"
+  ) {
+    return null;
+  }
+
+  return {
+    action,
+    confidence:
+      typeof raw.confidence === "number" && Number.isFinite(raw.confidence)
+        ? raw.confidence
+        : 0,
+    reasoning:
+      typeof raw.reasoning === "string" && raw.reasoning.trim().length > 0
+        ? raw.reasoning
+        : null,
+    duration_ms:
+      typeof raw.duration_ms === "number" && Number.isFinite(raw.duration_ms)
+        ? raw.duration_ms
+        : 0,
+    timed_out: Boolean(raw.timed_out),
+    error:
+      typeof raw.error === "string" && raw.error.trim().length > 0
+        ? raw.error
+        : null,
+  };
+}
 
 async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
   const startedAt = Date.now();
@@ -420,6 +467,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
     step_path: "/api/agent/hunter/reader",
     trigger_mode: options.triggerMode,
     trigger_reason: options.triggerReason || null,
+    l2_context: options.l2Context || null,
   });
 
   const readerResult = await invokeStep(
@@ -452,6 +500,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
   await logL3Stage(adminClient, cycleId, "hunt_started", {
     step_path: hunterPath,
     min_hunt_record_age_minutes: options.minHuntRecordAgeMinutes,
+    l2_context: options.l2Context || null,
   });
 
   const hunterResult = await invokeStep(
@@ -616,6 +665,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
           by_source: reader.by_source || null,
           hits_found: hunter.hits_found || 0,
           cycle_id: cycleId,
+          l2_context: options.l2Context || null,
           prompt_context: buildL3ReasoningPrompt([huntSummary]),
         },
       ],
@@ -641,6 +691,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
     halted,
     halt_reason: haltReason,
     execution_time_ms: executionTimeMs,
+    l2_context: options.l2Context || null,
   });
 
   return NextResponse.json({
@@ -649,6 +700,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
     trigger_mode: options.triggerMode,
     trigger_reason: options.triggerReason || null,
     min_hunt_record_age_minutes: options.minHuntRecordAgeMinutes,
+    l2_context: options.l2Context || null,
     reader,
     hunter,
     reviewer,
@@ -692,7 +744,8 @@ export async function POST(request: NextRequest) {
   }
 
   const triggerReason =
-    typeof body.trigger_reason === "string" && body.trigger_reason.trim().length > 0
+    typeof body.trigger_reason === "string" &&
+    body.trigger_reason.trim().length > 0
       ? body.trigger_reason.trim()
       : "event_driven_trigger";
   const minAgeRaw =
@@ -704,10 +757,12 @@ export async function POST(request: NextRequest) {
   const minHuntRecordAgeMinutes = Number.isFinite(minAgeRaw)
     ? Math.max(0, minAgeRaw)
     : 0;
+  const l2Context = parseL2Context(body.l2_context);
 
   return runL3Pipeline(request, {
     triggerMode: "event",
     minHuntRecordAgeMinutes,
     triggerReason,
+    l2Context,
   });
 }

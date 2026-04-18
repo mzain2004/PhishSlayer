@@ -163,7 +163,10 @@ async function run() {
     await wait(3000);
   }
 
-  assert(hasAction(chainRows, "AGENT_CHAIN_STARTED"), "Missing AGENT_CHAIN_STARTED");
+  assert(
+    hasAction(chainRows, "AGENT_CHAIN_STARTED"),
+    "Missing AGENT_CHAIN_STARTED",
+  );
   assert(hasAction(chainRows, "L1_COMPLETED"), "Missing L1_COMPLETED");
   assert(
     hasAction(chainRows, "AGENT_CHAIN_COMPLETED"),
@@ -171,14 +174,29 @@ async function run() {
   );
 
   const l1Completed = findAction(chainRows, "L1_COMPLETED");
-  const l1Decision = l1Completed?.metadata?.decision || "ESCALATE";
+  assert(l1Completed, "Missing L1_COMPLETED event payload");
+
+  const l1Decision = l1Completed?.metadata?.decision;
+  assert(
+    l1Decision === "CLOSE" || l1Decision === "ESCALATE",
+    "L1 decision missing or invalid on L1_COMPLETED",
+  );
 
   if (l1Decision === "ESCALATE") {
     assert(hasAction(chainRows, "L2_TRIGGERED"), "Missing L2_TRIGGERED");
     assert(hasAction(chainRows, "L2_COMPLETED"), "Missing L2_COMPLETED");
 
     const l2Completed = findAction(chainRows, "L2_COMPLETED");
-    const l2Action = l2Completed?.metadata?.action || "MANUAL_REVIEW";
+    assert(l2Completed, "Missing L2_COMPLETED event payload");
+
+    const l2Action = l2Completed?.metadata?.action;
+    assert(
+      l2Action === "HUNT" ||
+        l2Action === "BLOCK_IP" ||
+        l2Action === "ISOLATE_IDENTITY" ||
+        l2Action === "MANUAL_REVIEW",
+      "L2 action missing or invalid on L2_COMPLETED",
+    );
 
     if (
       l2Action === "HUNT" ||
@@ -187,15 +205,27 @@ async function run() {
     ) {
       assert(hasAction(chainRows, "L3_TRIGGERED"), "Missing L3_TRIGGERED");
       assert(hasAction(chainRows, "L3_COMPLETED"), "Missing L3_COMPLETED");
+    } else {
+      assert(
+        !hasAction(chainRows, "L3_TRIGGERED"),
+        "L3_TRIGGERED should not exist when L2 action is MANUAL_REVIEW",
+      );
+      console.log("L3 correctly skipped - L2 was MANUAL_REVIEW");
     }
   }
 
   const chainCompleted = findAction(chainRows, "AGENT_CHAIN_COMPLETED");
-  const reportedDuration = Number(chainCompleted?.metadata?.total_duration_ms || 0);
+  const reportedDuration = Number(
+    chainCompleted?.metadata?.total_duration_ms || 0,
+  );
   const observedDuration = Date.now() - chainStartedAt;
-  const totalDurationMs = reportedDuration > 0 ? reportedDuration : observedDuration;
+  const totalDurationMs =
+    reportedDuration > 0 ? reportedDuration : observedDuration;
 
-  assert(totalDurationMs < 60_000, `Chain duration exceeded 60s: ${totalDurationMs}ms`);
+  assert(
+    totalDurationMs < 60_000,
+    `Chain duration exceeded 60s: ${totalDurationMs}ms`,
+  );
 
   console.log("CHAIN_ALERT_ID", internalAlertId);
   console.log("CHAIN_L1_DECISION", l1Decision);

@@ -24,6 +24,8 @@ const GeminiDecisionSchema = z.object({
   action_scope: z.string().min(1),
 });
 
+const TenantIdSchema = z.string().uuid();
+
 type EscalationRow = {
   id: string;
   alert_id: string | null;
@@ -185,7 +187,8 @@ function isInternalIp(ip: string | null): boolean {
 }
 
 function isBusinessCriticalContext(escalation: EscalationRow): boolean {
-  const haystack = `${escalation.title} ${escalation.description}`.toLowerCase();
+  const haystack =
+    `${escalation.title} ${escalation.description}`.toLowerCase();
   return /(business[-\s]?critical|domain controller|production|pci|payment|identity provider)/.test(
     haystack,
   );
@@ -241,8 +244,7 @@ function normalizeDecision(raw: Decision, escalation: EscalationRow): Decision {
       ...raw,
       decision: "MANUAL_REVIEW",
       execute: false,
-      reasoning:
-        "Business-critical context detected; forcing manual review.",
+      reasoning: "Business-critical context detected; forcing manual review.",
     };
   }
 
@@ -464,8 +466,10 @@ async function writeLifecycleAudit(
   stage: LifecycleStage,
   escalation: EscalationRow,
   metadata: Record<string, unknown> = {},
+  tenantId: string | null = null,
 ) {
   const payload = {
+    tenant_id: tenantId,
     escalation_id: escalation.id,
     alert_id: escalation.alert_id,
     stage,
@@ -486,6 +490,35 @@ async function writeLifecycleAudit(
       error,
     });
   }
+}
+
+function readTenantIdFromUnknown(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const parsed = TenantIdSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+}
+
+function resolveEscalationTenantId(
+  escalation: EscalationRow,
+  l1Result: Record<string, unknown> | null | undefined,
+): string | null {
+  const telemetry = escalation.telemetry_snapshot;
+
+  if (telemetry && typeof telemetry === "object") {
+    const telemetryTenantId = readTenantIdFromUnknown(
+      (telemetry as Record<string, unknown>).tenant_id,
+    );
+
+    if (telemetryTenantId) {
+      return telemetryTenantId;
+    }
+  }
+
+  const l1TenantId = readTenantIdFromUnknown(l1Result?.tenant_id);
+  return l1TenantId;
 }
 
 async function claimEscalation(
@@ -644,6 +677,7 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
   for (const escalation of escalations) {
     let decision: Decision | null = null;
     const startedAt = Date.now();
+    const tenantId = resolveEscalationTenantId(escalation, options.l1Result);
 
     try {
       const claimState = await claimEscalation(adminClient, escalation);
@@ -652,14 +686,14 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
         await writeLifecycleAudit(adminClient, "skipped", escalation, {
           skip_reason: claimState,
           trigger_mode: options.triggerMode,
-        });
+        }, tenantId);
         continue;
       }
 
       await writeLifecycleAudit(adminClient, "received", escalation, {
         status_before: escalation.status,
         trigger_mode: options.triggerMode,
-      });
+      }, tenantId);
 
       const decisionStartedAt = Date.now();
       decision = await getDecision(escalation);
@@ -670,7 +704,7 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
         execute: decision.execute,
         confidence: decision.confidence,
         reasoning: decision.reasoning,
-      });
+      }, tenantId);
 
       const actionsTaken: string[] = [decision.decision];
       let statusAfter = "awaiting_human";
@@ -681,11 +715,12 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
         await writeLifecycleAudit(adminClient, "action_taken", escalation, {
           action: "ISOLATE_IDENTITY",
           target_user_id: escalation.affected_user_id,
-        });
+        }, tenantId);
 
         await callInternalAction(baseUrl, "/api/actions/isolate-identity", {
           targetUserId: escalation.affected_user_id,
           reason: `L2 Auto-Response: ${escalation.description}`,
+          tenantId,
         });
         triggerSigmaRuleGeneration(baseUrl, escalation.alert_id);
 
@@ -698,12 +733,13 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
         await writeLifecycleAudit(adminClient, "action_taken", escalation, {
           action: "BLOCK_IP",
           target_ip: escalation.affected_ip,
-        });
+        }, tenantId);
 
         await callInternalAction(baseUrl, "/api/actions/block-ip", {
           ip: escalation.affected_ip,
           reason: `L2 Auto-Response: ${escalation.description}`,
           threatLevel: escalation.severity,
+          tenantId,
         });
         triggerSigmaRuleGeneration(baseUrl, escalation.alert_id);
 
@@ -717,7 +753,7 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
           action: "MANUAL_REVIEW",
           reason: decision.reasoning,
           execute: false,
-        });
+        }, tenantId);
 
         manualReview += 1;
       }
@@ -728,6 +764,7 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
         statusAfter,
         outcomeAction,
         {
+          tenant_id: tenantId,
           decision_action: decision.decision,
           confidence: decision.confidence,
           reasoning: decision.reasoning,
@@ -741,7 +778,7 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
         status_after: statusAfter,
         action_fired: actionFired,
         action_taken: decision.decision,
-      });
+      }, tenantId);
 
       await saveReasoningChain({
         escalation_id: escalation.id,
@@ -793,7 +830,7 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
         error:
           batchError instanceof Error ? batchError.message : "unknown_error",
         fallback_reasoning: decision?.reasoning || null,
-      });
+      }, tenantId);
 
       results.push({
         escalation_id: escalation.id,

@@ -14,6 +14,7 @@ const IsolatePayloadSchema = z.object({
   reason: z
     .string()
     .min(3, { message: "reason must be at least 3 characters" }),
+  tenantId: z.string().uuid().optional().nullable(),
 });
 
 export async function POST(request: NextRequest) {
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { targetUserId, reason } = parsed.data;
+  const { targetUserId, reason, tenantId } = parsed.data;
 
   // Prevent self-isolation
   if (callerUserId && targetUserId === callerUserId) {
@@ -211,6 +212,7 @@ export async function POST(request: NextRequest) {
     severity: "critical",
     reason,
     metadata: {
+      tenant_id: tenantId || null,
       caller_role: callerRole,
       previous_status: targetProfile.status,
       session_revoked: !signOutError,

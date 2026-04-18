@@ -224,20 +224,23 @@ export async function GET(request: NextRequest) {
 
   const { data: findingsRows } = await adminClient
     .from("hunt_findings")
-    .select("id, severity, confidence, title, description, indicators, source_records")
+    .select(
+      "id, severity, confidence, title, description, indicators, source_records",
+    )
     .order("created_at", { ascending: false })
     .limit(25);
 
-  const recentFindings = ((findingsRows || []) as Array<Record<string, unknown>>)
-    .map((row) => ({
-      id: row.id,
-      severity: row.severity,
-      confidence: row.confidence,
-      title: row.title,
-      description: row.description,
-      indicators: row.indicators,
-      source_records: row.source_records,
-    }));
+  const recentFindings = (
+    (findingsRows || []) as Array<Record<string, unknown>>
+  ).map((row) => ({
+    id: row.id,
+    severity: row.severity,
+    confidence: row.confidence,
+    title: row.title,
+    description: row.description,
+    indicators: row.indicators,
+    source_records: row.source_records,
+  }));
 
   let decision: ReviewDecision;
   try {

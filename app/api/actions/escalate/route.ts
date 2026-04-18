@@ -14,6 +14,7 @@ const EscalatePayloadSchema = z.object({
   description: z.string().min(1, { message: "description is required" }),
   affectedUserId: z.string().uuid().optional(),
   affectedIp: z.string().optional(),
+  tenantId: z.string().uuid().optional(),
   recommendedAction: z.enum([
     "CLOSE",
     "ISOLATE_IDENTITY",
@@ -240,6 +241,7 @@ export async function POST(request: NextRequest) {
     severity: payload.severity,
     metadata: {
       alertId: payload.alertId,
+      tenant_id: payload.tenantId || null,
       recommendedAction: payload.recommendedAction,
       discord_notified: discordNotified,
     },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
+import { compare as bcryptCompare } from "bcryptjs";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +8,16 @@ export const runtime = "nodejs";
 
 const STAGE_TIMEOUT_MS = 30_000;
 const L3_TRIGGER_ACTIONS = new Set(["HUNT", "BLOCK_IP", "ISOLATE_IDENTITY"]);
+const TenantIdSchema = z.string().uuid();
+const TENANT_RATE_LIMIT_PER_MINUTE = 1000;
+const TENANT_RATE_LIMIT_WINDOW_MS = 60_000;
+const tenantRateLimitStore = new Map<
+  string,
+  {
+    windowStartMs: number;
+    count: number;
+  }
+>();
 
 const WazuhAlertSchema = z
   .object({
@@ -104,6 +115,11 @@ type StageCallResult = {
   error: string | null;
 };
 
+type TenantContext = {
+  tenantId: string;
+  integrationId: string | null;
+};
+
 function getAdminClient() {
   return createSupabaseAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -168,14 +184,20 @@ async function writeAuditLogSafe(
   action: string,
   severity: Severity,
   metadata: Record<string, unknown>,
+  tenantId?: string | null,
 ) {
   try {
-    const { error } = await getAdminClient().from("audit_logs").insert({
-      action,
-      severity,
-      metadata,
-      created_at: new Date().toISOString(),
-    });
+    const { error } = await getAdminClient()
+      .from("audit_logs")
+      .insert({
+        action,
+        severity,
+        metadata: {
+          tenant_id: tenantId || null,
+          ...metadata,
+        },
+        created_at: new Date().toISOString(),
+      });
 
     if (error) {
       console.error("[wazuh webhook] Failed to write audit log", {
@@ -189,6 +211,111 @@ async function writeAuditLogSafe(
       error,
     });
   }
+}
+
+function enforceTenantRateLimit(tenantId: string) {
+  const now = Date.now();
+  const existing = tenantRateLimitStore.get(tenantId);
+
+  if (
+    !existing ||
+    now - existing.windowStartMs >= TENANT_RATE_LIMIT_WINDOW_MS
+  ) {
+    tenantRateLimitStore.set(tenantId, {
+      windowStartMs: now,
+      count: 1,
+    });
+
+    return {
+      allowed: true,
+      remaining: TENANT_RATE_LIMIT_PER_MINUTE - 1,
+      retryAfterSeconds: 0,
+    };
+  }
+
+  existing.count += 1;
+
+  if (existing.count > TENANT_RATE_LIMIT_PER_MINUTE) {
+    const retryAfterMs =
+      TENANT_RATE_LIMIT_WINDOW_MS - (now - existing.windowStartMs);
+
+    return {
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1000)),
+    };
+  }
+
+  return {
+    allowed: true,
+    remaining: Math.max(0, TENANT_RATE_LIMIT_PER_MINUTE - existing.count),
+    retryAfterSeconds: 0,
+  };
+}
+
+async function verifyTenantWebhookAuth(
+  tenantId: string,
+  apiKey: string | null,
+): Promise<
+  | {
+      ok: true;
+      integrationId: string;
+    }
+  | {
+      ok: false;
+      reason: string;
+    }
+> {
+  if (!apiKey || apiKey.trim().length === 0) {
+    return {
+      ok: false,
+      reason: "MISSING_API_KEY_HEADER",
+    };
+  }
+
+  const { data, error } = await getAdminClient()
+    .from("wazuh_integrations")
+    .select("id, api_key_hash")
+    .eq("tenant_id", tenantId)
+    .eq("is_active", true);
+
+  if (error) {
+    return {
+      ok: false,
+      reason: "INTEGRATION_QUERY_FAILED",
+    };
+  }
+
+  if (!data || data.length === 0) {
+    return {
+      ok: false,
+      reason: "NO_ACTIVE_INTEGRATIONS",
+    };
+  }
+
+  for (const integration of data) {
+    const hash =
+      typeof integration.api_key_hash === "string"
+        ? integration.api_key_hash
+        : null;
+
+    if (!hash) {
+      continue;
+    }
+
+    const matches = await bcryptCompare(apiKey, hash);
+    if (matches) {
+      return {
+        ok: true,
+        integrationId: integration.id,
+      };
+    }
+  }
+
+  return {
+    ok: false,
+    reason: "INVALID_API_KEY",
+  };
 }
 
 async function callStageJson(
@@ -430,16 +557,22 @@ async function runEventDrivenAgentChain(
   baseUrl: string,
   alertId: string,
   severity: Severity,
+  tenantId: string | null,
 ): Promise<ChainExecutionResult> {
   const chainStartedAt = Date.now();
   const stagesExecuted: string[] = [];
 
-  await writeAuditLogSafe("AGENT_CHAIN_STARTED", severity, {
-    alert_id: alertId,
+  await writeAuditLogSafe(
+    "AGENT_CHAIN_STARTED",
     severity,
-    source: "wazuh",
-    started_at: new Date(chainStartedAt).toISOString(),
-  });
+    {
+      alert_id: alertId,
+      severity,
+      source: "wazuh",
+      started_at: new Date(chainStartedAt).toISOString(),
+    },
+    tenantId,
+  );
 
   const l1Stage = await callStageJson(
     `${baseUrl}/api/agent/triage`,
@@ -447,6 +580,7 @@ async function runEventDrivenAgentChain(
       alert_id: alertId,
       include_scans: false,
       alert_min_age_minutes: 0,
+      tenant_id: tenantId,
     },
     STAGE_TIMEOUT_MS,
   );
@@ -475,24 +609,34 @@ async function runEventDrivenAgentChain(
 
   stagesExecuted.push("L1");
 
-  await writeAuditLogSafe("L1_COMPLETED", severity, {
-    alert_id: alertId,
-    decision: l1Result.decision,
-    confidence: l1Result.confidence,
-    escalation_id: l1Result.escalation_id,
-    duration_ms: l1Result.duration_ms,
-    timed_out: l1Result.timed_out,
-    error: l1Result.error,
-  });
+  await writeAuditLogSafe(
+    "L1_COMPLETED",
+    severity,
+    {
+      alert_id: alertId,
+      decision: l1Result.decision,
+      confidence: l1Result.confidence,
+      escalation_id: l1Result.escalation_id,
+      duration_ms: l1Result.duration_ms,
+      timed_out: l1Result.timed_out,
+      error: l1Result.error,
+    },
+    tenantId,
+  );
 
   let l2Result: L2ChainResult | null = null;
   let l3Result: L3ChainResult | null = null;
 
   if (l1Result.decision === "ESCALATE") {
-    await writeAuditLogSafe("L2_TRIGGERED", severity, {
-      alert_id: alertId,
-      escalation_id: l1Result.escalation_id,
-    });
+    await writeAuditLogSafe(
+      "L2_TRIGGERED",
+      severity,
+      {
+        alert_id: alertId,
+        escalation_id: l1Result.escalation_id,
+      },
+      tenantId,
+    );
 
     if (!l1Result.escalation_id) {
       l2Result = {
@@ -506,26 +650,33 @@ async function runEventDrivenAgentChain(
 
       stagesExecuted.push("L2");
 
-      await writeAuditLogSafe("L2_COMPLETED", severity, {
-        alert_id: alertId,
-        escalation_id: null,
-        action: l2Result.action,
-        confidence: l2Result.confidence,
-        reasoning: l2Result.reasoning,
-        duration_ms: l2Result.duration_ms,
-        timed_out: l2Result.timed_out,
-        error: l2Result.error,
-      });
+      await writeAuditLogSafe(
+        "L2_COMPLETED",
+        severity,
+        {
+          alert_id: alertId,
+          escalation_id: null,
+          action: l2Result.action,
+          confidence: l2Result.confidence,
+          reasoning: l2Result.reasoning,
+          duration_ms: l2Result.duration_ms,
+          timed_out: l2Result.timed_out,
+          error: l2Result.error,
+        },
+        tenantId,
+      );
     } else {
       const l2Stage = await callStageJson(
         `${baseUrl}/api/cron/l2-respond`,
         {
           escalation_id: l1Result.escalation_id,
           min_age_minutes: 0,
+          tenant_id: tenantId,
           l1_result: {
             decision: l1Result.decision,
             confidence: l1Result.confidence,
             escalation_id: l1Result.escalation_id,
+            tenant_id: tenantId,
           },
         },
         STAGE_TIMEOUT_MS,
@@ -553,20 +704,26 @@ async function runEventDrivenAgentChain(
 
       stagesExecuted.push("L2");
 
-      await writeAuditLogSafe("L2_COMPLETED", severity, {
-        alert_id: alertId,
-        escalation_id: l1Result.escalation_id,
-        action: l2Result.action,
-        confidence: l2Result.confidence,
-        reasoning: l2Result.reasoning,
-        duration_ms: l2Result.duration_ms,
-        timed_out: l2Result.timed_out,
-        error: l2Result.error,
-      });
+      await writeAuditLogSafe(
+        "L2_COMPLETED",
+        severity,
+        {
+          alert_id: alertId,
+          escalation_id: l1Result.escalation_id,
+          action: l2Result.action,
+          confidence: l2Result.confidence,
+          reasoning: l2Result.reasoning,
+          duration_ms: l2Result.duration_ms,
+          timed_out: l2Result.timed_out,
+          error: l2Result.error,
+        },
+        tenantId,
+      );
     }
 
     if (L3_TRIGGER_ACTIONS.has(l2Result.action)) {
       const l2Context = {
+        tenant_id: tenantId,
         action: l2Result.action,
         confidence: l2Result.confidence,
         reasoning: l2Result.reasoning,
@@ -575,12 +732,17 @@ async function runEventDrivenAgentChain(
         error: l2Result.error,
       };
 
-      await writeAuditLogSafe("L3_TRIGGERED", severity, {
-        alert_id: alertId,
-        escalation_id: l1Result.escalation_id,
-        reason: l2Result.action,
-        l2_context: l2Context,
-      });
+      await writeAuditLogSafe(
+        "L3_TRIGGERED",
+        severity,
+        {
+          alert_id: alertId,
+          escalation_id: l1Result.escalation_id,
+          reason: l2Result.action,
+          l2_context: l2Context,
+        },
+        tenantId,
+      );
 
       const l3Stage = await callStageJson(
         `${baseUrl}/api/cron/l3-hunt`,
@@ -601,14 +763,19 @@ async function runEventDrivenAgentChain(
 
       stagesExecuted.push("L3");
 
-      await writeAuditLogSafe("L3_COMPLETED", severity, {
-        alert_id: alertId,
-        escalation_id: l1Result.escalation_id,
-        findings_count: l3Result.findings_count,
-        duration_ms: l3Result.duration_ms,
-        timed_out: l3Result.timed_out,
-        error: l3Result.error,
-      });
+      await writeAuditLogSafe(
+        "L3_COMPLETED",
+        severity,
+        {
+          alert_id: alertId,
+          escalation_id: l1Result.escalation_id,
+          findings_count: l3Result.findings_count,
+          duration_ms: l3Result.duration_ms,
+          timed_out: l3Result.timed_out,
+          error: l3Result.error,
+        },
+        tenantId,
+      );
     }
   }
 
@@ -618,13 +785,18 @@ async function runEventDrivenAgentChain(
     (!l2Result || !l2Result.error) &&
     (!l3Result || !l3Result.error);
 
-  await writeAuditLogSafe("AGENT_CHAIN_COMPLETED", severity, {
-    alert_id: alertId,
-    started_at: new Date(chainStartedAt).toISOString(),
-    total_duration_ms: totalDurationMs,
-    stages_executed: stagesExecuted,
-    chain_success: chainSuccess,
-  });
+  await writeAuditLogSafe(
+    "AGENT_CHAIN_COMPLETED",
+    severity,
+    {
+      alert_id: alertId,
+      started_at: new Date(chainStartedAt).toISOString(),
+      total_duration_ms: totalDurationMs,
+      stages_executed: stagesExecuted,
+      chain_success: chainSuccess,
+    },
+    tenantId,
+  );
 
   return {
     alert_id: alertId,
@@ -680,6 +852,7 @@ function parseIncomingAlerts(payload: unknown): {
 async function processSingleAlert(
   alert: WazuhAlert,
   baseUrl: string,
+  tenantContext: TenantContext | null,
 ): Promise<{
   external_alert_id: string | null;
   internal_alert_id: string | null;
@@ -690,55 +863,81 @@ async function processSingleAlert(
   const ruleLevel = alert.rule?.level ?? null;
   const severity = mapRuleLevelToSeverity(ruleLevel);
 
-  await writeAuditLogSafe("WAZUH_ALERT_RECEIVED", severity, {
-    source: "wazuh",
-    external_alert_id: toText(alert.id),
-    rule_id: toText(alert.rule?.id),
-    rule_level: ruleLevel,
-    rule_description: alert.rule?.description || null,
-    agent_name: alert.agent?.name || null,
-    src_ip: alert.data?.srcip || null,
-    dst_ip: alert.data?.dstip || null,
-  });
+  await writeAuditLogSafe(
+    "WAZUH_ALERT_RECEIVED",
+    severity,
+    {
+      source: "wazuh",
+      external_alert_id: toText(alert.id),
+      rule_id: toText(alert.rule?.id),
+      rule_level: ruleLevel,
+      rule_description: alert.rule?.description || null,
+      agent_name: alert.agent?.name || null,
+      src_ip: alert.data?.srcip || null,
+      dst_ip: alert.data?.dstip || null,
+      integration_id: tenantContext?.integrationId || null,
+    },
+    tenantContext?.tenantId || null,
+  );
 
   let insertedAlertId: string | null = null;
   let queued = false;
 
   try {
-    insertedAlertId = await queueAlert(alert);
+    insertedAlertId = await queueAlert(alert, tenantContext?.tenantId || null);
     queued = Boolean(insertedAlertId);
   } catch (error) {
     console.error("[wazuh webhook] Failed to insert alert", error);
   }
 
-  await writeAuditLogSafe("WAZUH_ALERT_PROCESSED", severity, {
-    source: "wazuh",
-    processing_mode: "event_driven_queue",
-    external_alert_id: toText(alert.id),
-    internal_alert_id: insertedAlertId,
-    queued,
-  });
+  await writeAuditLogSafe(
+    "WAZUH_ALERT_PROCESSED",
+    severity,
+    {
+      source: "wazuh",
+      processing_mode: "event_driven_queue",
+      external_alert_id: toText(alert.id),
+      internal_alert_id: insertedAlertId,
+      queued,
+    },
+    tenantContext?.tenantId || null,
+  );
 
   let chain: ChainExecutionResult | null = null;
 
   if (queued && insertedAlertId) {
     triggerCtemExposure(baseUrl, alert, insertedAlertId);
-    chain = await runEventDrivenAgentChain(baseUrl, insertedAlertId, severity);
+    chain = await runEventDrivenAgentChain(
+      baseUrl,
+      insertedAlertId,
+      severity,
+      tenantContext?.tenantId || null,
+    );
   } else {
-    await writeAuditLogSafe("WAZUH_ALERT_DECISION", severity, {
-      source: "wazuh",
-      external_alert_id: toText(alert.id),
-      internal_alert_id: insertedAlertId,
-      decision: "ESCALATE",
-      confidence: 0,
-      reasoning: "Failed to queue alert for event-driven chain.",
-    });
-    await writeAuditLogSafe("WAZUH_ALERT_ACTION_TAKEN", severity, {
-      source: "wazuh",
-      external_alert_id: toText(alert.id),
-      internal_alert_id: insertedAlertId,
-      action_taken: "QUEUE_FAILED",
-    });
+    await writeAuditLogSafe(
+      "WAZUH_ALERT_DECISION",
+      severity,
+      {
+        source: "wazuh",
+        external_alert_id: toText(alert.id),
+        internal_alert_id: insertedAlertId,
+        decision: "ESCALATE",
+        confidence: 0,
+        reasoning: "Failed to queue alert for event-driven chain.",
+      },
+      tenantContext?.tenantId || null,
+    );
+    await writeAuditLogSafe(
+      "WAZUH_ALERT_ACTION_TAKEN",
+      severity,
+      {
+        source: "wazuh",
+        external_alert_id: toText(alert.id),
+        internal_alert_id: insertedAlertId,
+        action_taken: "QUEUE_FAILED",
+      },
+      tenantContext?.tenantId || null,
+    );
   }
 
   return {
@@ -806,7 +1005,10 @@ function triggerCtemExposure(
     });
 }
 
-async function queueAlert(alert: WazuhAlert): Promise<string | null> {
+async function queueAlert(
+  alert: WazuhAlert,
+  tenantId: string | null,
+): Promise<string | null> {
   const adminClient = getAdminClient();
   const ruleLevel = alert.rule?.level ?? null;
 
@@ -831,7 +1033,10 @@ async function queueAlert(alert: WazuhAlert): Promise<string | null> {
         file_hash_sha256: alert.syscheck?.sha256_after ?? null,
         mitre_technique_id: alert.rule?.mitre?.technique?.[0] ?? null,
         mitre_tactic: alert.rule?.mitre?.tactic?.[0] ?? null,
-        full_payload: alert,
+        full_payload: {
+          ...alert,
+          tenant_id: tenantId,
+        },
         status: "pending",
         created_at: new Date().toISOString(),
       })
@@ -852,11 +1057,99 @@ async function queueAlert(alert: WazuhAlert): Promise<string | null> {
 }
 
 export async function POST(request: NextRequest) {
-  const expectedSecret = process.env.WAZUH_WEBHOOK_SECRET;
-  const authHeader = request.headers.get("authorization") || "";
+  const tenantParam =
+    request.nextUrl.searchParams.get("tenant") ||
+    request.nextUrl.searchParams.get("tenant_id");
+  const apiKeyHeader = request.headers.get("x-api-key");
 
-  if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  let tenantContext: TenantContext | null = null;
+
+  if (tenantParam) {
+    const parsedTenant = TenantIdSchema.safeParse(tenantParam);
+    if (!parsedTenant.success) {
+      return NextResponse.json(
+        { error: "Invalid tenant query parameter" },
+        { status: 400 },
+      );
+    }
+
+    const tenantId = parsedTenant.data;
+    const rateLimit = enforceTenantRateLimit(tenantId);
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: "Rate limit exceeded",
+          tenant_id: tenantId,
+          retry_after_seconds: rateLimit.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateLimit.retryAfterSeconds),
+            "X-RateLimit-Limit": String(TENANT_RATE_LIMIT_PER_MINUTE),
+            "X-RateLimit-Remaining": String(rateLimit.remaining),
+          },
+        },
+      );
+    }
+
+    const authResult = await verifyTenantWebhookAuth(tenantId, apiKeyHeader);
+    if (!authResult.ok) {
+      await writeAuditLogSafe(
+        "WAZUH_WEBHOOK_AUTH_FAILED",
+        "medium",
+        {
+          source: "wazuh",
+          reason: authResult.reason,
+          x_api_key_present: Boolean(apiKeyHeader),
+        },
+        tenantId,
+      );
+
+      return NextResponse.json(
+        { error: "Unauthorized", tenant_id: tenantId },
+        { status: 401 },
+      );
+    }
+
+    tenantContext = {
+      tenantId,
+      integrationId: authResult.integrationId,
+    };
+
+    const { error: lastSeenError } = await getAdminClient()
+      .from("wazuh_integrations")
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq("id", authResult.integrationId);
+
+    if (lastSeenError) {
+      console.error("[wazuh webhook] Failed updating integration heartbeat", {
+        integration_id: authResult.integrationId,
+        tenant_id: tenantId,
+        details: lastSeenError.message,
+      });
+    }
+  } else {
+    const expectedSecret = process.env.WAZUH_WEBHOOK_SECRET;
+    const authHeader = request.headers.get("authorization") || "";
+
+    if (!expectedSecret) {
+      console.warn(
+        "[wazuh webhook] WAZUH_WEBHOOK_SECRET is missing; route is misconfigured.",
+      );
+
+      return NextResponse.json(
+        {
+          error: "Service unavailable: Wazuh webhook secret is not configured",
+        },
+        { status: 503 },
+      );
+    }
+
+    if (authHeader !== `Bearer ${expectedSecret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 
   try {
@@ -867,6 +1160,7 @@ export async function POST(request: NextRequest) {
       console.error("[wazuh webhook] Invalid JSON payload", error);
       return NextResponse.json({
         received: true,
+        tenant_id: tenantContext?.tenantId || null,
         total_received: 0,
         total_valid: 0,
         total_invalid: 0,
@@ -878,6 +1172,7 @@ export async function POST(request: NextRequest) {
     if (validAlerts.length === 0) {
       return NextResponse.json({
         received: true,
+        tenant_id: tenantContext?.tenantId || null,
         total_received: Array.isArray(payload) ? payload.length : 1,
         total_valid: 0,
         total_invalid: invalidCount,
@@ -888,7 +1183,9 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.INTERNAL_API_URL ?? request.nextUrl.origin;
 
     const settled = await Promise.allSettled(
-      validAlerts.map((alert) => processSingleAlert(alert, baseUrl)),
+      validAlerts.map((alert) =>
+        processSingleAlert(alert, baseUrl, tenantContext),
+      ),
     );
 
     const successfulResults = settled
@@ -910,6 +1207,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       received: true,
+      tenant_id: tenantContext?.tenantId || null,
       total_received: validAlerts.length + invalidCount,
       total_valid: validAlerts.length,
       total_invalid: invalidCount,
@@ -924,6 +1222,7 @@ export async function POST(request: NextRequest) {
     console.error("[wazuh webhook] Unexpected error", error);
     return NextResponse.json({
       received: true,
+      tenant_id: tenantContext?.tenantId || null,
       total_received: 0,
       total_valid: 0,
       total_invalid: 0,

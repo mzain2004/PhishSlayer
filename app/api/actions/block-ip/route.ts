@@ -14,6 +14,7 @@ const BlockIpPayloadSchema = z.object({
   }),
   reason: z.string().min(1, { message: "reason is required" }),
   threatLevel: z.enum(["low", "medium", "high", "critical"]),
+  tenantId: z.string().uuid().optional().nullable(),
 });
 
 function mapThreatToAuditSeverity(
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { ip, reason, threatLevel } = parsed.data;
+  const { ip, reason, threatLevel, tenantId } = parsed.data;
   const cfToken = process.env.CLOUDFLARE_API_TOKEN;
   const cfZoneId = process.env.CLOUDFLARE_ZONE_ID;
 
@@ -234,6 +235,7 @@ export async function POST(request: NextRequest) {
     action: "IP_BLOCKED",
     severity: mapThreatToAuditSeverity(threatLevel),
     metadata: {
+      tenant_id: tenantId || null,
       ip,
       reason,
       cloudflare_rule_id: cloudflareRuleId,

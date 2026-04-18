@@ -15,6 +15,7 @@ node_modules/
 # ── Environment / Secrets (CRITICAL — never commit) ──────────────
 .env
 .env.*
+!.env.example
 .env.local
 .env.development
 .env.development.local
@@ -23,6 +24,7 @@ node_modules/
 .env.production
 .env.production.local
 .env.staging
+!.env.example
 
 # ── Next.js ───────────────────────────────────────────────────────
 /.next/

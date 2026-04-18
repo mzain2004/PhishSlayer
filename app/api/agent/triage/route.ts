@@ -34,6 +34,8 @@ const GeminiApiResponseSchema = z.object({
     .optional(),
 });
 
+const TenantIdSchema = z.string().uuid();
+
 type ScanRecord = {
   source: "scans";
   id: string;
@@ -94,6 +96,7 @@ type ProcessBatchOptions = {
   alertId?: string;
   alertMinAgeMinutes?: number;
   includeScans?: boolean;
+  tenantId?: string;
 };
 
 const SYSTEM_PROMPT = `You are an expert SOC analyst with 15 years experience in
@@ -247,11 +250,15 @@ async function writeAuditLogSafe(
   action: string,
   severity: Severity,
   metadata: Record<string, unknown>,
+  tenantId?: string | null,
 ) {
   const { error } = await adminClient.from("audit_logs").insert({
     action,
     severity,
-    metadata,
+    metadata: {
+      tenant_id: tenantId || null,
+      ...metadata,
+    },
     created_at: new Date().toISOString(),
   });
 
@@ -267,6 +274,7 @@ async function logWazuhLifecycle(
   adminClient: ReturnType<typeof getAdminClient>,
   stage: "received" | "processed" | "decision" | "action_taken",
   record: AlertRecord,
+  tenantId: string | null,
   options?: {
     decision?: Decision;
     actionTaken?: string;
@@ -290,20 +298,26 @@ async function logWazuhLifecycle(
         ? options.error
         : null;
 
-  await writeAuditLogSafe(adminClient, actionMap[stage], severity, {
-    source: "wazuh",
-    alert_id: record.id,
-    rule_id: record.rule_id,
-    rule_level: record.rule_level,
-    rule_description: record.rule_description,
-    decision: options?.decision?.decision,
-    confidence: options?.decision?.confidence,
-    recommended_action: options?.decision?.recommended_action,
-    reasoning: options?.decision?.reasoning,
-    action_taken: options?.actionTaken || null,
-    escalation_id: options?.escalationId || null,
-    error: errorText,
-  });
+  await writeAuditLogSafe(
+    adminClient,
+    actionMap[stage],
+    severity,
+    {
+      source: "wazuh",
+      alert_id: record.id,
+      rule_id: record.rule_id,
+      rule_level: record.rule_level,
+      rule_description: record.rule_description,
+      decision: options?.decision?.decision,
+      confidence: options?.decision?.confidence,
+      recommended_action: options?.decision?.recommended_action,
+      reasoning: options?.decision?.reasoning,
+      action_taken: options?.actionTaken || null,
+      escalation_id: options?.escalationId || null,
+      error: errorText,
+    },
+    tenantId,
+  );
 }
 
 function getAuthHeaderValue(request: NextRequest): string {
@@ -497,6 +511,7 @@ async function escalateScan(
   record: QueueRecord,
   decision: Decision,
   baseUrl: string,
+  tenantId: string | null,
 ): Promise<{ escalationId: string | null }> {
   const title =
     record.source === "wazuh"
@@ -524,8 +539,12 @@ async function escalateScan(
       description: decision.reasoning,
       affectedUserId,
       affectedIp,
+      tenantId: tenantId || undefined,
       recommendedAction: normalizeEscalationAction(decision),
-      telemetrySnapshot: record,
+      telemetrySnapshot: {
+        ...(record as Record<string, unknown>),
+        tenant_id: tenantId || null,
+      },
     }),
   });
 
@@ -553,6 +572,7 @@ async function processBatch(
   options: ProcessBatchOptions = {},
 ) {
   const adminClient = getAdminClient();
+  const tenantId = options.tenantId || null;
   const includeScans = options.includeScans ?? !options.alertId;
   const alertMinAgeMinutes =
     typeof options.alertMinAgeMinutes === "number" &&
@@ -595,6 +615,7 @@ async function processBatch(
     item_id: string;
     alert_id: string | null;
     scan_id: string | null;
+    tenant_id: string | null;
     source: QueueRecord["source"];
     decision: Decision["decision"];
     confidence: number;
@@ -612,14 +633,16 @@ async function processBatch(
 
     try {
       if (item.source === "wazuh") {
-        await logWazuhLifecycle(adminClient, "received", item);
-        await logWazuhLifecycle(adminClient, "processed", item);
+        await logWazuhLifecycle(adminClient, "received", item, tenantId);
+        await logWazuhLifecycle(adminClient, "processed", item, tenantId);
       }
 
       decision = await runGeminiTriage(item);
 
       if (item.source === "wazuh") {
-        await logWazuhLifecycle(adminClient, "decision", item, { decision });
+        await logWazuhLifecycle(adminClient, "decision", item, tenantId, {
+          decision,
+        });
       }
 
       const reviewedAt = new Date().toISOString();
@@ -658,6 +681,7 @@ async function processBatch(
             action: "L1_AUTO_CLOSED",
             severity: decision.severity,
             metadata: {
+              tenant_id: tenantId,
               source: item.source,
               record_id: item.id,
               reasoning: decision.reasoning,
@@ -674,7 +698,7 @@ async function processBatch(
         }
 
         if (item.source === "wazuh") {
-          await logWazuhLifecycle(adminClient, "action_taken", item, {
+          await logWazuhLifecycle(adminClient, "action_taken", item, tenantId, {
             decision,
             actionTaken: "CLOSE",
           });
@@ -686,6 +710,7 @@ async function processBatch(
           item_id: item.id,
           alert_id: item.source === "wazuh" ? item.id : null,
           scan_id: item.source === "scans" ? item.id : null,
+          tenant_id: tenantId,
           source: item.source,
           decision: decision.decision,
           confidence: decision.confidence,
@@ -695,7 +720,12 @@ async function processBatch(
           escalation_id: null,
         });
       } else {
-        const escalationResult = await escalateScan(item, decision, baseUrl);
+        const escalationResult = await escalateScan(
+          item,
+          decision,
+          baseUrl,
+          tenantId,
+        );
 
         const updateQuery =
           item.source === "wazuh"
@@ -725,7 +755,7 @@ async function processBatch(
         }
 
         if (item.source === "wazuh") {
-          await logWazuhLifecycle(adminClient, "action_taken", item, {
+          await logWazuhLifecycle(adminClient, "action_taken", item, tenantId, {
             decision,
             actionTaken: "ESCALATE",
             escalationId: escalationResult.escalationId,
@@ -738,6 +768,7 @@ async function processBatch(
           item_id: item.id,
           alert_id: item.source === "wazuh" ? item.id : null,
           scan_id: item.source === "scans" ? item.id : null,
+          tenant_id: tenantId,
           source: item.source,
           decision: decision.decision,
           confidence: decision.confidence,
@@ -753,7 +784,7 @@ async function processBatch(
       errors += 1;
 
       if (item.source === "wazuh") {
-        await logWazuhLifecycle(adminClient, "action_taken", item, {
+        await logWazuhLifecycle(adminClient, "action_taken", item, tenantId, {
           decision: decision || undefined,
           actionTaken: "ERROR",
           error,
@@ -770,6 +801,7 @@ async function processBatch(
 
   return NextResponse.json({
     success: true,
+    tenant_id: tenantId,
     processed,
     closed,
     escalated,
@@ -797,11 +829,27 @@ export async function GET(request: NextRequest) {
   const alertMinAgeMinutes = Number.isFinite(parsedMinAge)
     ? Math.max(0, parsedMinAge)
     : undefined;
+  const tenantParam =
+    request.nextUrl.searchParams.get("tenant_id") || undefined;
+  let tenantId: string | undefined;
+
+  if (tenantParam) {
+    const parsedTenant = TenantIdSchema.safeParse(tenantParam);
+    if (!parsedTenant.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid tenant_id" },
+        { status: 400 },
+      );
+    }
+
+    tenantId = parsedTenant.data;
+  }
 
   return processBatch(request, {
     alertId,
     includeScans,
     alertMinAgeMinutes,
+    tenantId,
   });
 }
 
@@ -840,10 +888,28 @@ export async function POST(request: NextRequest) {
   const alertMinAgeMinutes = Number.isFinite(parsedMinAge)
     ? Math.max(0, parsedMinAge)
     : undefined;
+  const tenantIdRaw =
+    typeof body.tenant_id === "string" && body.tenant_id.trim().length > 0
+      ? body.tenant_id.trim()
+      : undefined;
+  let tenantId: string | undefined;
+
+  if (tenantIdRaw) {
+    const parsedTenant = TenantIdSchema.safeParse(tenantIdRaw);
+    if (!parsedTenant.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid tenant_id" },
+        { status: 400 },
+      );
+    }
+
+    tenantId = parsedTenant.data;
+  }
 
   return processBatch(request, {
     alertId,
     includeScans,
     alertMinAgeMinutes,
+    tenantId,
   });
 }

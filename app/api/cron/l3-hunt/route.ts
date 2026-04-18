@@ -122,10 +122,12 @@ async function logL3Stage(
   cycleId: string,
   stage: L3StageName,
   metadata: Record<string, unknown> = {},
+  tenantId: string | null = null,
 ) {
   await writeAuditLogSafe(adminClient, L3_STAGE_ACTION, "low", {
     stage,
     cycle_id: cycleId,
+    tenant_id: tenantId,
     ...metadata,
   });
 }
@@ -136,10 +138,12 @@ async function logStageFailure(
   stage: "reader" | "hunt" | "review" | "findings" | "static_analysis",
   error: unknown,
   extra: Record<string, unknown> = {},
+  tenantId: string | null = null,
 ) {
   await writeAuditLogSafe(adminClient, L3_STAGE_FAILURE_ACTION, "medium", {
     stage,
     cycle_id: cycleId,
+    tenant_id: tenantId,
     error: error instanceof Error ? error.message : "unknown_error",
     ...extra,
   });
@@ -150,9 +154,11 @@ async function logStaticAnalysisStage(
   cycleId: string,
   stage: StaticAnalysisStageName,
   metadata: Record<string, unknown>,
+  tenantId: string | null = null,
 ) {
   await writeAuditLogSafe(adminClient, L3_STATIC_ANALYSIS_STAGE_ACTION, "low", {
     cycle_id: cycleId,
+    tenant_id: tenantId,
     stage,
     ...metadata,
   });
@@ -162,6 +168,7 @@ async function triggerStaticAnalysisForFileAlerts(
   adminClient: ReturnType<typeof getAdminClient>,
   internalApiBase: string,
   cycleId: string,
+  tenantId: string | null,
 ) {
   if (!internalApiBase) {
     return { scanned: 0, triggered: 0, failed: 0, skipped: true };
@@ -183,6 +190,7 @@ async function triggerStaticAnalysisForFileAlerts(
       "static_analysis",
       new Error(`Failed to query file-hash alerts: ${error.message}`),
       { context: "alert_query" },
+      tenantId,
     );
     return { scanned: 0, triggered: 0, failed: 1, skipped: false };
   }
@@ -219,6 +227,7 @@ async function triggerStaticAnalysisForFileAlerts(
           alert_id: alertId,
           file_hash_sha256: hash,
         },
+        tenantId,
       );
 
       const { data: existing } = await adminClient
@@ -229,11 +238,17 @@ async function triggerStaticAnalysisForFileAlerts(
         .maybeSingle();
 
       if (existing?.id) {
-        await logStaticAnalysisStage(adminClient, cycleId, "result_stored", {
-          alert_id: alertId,
-          storage_status: "already_present",
-          static_analysis_id: existing.id,
-        });
+        await logStaticAnalysisStage(
+          adminClient,
+          cycleId,
+          "result_stored",
+          {
+            alert_id: alertId,
+            storage_status: "already_present",
+            static_analysis_id: existing.id,
+          },
+          tenantId,
+        );
         continue;
       }
 
@@ -245,6 +260,7 @@ async function triggerStaticAnalysisForFileAlerts(
           alert_id: alertId,
           file_hash_sha256: hash,
         },
+        tenantId,
       );
 
       const response = await fetch(`${internalApiBase}/api/analysis/static`, {
@@ -267,11 +283,17 @@ async function triggerStaticAnalysisForFileAlerts(
       if (!response.ok) {
         failed += 1;
 
-        await logStaticAnalysisStage(adminClient, cycleId, "result_stored", {
-          alert_id: alertId,
-          storage_status: "failed",
-          error: `analysis_route_${response.status}`,
-        });
+        await logStaticAnalysisStage(
+          adminClient,
+          cycleId,
+          "result_stored",
+          {
+            alert_id: alertId,
+            storage_status: "failed",
+            error: `analysis_route_${response.status}`,
+          },
+          tenantId,
+        );
         continue;
       }
 
@@ -283,28 +305,49 @@ async function triggerStaticAnalysisForFileAlerts(
         .limit(1)
         .maybeSingle();
 
-      await logStaticAnalysisStage(adminClient, cycleId, "result_stored", {
-        alert_id: alertId,
-        storage_status: storedRecord?.id
-          ? "stored"
-          : "not_detected_after_trigger",
-        static_analysis_id: storedRecord?.id || null,
-      });
+      await logStaticAnalysisStage(
+        adminClient,
+        cycleId,
+        "result_stored",
+        {
+          alert_id: alertId,
+          storage_status: storedRecord?.id
+            ? "stored"
+            : "not_detected_after_trigger",
+          static_analysis_id: storedRecord?.id || null,
+        },
+        tenantId,
+      );
 
       triggered += 1;
     } catch (error) {
       failed += 1;
 
-      await logStageFailure(adminClient, cycleId, "static_analysis", error, {
-        context: "analysis_trigger_loop",
-      });
+      await logStageFailure(
+        adminClient,
+        cycleId,
+        "static_analysis",
+        error,
+        {
+          context: "analysis_trigger_loop",
+        },
+        tenantId,
+      );
 
-      await logStaticAnalysisStage(adminClient, cycleId, "result_stored", {
-        alert_id:
-          typeof alert.id === "string" && alert.id.length > 0 ? alert.id : null,
-        storage_status: "failed",
-        error: error instanceof Error ? error.message : "unknown_error",
-      });
+      await logStaticAnalysisStage(
+        adminClient,
+        cycleId,
+        "result_stored",
+        {
+          alert_id:
+            typeof alert.id === "string" && alert.id.length > 0
+              ? alert.id
+              : null,
+          storage_status: "failed",
+          error: error instanceof Error ? error.message : "unknown_error",
+        },
+        tenantId,
+      );
     }
   }
 
@@ -376,6 +419,7 @@ type L3RunOptions = {
   minHuntRecordAgeMinutes: number;
   triggerReason?: string;
   l2Context?: {
+    tenant_id: string | null;
     action: "ISOLATE_IDENTITY" | "BLOCK_IP" | "HUNT" | "MANUAL_REVIEW";
     confidence: number;
     reasoning: string | null;
@@ -403,6 +447,11 @@ function parseL2Context(value: unknown): L3RunOptions["l2Context"] {
   }
 
   return {
+    tenant_id:
+      typeof raw.tenant_id === "string" &&
+      z.string().uuid().safeParse(raw.tenant_id).success
+        ? raw.tenant_id
+        : null,
     action,
     confidence:
       typeof raw.confidence === "number" && Number.isFinite(raw.confidence)
@@ -429,6 +478,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
   const cycleId = `l3-cycle-${startedAt}`;
   const adminClient = getAdminClient();
   const baseUrl = getInternalBaseUrl(request);
+  const tenantId = options.l2Context?.tenant_id || null;
   const stageErrors: string[] = [];
   const hunterPath =
     options.minHuntRecordAgeMinutes > 0
@@ -467,12 +517,18 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
     action_taken: "NONE",
   };
 
-  await logL3Stage(adminClient, cycleId, "reader_started", {
-    step_path: "/api/agent/hunter/reader",
-    trigger_mode: options.triggerMode,
-    trigger_reason: options.triggerReason || null,
-    l2_context: options.l2Context || null,
-  });
+  await logL3Stage(
+    adminClient,
+    cycleId,
+    "reader_started",
+    {
+      step_path: "/api/agent/hunter/reader",
+      trigger_mode: options.triggerMode,
+      trigger_reason: options.triggerReason || null,
+      l2_context: options.l2Context || null,
+    },
+    tenantId,
+  );
 
   const readerResult = await invokeStep(
     baseUrl,
@@ -486,26 +542,45 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
   } else {
     reader.error = readerResult.error;
     stageErrors.push(`reader: ${readerResult.error}`);
-    await logStageFailure(adminClient, cycleId, "reader", readerResult.error, {
-      step_path: "/api/agent/hunter/reader",
-      payload: readerResult.payload,
-    });
+    await logStageFailure(
+      adminClient,
+      cycleId,
+      "reader",
+      readerResult.error,
+      {
+        step_path: "/api/agent/hunter/reader",
+        payload: readerResult.payload,
+      },
+      tenantId,
+    );
   }
 
-  await logL3Stage(adminClient, cycleId, "iocs_ingested", {
-    total_iocs: reader.total_iocs || 0,
-    by_source: reader.by_source || null,
-    inserted: reader.inserted || 0,
-    deduplicated: reader.deduplicated || 0,
-    reader_success: readerResult.ok,
-    reader_error: readerResult.ok ? null : readerResult.error,
-  });
+  await logL3Stage(
+    adminClient,
+    cycleId,
+    "iocs_ingested",
+    {
+      total_iocs: reader.total_iocs || 0,
+      by_source: reader.by_source || null,
+      inserted: reader.inserted || 0,
+      deduplicated: reader.deduplicated || 0,
+      reader_success: readerResult.ok,
+      reader_error: readerResult.ok ? null : readerResult.error,
+    },
+    tenantId,
+  );
 
-  await logL3Stage(adminClient, cycleId, "hunt_started", {
-    step_path: hunterPath,
-    min_hunt_record_age_minutes: options.minHuntRecordAgeMinutes,
-    l2_context: options.l2Context || null,
-  });
+  await logL3Stage(
+    adminClient,
+    cycleId,
+    "hunt_started",
+    {
+      step_path: hunterPath,
+      min_hunt_record_age_minutes: options.minHuntRecordAgeMinutes,
+      l2_context: options.l2Context || null,
+    },
+    tenantId,
+  );
 
   const hunterResult = await invokeStep(
     baseUrl,
@@ -519,25 +594,44 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
   } else {
     hunter.error = hunterResult.error;
     stageErrors.push(`hunt: ${hunterResult.error}`);
-    await logStageFailure(adminClient, cycleId, "hunt", hunterResult.error, {
-      step_path: hunterPath,
-      payload: hunterResult.payload,
-    });
+    await logStageFailure(
+      adminClient,
+      cycleId,
+      "hunt",
+      hunterResult.error,
+      {
+        step_path: hunterPath,
+        payload: hunterResult.payload,
+      },
+      tenantId,
+    );
   }
 
-  await logL3Stage(adminClient, cycleId, "correlations_found", {
-    iocs_processed: hunter.iocs_processed || 0,
-    scans_cross_referenced: hunter.scans_cross_referenced || 0,
-    hits_found: hunter.hits_found || 0,
-    escalations_created: hunter.escalations_created || 0,
-    hunt_errors: hunter.errors || 0,
-    hunt_success: hunterResult.ok,
-    hunt_error: hunterResult.ok ? null : hunterResult.error,
-  });
+  await logL3Stage(
+    adminClient,
+    cycleId,
+    "correlations_found",
+    {
+      iocs_processed: hunter.iocs_processed || 0,
+      scans_cross_referenced: hunter.scans_cross_referenced || 0,
+      hits_found: hunter.hits_found || 0,
+      escalations_created: hunter.escalations_created || 0,
+      hunt_errors: hunter.errors || 0,
+      hunt_success: hunterResult.ok,
+      hunt_error: hunterResult.ok ? null : hunterResult.error,
+    },
+    tenantId,
+  );
 
-  await logL3Stage(adminClient, cycleId, "review_started", {
-    step_path: "/api/agent/hunter/review",
-  });
+  await logL3Stage(
+    adminClient,
+    cycleId,
+    "review_started",
+    {
+      step_path: "/api/agent/hunter/review",
+    },
+    tenantId,
+  );
 
   const reviewerResult = await invokeStep(
     baseUrl,
@@ -573,6 +667,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
         payload: reviewerResult.payload,
         fallback_applied: true,
       },
+      tenantId,
     );
   }
 
@@ -588,14 +683,22 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
       adminClient,
       baseUrl,
       cycleId,
+      tenantId,
     );
   } catch (error) {
     stageErrors.push(
       `static_analysis: ${error instanceof Error ? error.message : "unknown_error"}`,
     );
-    await logStageFailure(adminClient, cycleId, "static_analysis", error, {
-      context: "static_analysis_execution",
-    });
+    await logStageFailure(
+      adminClient,
+      cycleId,
+      "static_analysis",
+      error,
+      {
+        context: "static_analysis_execution",
+      },
+      tenantId,
+    );
   }
 
   const halted = reviewer.verdict === "HALT";
@@ -613,6 +716,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
       "critical",
       {
         cycle_id: cycleId,
+        tenant_id: tenantId,
         halt_reason: haltReason,
         verdict: reviewer.verdict || "HALT",
         reduced_scope: reducedScope,
@@ -649,6 +753,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
         {
           context: "halt_reason_finding_insert",
         },
+        tenantId,
       );
     }
   }
@@ -688,27 +793,41 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
     stageErrors.push(
       `findings_persisted: ${error instanceof Error ? error.message : "unknown_error"}`,
     );
-    await logStageFailure(adminClient, cycleId, "findings", error, {
-      context: "save_reasoning_chain",
-    });
+    await logStageFailure(
+      adminClient,
+      cycleId,
+      "findings",
+      error,
+      {
+        context: "save_reasoning_chain",
+      },
+      tenantId,
+    );
   }
 
-  await logL3Stage(adminClient, cycleId, "findings_persisted", {
-    findings_count: hunter.hits_found || 0,
-    confidence_score: reviewer.confidence || 0,
-    reasoning_summary: reviewer.reviewer_notes || null,
-    halted,
-    reduced_scope: reducedScope,
-    halt_reason: haltReason,
-    execution_time_ms: executionTimeMs,
-    l2_context: options.l2Context || null,
-  });
+  await logL3Stage(
+    adminClient,
+    cycleId,
+    "findings_persisted",
+    {
+      findings_count: hunter.hits_found || 0,
+      confidence_score: reviewer.confidence || 0,
+      reasoning_summary: reviewer.reviewer_notes || null,
+      halted,
+      reduced_scope: reducedScope,
+      halt_reason: haltReason,
+      execution_time_ms: executionTimeMs,
+      l2_context: options.l2Context || null,
+    },
+    tenantId,
+  );
 
   return NextResponse.json({
     success: true,
     cycle_id: cycleId,
     trigger_mode: options.triggerMode,
     trigger_reason: options.triggerReason || null,
+    tenant_id: tenantId,
     min_hunt_record_age_minutes: options.minHuntRecordAgeMinutes,
     l2_context: options.l2Context || null,
     reader,

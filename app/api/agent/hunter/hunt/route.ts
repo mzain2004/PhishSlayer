@@ -140,7 +140,9 @@ function stripCodeFence(text: string): string {
 }
 
 function normalizeDecision(decision: HunterDecision): HunterDecision {
-  const findings = decision.findings.filter((finding) => finding.confidence >= 0.6);
+  const findings = decision.findings.filter(
+    (finding) => finding.confidence >= 0.6,
+  );
   return {
     ...decision,
     findings,

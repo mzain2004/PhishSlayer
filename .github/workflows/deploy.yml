@@ -266,14 +266,14 @@ jobs:
             CONFIG_FILE="/var/ossec/etc/ossec.conf"
 
             echo "Rewriting custom-webhook integration to current secret..."
-            python3 -c "import pathlib,re; config_path=pathlib.Path('/var/ossec/etc/ossec.conf'); text=config_path.read_text(encoding='utf-8'); text=re.sub(r'\\s*<integration>\\s*<name>custom-webhook</name>.*?</integration>\\s*','\\n',text,flags=re.S); block='''  <integration>\n    <name>custom-webhook</name>\n    <hook_url>https://phishslayer.tech/api/connectors/wazuh</hook_url>\n    <level>7</level>\n    <alert_format>json</alert_format>\n    <api_key>${{ secrets.WAZUH_WEBHOOK_SECRET }}</api_key>\n  </integration>'''; if '</ossec_config>' not in text: raise RuntimeError('Missing </ossec_config> in ossec.conf'); config_path.write_text(text.replace('</ossec_config>', f'{block}\\n</ossec_config>'), encoding='utf-8')"
+            python3 -c "import pathlib,re; config_path=pathlib.Path('/var/ossec/etc/ossec.conf'); text=config_path.read_text(encoding='utf-8'); text=re.sub(r'\\s*<integration>\\s*<name>custom-webhook</name>.*?</integration>\\s*','\\n',text,flags=re.S); block='''  <integration>\n    <name>custom-webhook</name>\n    <hook_url>https://phishslayer.tech/api/connectors/wazuh</hook_url>\n    <level>7</level>\n    <alert_format>json</alert_format>\n    <api_key>${{ secrets.WAZUH_WEBHOOK_SECRET }}</api_key>\n  </integration>'''; ('</ossec_config>' in text) or (_ for _ in ()).throw(RuntimeError('Missing </ossec_config> in ossec.conf')); config_path.write_text(text.replace('</ossec_config>', f'{block}\\n</ossec_config>'), encoding='utf-8')"
 
             systemctl restart wazuh-manager
             echo "Webhook integration synced and Wazuh restarted"
 
             # Verify all 3 services are running
             for service in wazuh-manager wazuh-indexer wazuh-dashboard; do
-              STATUS=$(systemctl is-active $service)
+              STATUS=$(systemctl is-active $service || true)
               echo "$service: $STATUS"
               if [ "$STATUS" != "active" ]; then
                 echo "WARNING: $service is not active, attempting restart..."

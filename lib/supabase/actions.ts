@@ -114,6 +114,10 @@ const launchScanSchema = z.object({
 });
 export async function getIncidents() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
   const { data, error } = await supabase.from("incidents").select("*");
   if (error) throw new Error(error.message);
   return data || [];
@@ -121,6 +125,10 @@ export async function getIncidents() {
 
 export async function getScans() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
   const { data, error } = await supabase
     .from("scans")
     .select("*")
@@ -147,7 +155,7 @@ export async function createIncident(data: any) {
   const payload: any = {
     title: validData.title,
     severity: validData.severity || validData.priority || "Medium",
-    status: validData.status || "Open Investigations",
+    status: validData.status || "open",
     assignee: validData.assignee || "Unassigned",
     description: validData.description || "",
     timeline: validData.timeline || [],
@@ -221,7 +229,7 @@ export async function resolveIncident(id: string, comment: string) {
   const { error: updateError } = await supabase
     .from("incidents")
     .update({
-      status: "Resolved (Last 7 Days)",
+      status: "resolved",
       timeline: newTimeline,
     })
     .eq("id", validId);
@@ -356,6 +364,10 @@ export async function addToWhitelist(target: string) {
 
 export async function getWhitelist() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
   const { data, error } = await supabase
     .from("whitelist")
     .select("*")
@@ -451,10 +463,13 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
   }
 
   // 5. Increment scan counter
-  await supabase
-    .from("profiles")
-    .update({ scan_count_today: (profile.scan_count_today ?? 0) + 1 })
-    .eq("id", userId);
+  const { error: incrementError } = await supabase.rpc(
+    "increment_scan_count",
+    { user_id: userId },
+  );
+  if (incrementError) {
+    return { error: "Failed to increment scan count" };
+  }
 
   // 7. Log audit event
   await logAuditEvent(userId, "scan_launched", normalizedTarget, {
@@ -475,7 +490,7 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
     const { error: wlInsertError } = await supabase.from("scans").insert([
       {
         target: validTarget,
-        status: "Completed",
+          status: "completed",
         date,
         verdict: "clean",
         malicious_count: 0,
@@ -515,7 +530,7 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
     const { error: intelInsertError } = await supabase.from("scans").insert([
       {
         target: validTarget,
-        status: "Completed",
+          status: "completed",
         date,
         verdict: "malicious",
         malicious_count: 1,
@@ -620,7 +635,7 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
     const { error } = await supabase.from("scans").insert([
       {
         target: validTarget,
-        status: "Completed",
+        status: "completed",
         date,
         verdict: finding.verdict,
         malicious_count: finding.maliciousCount,
@@ -691,7 +706,7 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
     // Single INSERT — Failed (fire and forget, don't re-throw)
     const failPayload = {
       target: validTarget,
-      status: "Failed",
+      status: "failed",
       date,
       user_id: user?.id || null,
     };
@@ -715,6 +730,10 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
 
 export async function getIntelIndicators() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
   const { data, error } = await supabase
     .from("proprietary_intel")
     .select("*")
@@ -1093,7 +1112,7 @@ export async function triggerWeeklyDigest() {
   const { count: openIncidents } = await supabase
     .from("incidents")
     .select("*", { count: "exact", head: true })
-    .neq("status", "Resolved (Last 7 Days)");
+    .neq("status", "resolved");
 
   // Get users who want the digest
   const { data: subscribers } = await serviceClient

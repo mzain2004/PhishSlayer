@@ -155,7 +155,7 @@ async function handleScan(request: NextRequest) {
       await supabaseAdmin.from("scans").insert([
         {
           target: validTarget,
-          status: "Completed",
+          status: "completed",
           date,
           verdict: "clean",
           malicious_count: 0,
@@ -205,7 +205,7 @@ async function handleScan(request: NextRequest) {
       await supabaseAdmin.from("scans").insert([
         {
           target: validTarget,
-          status: "Completed",
+          status: "completed",
           date,
           verdict: "malicious",
           malicious_count: 1,
@@ -358,7 +358,7 @@ async function handleScan(request: NextRequest) {
     await supabaseAdmin.from("scans").insert([
       {
         target: validTarget,
-        status: "Completed",
+        status: "completed",
         date,
         verdict: finding.verdict,
         malicious_count: finding.maliciousCount,

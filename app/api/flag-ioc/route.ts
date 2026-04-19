@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import net from "node:net";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { safeCompare } from "@/lib/security/safeCompare";
+import "@/lib/zod-extensions";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -47,9 +49,7 @@ const eventSchema = z.object({
   userId: z.string().optional().default("agent"),
   processName: z.string().min(1),
   pid: z.string(),
-  remoteAddress: z
-    .string()
-    .regex(/^(\d{1,3}\.){3}\d{1,3}$/, "Invalid IP address"),
+  remoteAddress: z.string().ip(),
   remotePort: z.string(),
   timestamp: z.string().optional(),
   threatLevel: z.string().optional(),
@@ -61,6 +61,12 @@ const bodySchema = z.object({
 });
 
 function isPrivateIp(ip: string): boolean {
+  const ipType = net.isIP(ip);
+  if (ipType === 6) {
+    const normalized = ip.toLowerCase();
+    return normalized === "::1" || normalized.startsWith("fc") || normalized.startsWith("fd");
+  }
+
   if (ip.startsWith("10.")) return true;
   if (ip.startsWith("192.168.")) return true;
   if (ip.startsWith("127.")) return true;

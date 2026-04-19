@@ -1,11 +1,54 @@
 "use server";
 
 import { Resend } from "resend";
+import { headers } from "next/headers";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
+const RATE_LIMIT_MAX = 3;
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+const rateLimitByIp = new Map<
+  string,
+  { count: number; resetAt: number }
+>();
+
+async function getClientIp() {
+  const headerList = await headers();
+  const forwarded = headerList.get("x-forwarded-for") || "";
+  const realIp = headerList.get("x-real-ip") || "";
+  const candidate = forwarded.split(",")[0]?.trim() || realIp.trim();
+  return candidate || "unknown";
+}
+
+function isRateLimited(ip: string) {
+  const now = Date.now();
+  for (const [key, value] of rateLimitByIp.entries()) {
+    if (value.resetAt <= now) rateLimitByIp.delete(key);
+  }
+
+  const entry = rateLimitByIp.get(ip);
+  if (!entry) {
+    rateLimitByIp.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  if (entry.resetAt <= now) {
+    rateLimitByIp.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX) return true;
+  entry.count += 1;
+  return false;
+}
+
 export async function submitContact(formData: FormData) {
   try {
+    const ip = await getClientIp();
+    if (isRateLimited(ip)) {
+      return { error: "Too many requests", status: 429 };
+    }
+
     const firstName = formData.get("firstName") as string;
     const lastName = formData.get("lastName") as string;
     const email = formData.get("email") as string;

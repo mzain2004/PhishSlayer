@@ -1,13 +1,23 @@
 import Groq from "groq-sdk";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+let groqClient: Groq | null = null;
 
 const DEFAULT_MODEL = "llama-3.3-70b-versatile";
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getGroqClient(): Groq {
+  if (!groqClient) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      throw new Error("Missing GROQ_API_KEY");
+    }
+    groqClient = new Groq({ apiKey });
+  }
+
+  return groqClient;
 }
 
 export function getGroqModel(): string {
@@ -21,7 +31,7 @@ export async function groqComplete(
 ): Promise<string> {
   for (let i = 0; i < 3; i += 1) {
     try {
-      const response = await groq.chat.completions.create({
+      const response = await getGroqClient().chat.completions.create({
         model: getGroqModel(),
         messages: [
           { role: "system", content: systemPrompt },

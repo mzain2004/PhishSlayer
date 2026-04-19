@@ -1,8 +1,6 @@
 'use server';
 
-import { GoogleGenAI } from '@google/genai';
-
-const getAI = () => new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+import { geminiGenerateText } from "@/lib/ai/gemini";
 
 export async function analyzeThreat(incidentDescription: string) {
   if (!process.env.GEMINI_API_KEY) {
@@ -10,20 +8,23 @@ export async function analyzeThreat(incidentDescription: string) {
     return null;
   }
 
-  const ai = getAI();
-  
   const prompt = `You are an elite Level 3 SOC Analyst. Analyze this incident description. Return ONLY a valid JSON object with exactly three keys: risk_score (number 1-10), threat_category (string), and remediation_steps (array of 3 strings). No markdown formatting, no conversational text.
 
 Incident Description:
 ${incidentDescription}`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
-    
-    let text = response.text || '';
+    let text = await geminiGenerateText(
+      {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }],
+          },
+        ],
+      },
+      { context: "ai-analyze-threat" },
+    );
     
     // Clean up potential markdown formatting that the model might include despite instructions
     if (text.startsWith('```json')) {
@@ -48,20 +49,23 @@ export async function scoreCtiFinding(summary: {
     return null;
   }
 
-  const ai = getAI();
-
   const prompt = `You are an elite Level 3 SOC Analyst. Review this stripped VirusTotal threat data. Return ONLY a valid JSON object with exactly three keys: risk_score (number 1-10), threat_category (string), and ai_summary (a concise, 2-sentence summary of the threat level and reputation). No markdown formatting, no conversational text.
 
 VirusTotal Data:
 ${JSON.stringify(summary, null, 2)}`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
-    
-    let text = response.text || '';
+    let text = await geminiGenerateText(
+      {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }],
+          },
+        ],
+      },
+      { context: "ai-score-cti" },
+    );
     
     if (text.startsWith('\`\`\`json')) {
       text = text.replace(/^```json/, '').replace(/```$/, '').trim();

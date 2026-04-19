@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
+import { geminiGenerateText } from "@/lib/ai/gemini";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,10 +22,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const apiKey =
-      process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-
-    if (!apiKey) {
+    if (!process.env.GEMINI_API_KEY) {
       console.error("GEMINI_API_KEY is not set for /api/support-chat");
       return NextResponse.json(
         { error: "Support service is unavailable" },
@@ -33,7 +30,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const ai = new GoogleGenAI({ apiKey });
     const prompt = `You are Phish-Slayer AI Support, an expert cybersecurity SOC assistant. Help users navigate the platform, understand alerts, use features, and resolve issues. Be concise and technical.
 
   Context:
@@ -42,14 +38,29 @@ export async function POST(request: Request) {
 
   User message: ${parsed.data.message}`;
 
-    const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
+    let reply = "";
+    try {
+      const responseText = await geminiGenerateText(
+        {
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: prompt }],
+            },
+          ],
+        },
+        { context: "support-chat" },
+      );
 
-    const reply =
-      (result.text || "").trim() ||
-      "I can help with that. Please share a bit more detail.";
+      reply =
+        responseText.trim() ||
+        "I can help with that. Please share a bit more detail.";
+    } catch (error) {
+      console.warn("Support chat fallback used", {
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      reply = "Support is temporarily unavailable. Try again shortly.";
+    }
 
     return NextResponse.json({ reply });
   } catch (error) {

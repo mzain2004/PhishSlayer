@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
 import { z } from "zod";
+import { geminiGenerateText } from "@/lib/ai/gemini";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,22 +17,6 @@ const DecisionSchema = z.object({
   threat_indicators: z.array(z.string()),
   recommended_action: z.string().min(1),
   analyst_notes: z.string().min(1),
-});
-
-const GeminiApiResponseSchema = z.object({
-  candidates: z
-    .array(
-      z.object({
-        content: z.object({
-          parts: z.array(
-            z.object({
-              text: z.string().optional(),
-            }),
-          ),
-        }),
-      }),
-    )
-    .optional(),
 });
 
 const TenantIdSchema = z.string().uuid();
@@ -471,43 +456,20 @@ async function runGeminiTriage(record: QueueRecord): Promise<Decision> {
       throw new Error("Missing GEMINI_API_KEY");
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    const modelText = await geminiGenerateText(
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+        systemInstruction: {
+          parts: [{ text: SYSTEM_PROMPT }],
         },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: SYSTEM_PROMPT }],
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: JSON.stringify(record) }],
           },
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: JSON.stringify(record) }],
-            },
-          ],
-        }),
+        ],
       },
+      { context: "l1-triage" },
     );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Gemini call failed (${response.status}): ${errorText}`);
-    }
-
-    const rawResponse = await response.json();
-    const parsedGemini = GeminiApiResponseSchema.safeParse(rawResponse);
-    if (!parsedGemini.success) {
-      throw new Error("Gemini response shape validation failed");
-    }
-
-    const modelText =
-      parsedGemini.data.candidates?.[0]?.content.parts
-        .map((part) => part.text || "")
-        .join("")
-        .trim() || "";
 
     const decisionJson = JSON.parse(stripCodeFence(modelText));
     const parsedDecision = DecisionSchema.safeParse(decisionJson);

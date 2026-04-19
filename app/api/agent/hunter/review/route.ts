@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { geminiGenerateText } from "@/lib/ai/gemini";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -13,22 +14,6 @@ const ReviewDecisionSchema = z.object({
   approved_findings: z.array(z.number().int().nonnegative()),
   rejected_findings: z.array(z.string()),
   reviewer_notes: z.string().min(1),
-});
-
-const GeminiApiResponseSchema = z.object({
-  candidates: z
-    .array(
-      z.object({
-        content: z.object({
-          parts: z.array(
-            z.object({
-              text: z.string().optional(),
-            }),
-          ),
-        }),
-      }),
-    )
-    .optional(),
 });
 
 type ReviewDecision = z.infer<typeof ReviewDecisionSchema>;
@@ -126,57 +111,32 @@ async function callGemini(
     throw new Error("Missing GEMINI_API_KEY");
   }
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+  const text = await geminiGenerateText(
     {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+      generationConfig: {
+        temperature: 0,
+        responseMimeType: "application/json",
       },
-      body: JSON.stringify({
-        generationConfig: {
-          temperature: 0,
-          responseMimeType: "application/json",
+      systemInstruction: {
+        parts: [{ text: REVIEW_PROMPT }],
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: JSON.stringify({
+                escalations_last_hour: escalationsLastHour,
+                recent_hunt_findings: recentFindings,
+                timestamp: new Date().toISOString(),
+              }),
+            },
+          ],
         },
-        systemInstruction: {
-          parts: [{ text: REVIEW_PROMPT }],
-        },
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: JSON.stringify({
-                  escalations_last_hour: escalationsLastHour,
-                  recent_hunt_findings: recentFindings,
-                  timestamp: new Date().toISOString(),
-                }),
-              },
-            ],
-          },
-        ],
-      }),
+      ],
     },
+    { context: "hunter-review" },
   );
-
-  if (!response.ok) {
-    const details = await response.text();
-    throw new Error(
-      `Gemini reviewer request failed (${response.status}): ${details}`,
-    );
-  }
-
-  const payload = await response.json();
-  const parsed = GeminiApiResponseSchema.safeParse(payload);
-  if (!parsed.success) {
-    throw new Error("Gemini reviewer response shape invalid");
-  }
-
-  const text =
-    parsed.data.candidates?.[0]?.content.parts
-      .map((part) => part.text || "")
-      .join("")
-      .trim() || "";
 
   const cleaned = stripCodeFence(text);
 

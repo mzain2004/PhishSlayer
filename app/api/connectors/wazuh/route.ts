@@ -19,8 +19,6 @@ const tenantRateLimitStore = new Map<
   }
 >();
 
-const UnknownFieldsSchema = z.record(z.string(), z.unknown());
-
 const WazuhRuleSchema = z
   .object({
     id: z.union([z.string(), z.number()]).optional(),
@@ -32,11 +30,10 @@ const WazuhRuleSchema = z
         technique: z.array(z.string()).optional(),
         tactic: z.array(z.string()).optional(),
       })
-      .catchall(z.unknown())
+      .passthrough()
       .optional(),
   })
-  .catchall(z.unknown())
-  .and(UnknownFieldsSchema);
+  .passthrough();
 
 const WazuhAgentSchema = z
   .object({
@@ -44,32 +41,37 @@ const WazuhAgentSchema = z
     name: z.string().optional(),
     ip: z.string().optional(),
   })
-  .catchall(z.unknown())
-  .and(UnknownFieldsSchema);
+  .passthrough();
+
+const WazuhManagerSchema = z
+  .object({
+    name: z.string().optional(),
+  })
+  .passthrough();
 
 const WazuhDataSchema = z
   .object({
     srcip: z.string().optional(),
+    srcport: z.union([z.string(), z.number()]).optional(),
+    srcuser: z.string().optional(),
     dstip: z.string().optional(),
     process: z
       .object({
         name: z.string().optional(),
         pid: z.union([z.string(), z.number()]).optional(),
       })
-      .catchall(z.unknown())
+      .passthrough()
       .optional(),
     process_name: z.string().optional(),
   })
-  .catchall(z.unknown())
-  .and(UnknownFieldsSchema);
+  .passthrough();
 
 const WazuhSyscheckSchema = z
   .object({
     path: z.string().optional(),
     sha256_after: z.string().optional(),
   })
-  .catchall(z.unknown())
-  .and(UnknownFieldsSchema);
+  .passthrough();
 
 const WazuhAlertSchema = z
   .object({
@@ -77,11 +79,13 @@ const WazuhAlertSchema = z
     timestamp: z.union([z.string(), z.number()]).optional(),
     rule: WazuhRuleSchema.optional(),
     agent: WazuhAgentSchema.optional(),
+    manager: WazuhManagerSchema.optional(),
     data: WazuhDataSchema.optional(),
     syscheck: WazuhSyscheckSchema.optional(),
+    full_log: z.string().optional(),
+    location: z.string().optional(),
   })
-  .catchall(z.unknown())
-  .and(UnknownFieldsSchema);
+  .passthrough();
 
 type WazuhAlert = z.infer<typeof WazuhAlertSchema>;
 

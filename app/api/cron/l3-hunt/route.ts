@@ -5,6 +5,7 @@ import {
   buildL3ReasoningPrompt,
   saveReasoningChain,
 } from "@/lib/reasoning-chain";
+import { getGeminiModel } from "@/lib/ai/gemini";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -832,7 +833,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
         },
       ],
       actions_taken: [reviewer.action_taken || reviewer.verdict || "PROCEED"],
-      model_used: "gemini-2.5-flash",
+      model_used: getGeminiModel(),
       execution_time_ms: executionTimeMs,
     });
   } catch (error) {

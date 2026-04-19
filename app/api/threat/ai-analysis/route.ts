@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 import { logAuditEvent } from "@/lib/audit/auditLogger";
+import { geminiGenerateText } from "@/lib/ai/gemini";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     const truncatedText =
       domText.length > 50000 ? domText.slice(0, 50000) : domText;
 
-    // Call Gemini using @google/genai SDK
+    // Call Gemini using the GCP Gemini API
     const geminiKey = process.env.GEMINI_API_KEY;
     if (!geminiKey) {
       return NextResponse.json(
@@ -71,13 +71,47 @@ export async function POST(request: Request) {
       );
     }
 
-    const ai = new GoogleGenAI({ apiKey: geminiKey });
-    const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `${SYSTEM_PROMPT}\n\n--- WEBPAGE TEXT FROM: ${target} ---\n${truncatedText}\n--- END ---`,
-    });
+    let responseText = "";
+    try {
+      responseText = await geminiGenerateText(
+        {
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `${SYSTEM_PROMPT}\n\n--- WEBPAGE TEXT FROM: ${target} ---\n${truncatedText}\n--- END ---`,
+                },
+              ],
+            },
+          ],
+        },
+        { context: "ai-heuristic" },
+      );
+    } catch (error) {
+      console.warn("AI heuristic analysis fallback used", {
+        error: error instanceof Error ? error.message : "unknown",
+      });
 
-    const responseText = result.text || "";
+      const heuristicScore = Math.max(
+        1,
+        Math.min(10, Math.round(existingRiskScore / 10) || 5),
+      );
+      const combinedRiskScore = Math.round(
+        existingRiskScore * 0.8 + heuristicScore * 10 * 0.2,
+      );
+
+      return NextResponse.json({
+        heuristicScore,
+        summary: "AI analysis unavailable; using baseline risk score.",
+        indicators: [],
+        manipulationTactics: [],
+        credentialHarvestingSignals: [],
+        combinedRiskScore,
+        confidence: "low",
+        analyzedAt: new Date().toISOString(),
+      });
+    }
 
     // Parse JSON safely — strip markdown fences if present
     let cleaned = responseText.trim();

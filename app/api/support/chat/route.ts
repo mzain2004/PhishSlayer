@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { z } from "zod";
+import { geminiGenerateText } from "@/lib/ai/gemini";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -71,12 +72,10 @@ export async function POST(request: Request) {
 
     const userMessage = parsed.data.message;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    let reply = "";
+    try {
+      const responseText = await geminiGenerateText(
+        {
           systemInstruction: {
             parts: [
               {
@@ -86,14 +85,18 @@ export async function POST(request: Request) {
           },
           contents: [{ role: "user", parts: [{ text: userMessage }] }],
           generationConfig: { maxOutputTokens: 500, temperature: 0.7 },
-        }),
-      },
-    );
+        },
+        { context: "support-chat-auth" },
+      );
 
-    const data = await response.json();
-    const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ??
-      "I couldn't process that. Try again.";
+      reply =
+        responseText.trim() || "I couldn't process that. Try again.";
+    } catch (error) {
+      console.warn("Support chat fallback used", {
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      reply = "Support is temporarily unavailable. Try again shortly.";
+    }
 
     return NextResponse.json({ message: reply });
   } catch (error) {

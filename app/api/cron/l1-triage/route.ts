@@ -4,6 +4,7 @@ import {
   buildL1ReasoningPrompt,
   saveReasoningChain,
 } from "@/lib/reasoning-chain";
+import { getGeminiModel } from "@/lib/ai/gemini";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -108,7 +109,7 @@ export async function GET(request: NextRequest) {
         actions_taken: [
           result.decision === "CLOSE" ? "CLOSE" : "ESCALATE_TO_HUMAN",
         ],
-        model_used: "gemini-2.5-flash",
+        model_used: getGeminiModel(),
         execution_time_ms: executionTimeMs,
       });
     });

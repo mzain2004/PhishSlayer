@@ -6,6 +6,7 @@ const required = [
   'SUPABASE_SERVICE_ROLE_KEY',
   'VIRUS_TOTAL_API_KEY',
   'GEMINI_API_KEY',
+  'GOOGLE_GEMINI_MODEL',
 ];
 
 const optional = [

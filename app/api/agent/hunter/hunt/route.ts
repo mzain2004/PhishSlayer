@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { geminiGenerateText } from "@/lib/ai/gemini";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -29,22 +30,6 @@ const HunterDecisionSchema = z.object({
   confidence_overall: z.number().min(0).max(1),
   priority: z.enum(["immediate", "high", "medium", "monitor"]),
   analyst_briefing: z.string().min(1),
-});
-
-const GeminiApiResponseSchema = z.object({
-  candidates: z
-    .array(
-      z.object({
-        content: z.object({
-          parts: z.array(
-            z.object({
-              text: z.string().optional(),
-            }),
-          ),
-        }),
-      }),
-    )
-    .optional(),
 });
 
 type IntelRow = {
@@ -234,56 +219,31 @@ async function callGemini(
     throw new Error("Missing GEMINI_API_KEY");
   }
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+  const text = await geminiGenerateText(
     {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+      systemInstruction: {
+        parts: [{ text: HUNTER_PROMPT }],
       },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: HUNTER_PROMPT }],
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: JSON.stringify({
+                ioc,
+                matched_scan: scan,
+                l2_context: {
+                  trigger: "retroactive_ioc_match",
+                },
+                historical_findings: [],
+              }),
+            },
+          ],
         },
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: JSON.stringify({
-                  ioc,
-                  matched_scan: scan,
-                  l2_context: {
-                    trigger: "retroactive_ioc_match",
-                  },
-                  historical_findings: [],
-                }),
-              },
-            ],
-          },
-        ],
-      }),
+      ],
     },
+    { context: "hunter-hunt" },
   );
-
-  if (!response.ok) {
-    const details = await response.text();
-    throw new Error(
-      `Gemini hunter request failed (${response.status}): ${details}`,
-    );
-  }
-
-  const payload = await response.json();
-  const parsed = GeminiApiResponseSchema.safeParse(payload);
-  if (!parsed.success) {
-    throw new Error("Gemini hunter response shape invalid");
-  }
-
-  const text =
-    parsed.data.candidates?.[0]?.content.parts
-      .map((part) => part.text || "")
-      .join("")
-      .trim() || "";
 
   const cleaned = stripCodeFence(text);
 

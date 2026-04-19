@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { geminiGenerateText, getGeminiModel } from "@/lib/ai/gemini";
 
 export const OLLAMA_BASE_URL =
   process.env.OLLAMA_BASE_URL || "http://localhost:11434";
@@ -34,22 +35,6 @@ const OllamaTagsResponseSchema = z.object({
     .default([]),
 });
 
-const GeminiApiResponseSchema = z.object({
-  candidates: z
-    .array(
-      z.object({
-        content: z.object({
-          parts: z.array(
-            z.object({
-              text: z.string().optional(),
-            }),
-          ),
-        }),
-      }),
-    )
-    .optional(),
-});
-
 function createTimeoutSignal(timeoutMs: number): AbortSignal {
   const controller = new AbortController();
   setTimeout(() => controller.abort(), timeoutMs);
@@ -57,11 +42,6 @@ function createTimeoutSignal(timeoutMs: number): AbortSignal {
 }
 
 async function geminiGenerate(promptOrPayload: string): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("Missing GEMINI_API_KEY");
-  }
-
   let parsedPayload: unknown;
   try {
     parsedPayload = JSON.parse(promptOrPayload);
@@ -81,40 +61,10 @@ async function geminiGenerate(promptOrPayload: string): Promise<string> {
           ],
         };
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-      signal: createTimeoutSignal(OLLAMA_TIMEOUT_MS),
-    },
-  );
-
-  if (!response.ok) {
-    const details = await response.text();
-    throw new Error(`Gemini failed (${response.status}): ${details}`);
-  }
-
-  const raw = await response.json();
-  const parsed = GeminiApiResponseSchema.safeParse(raw);
-  if (!parsed.success) {
-    throw new Error("Gemini response schema invalid");
-  }
-
-  const text =
-    parsed.data.candidates?.[0]?.content.parts
-      .map((part) => part.text || "")
-      .join("")
-      .trim() || "";
-
-  if (!text) {
-    throw new Error("Gemini returned empty response");
-  }
-
-  return text;
+  return geminiGenerateText(payload, {
+    signal: createTimeoutSignal(OLLAMA_TIMEOUT_MS),
+    context: "ollama-fallback",
+  });
 }
 
 export async function ollamaGenerate(
@@ -212,6 +162,6 @@ export async function generateWithFallback(
   }
 
   const geminiResult = await geminiGenerate(geminiPrompt || prompt);
-  console.info("[llm] provider=gemini model=gemini-2.5-flash");
+  console.info("[llm] provider=gemini model=%s", getGeminiModel());
   return geminiResult;
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { geminiGenerateText, getGeminiModel } from "@/lib/ai/gemini";
 import {
   buildL2ReasoningPrompt,
   saveReasoningChain,
@@ -90,7 +91,6 @@ Rules:
 - Never execute on internal IP ranges (10.x, 192.168.x, 172.16-31.x)
 - Always set execute: false if business-critical systems involved`;
 
-const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_TIMEOUT_MS = 30_000;
 
 function getAdminClient() {
@@ -113,10 +113,6 @@ function stripCodeFence(text: string): string {
     .trim();
 }
 
-type GeminiPart = { text?: string };
-type GeminiCandidate = { content?: { parts?: GeminiPart[] } };
-type GeminiGenerateContentResponse = { candidates?: GeminiCandidate[] };
-
 async function generateGeminiText(payload: unknown): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -127,35 +123,10 @@ async function generateGeminiText(payload: unknown): Promise<string> {
   const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      },
-    );
-
-    if (!response.ok) {
-      const details = await response.text();
-      throw new Error(`Gemini failed (${response.status}): ${details}`);
-    }
-
-    const body = (await response.json()) as GeminiGenerateContentResponse;
-    const text =
-      body.candidates?.[0]?.content?.parts
-        ?.map((part) => part.text || "")
-        .join("")
-        .trim() || "";
-
-    if (!text) {
-      throw new Error("Gemini returned empty response");
-    }
-
-    return text;
+    return await geminiGenerateText(payload, {
+      signal: controller.signal,
+      context: "l2-respond",
+    });
   } finally {
     clearTimeout(timeoutId);
   }
@@ -872,6 +843,7 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
         tenantId,
       );
 
+      const geminiModel = getGeminiModel();
       await saveReasoningChain({
         escalation_id: escalation.id,
         agent_level: "L2",
@@ -897,8 +869,8 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
         actions_taken: actionsTaken,
         model_used:
           decision.reasoning === "gemini_unavailable"
-            ? `${GEMINI_MODEL}:fallback`
-            : GEMINI_MODEL,
+            ? `${geminiModel}:fallback`
+            : geminiModel,
         execution_time_ms: executionTimeMs,
       });
 

@@ -463,10 +463,9 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
   }
 
   // 5. Increment scan counter
-  const { error: incrementError } = await supabase.rpc(
-    "increment_scan_count",
-    { user_id: userId },
-  );
+  const { error: incrementError } = await supabase.rpc("increment_scan_count", {
+    user_id: userId,
+  });
   if (incrementError) {
     return { error: "Failed to increment scan count" };
   }

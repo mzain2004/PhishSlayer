@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { fetchRecentSignIns } from "@/lib/microsoft/signInIngestion";
+import { getServerRole } from "@/lib/rbac/serverRole";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -20,6 +21,11 @@ export async function GET(request: Request) {
 
     if (error || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const role = await getServerRole();
+    if (!role || !["admin", "manager", "super_admin"].includes(role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);

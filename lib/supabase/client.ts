@@ -10,17 +10,15 @@ function getRememberPreference() {
   return window.localStorage.getItem(REMEMBER_ME_KEY) === "true";
 }
 
-function getBrowserStorage(rememberMe: boolean): Storage | undefined {
+function getBrowserStorage(): Storage | undefined {
   if (typeof window === "undefined") {
     return undefined;
   }
 
-  return rememberMe ? window.localStorage : window.sessionStorage;
+  return window.sessionStorage;
 }
 
 export function createClient() {
-  const rememberMe = getRememberPreference();
-
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -28,7 +26,7 @@ export function createClient() {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        storage: getBrowserStorage(rememberMe),
+        storage: getBrowserStorage(),
       },
     },
   );
@@ -40,9 +38,9 @@ export function createClientWithRememberMe(rememberMe: boolean) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       auth: {
-        persistSession: rememberMe,
+        persistSession: true,
         autoRefreshToken: true,
-        storage: getBrowserStorage(rememberMe),
+        storage: getBrowserStorage(),
       },
     },
   );

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { getAuthenticatedUser, resolveTenantForUser } from "@/lib/tenancy";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -56,6 +57,14 @@ function getPingStatus(
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
     const payload = await request.json();
     const parsed = RegisterConnectorSchema.safeParse(payload);
 
@@ -70,10 +79,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const tenant = await resolveTenantForUser({
+      userId: user.id,
+      preferredTenantId: parsed.data.organization_id,
+      autoCreate: false,
+    });
+
+    if (!tenant || !["owner", "admin"].includes(tenant.role)) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 },
+      );
+    }
+
     const adminClient = getAdminClient();
     const { data, error } = await adminClient
       .from("connectors")
-      .insert(parsed.data)
+      .insert({
+        ...parsed.data,
+        organization_id: tenant.tenantId,
+      })
       .select("*")
       .single();
 
@@ -104,6 +129,14 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
     const searchParams = new URL(request.url).searchParams;
     const parsedQuery = ListConnectorQuerySchema.safeParse({
       organization_id: searchParams.get("organization_id") ?? undefined,
@@ -120,15 +153,26 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const tenant = await resolveTenantForUser({
+      userId: user.id,
+      preferredTenantId: parsedQuery.data.organization_id,
+      autoCreate: false,
+    });
+
+    if (!tenant) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 },
+      );
+    }
+
     const adminClient = getAdminClient();
     let query = adminClient
       .from("connectors")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (parsedQuery.data.organization_id) {
-      query = query.eq("organization_id", parsedQuery.data.organization_id);
-    }
+    query = query.eq("organization_id", tenant.tenantId);
 
     const { data, error } = await query;
 

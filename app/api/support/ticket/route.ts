@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       organization_id: null,
       payload: {
         subject: parsed.data.subject,
-        description: parsed.data.description,
+        description_length: parsed.data.description.length,
       },
     });
 

@@ -5,22 +5,61 @@ import { scanTarget } from "@/lib/scanners/threatScanner";
 import { scoreCtiFinding } from "@/lib/ai/analyzer";
 import { scanTargetSchema, normalizeTarget } from "@/lib/security/sanitize";
 import { runTier0Prevention } from "@/lib/prevention/tier0Engine";
+import { apiKeySchema } from "@/lib/security/sanitize";
+import { compare as bcryptCompare } from "bcryptjs";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 // ── Public API V1 — Scan Engine ──────────────────────────────────────
 
-function corsHeaders() {
+const allowedOrigins = (process.env.PUBLIC_API_ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+type ApiQuotaResult = {
+  allowed: boolean;
+  api_calls_today: number;
+  reset_at: string;
+};
+
+async function consumeApiCall(
+  client: any,
+  userId: string,
+  limit: number,
+): Promise<ApiQuotaResult> {
+  const { data, error } = await (client as any)
+    .rpc("consume_api_call", {
+      p_user_id: userId,
+      p_limit: limit,
+    })
+    .single();
+
+  if (error || !data) {
+    throw new Error(error?.message || "Failed to enforce API quota");
+  }
+
+  return data as ApiQuotaResult;
+}
+
+function corsHeaders(origin?: string | null) {
+  const fallbackOrigin = allowedOrigins[0] || "https://phishslayer.tech";
+  const allowOrigin =
+    origin && allowedOrigins.includes(origin) ? origin : fallbackOrigin;
+
   return {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "x-api-key, Content-Type",
   } as Record<string, string>;
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, { status: 204, headers: corsHeaders() });
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders(request.headers.get("origin")),
+  });
 }
 
 export async function GET(request: NextRequest) {
@@ -32,7 +71,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleScan(request: NextRequest) {
-  const headers = corsHeaders();
+  const headers = corsHeaders(request.headers.get("origin"));
 
   // ── Auth: API Key Check via DB ─────────────────────────────
   const apiKey = request.headers.get("x-api-key");
@@ -44,26 +83,61 @@ async function handleScan(request: NextRequest) {
     );
   }
 
-  const supabaseAdmin = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false, autoRefreshToken: false } },
-  );
-
-  const { data: profile } = await supabaseAdmin
-    .from("profiles")
-    .select("id, subscription_tier, api_calls_today, api_calls_reset_at")
-    .eq("api_key", apiKey)
-    .single();
-
-  if (!profile) {
+  const apiKeyParsed = apiKeySchema.safeParse(apiKey);
+  if (!apiKeyParsed.success) {
     return NextResponse.json(
       { error: "Unauthorized. Invalid API key." },
       { status: 401, headers },
     );
   }
 
-  const tier = profile.subscription_tier || "recon";
+  const supabaseAdmin = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+
+  const apiKeyLast4 = apiKey.slice(-4);
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .select(
+      "id, subscription_tier, api_calls_today, api_calls_reset_at, api_key",
+    )
+    .eq("api_key_last4", apiKeyLast4)
+    .limit(20);
+
+  if (profileError || !profile || profile.length === 0) {
+    return NextResponse.json(
+      { error: "Unauthorized. Invalid API key." },
+      { status: 401, headers },
+    );
+  }
+
+  let matchedProfile:
+    | {
+        id: string;
+        subscription_tier: string | null;
+        api_calls_today: number | null;
+        api_calls_reset_at: string | null;
+        api_key: string | null;
+      }
+    | undefined;
+
+  for (const row of profile) {
+    if (row.api_key && (await bcryptCompare(apiKey, row.api_key))) {
+      matchedProfile = row;
+      break;
+    }
+  }
+
+  if (!matchedProfile) {
+    return NextResponse.json(
+      { error: "Unauthorized. Invalid API key." },
+      { status: 401, headers },
+    );
+  }
+
+  const tier = matchedProfile.subscription_tier || "recon";
   if (tier === "recon") {
     return NextResponse.json(
       { error: "Public API requires SOC Pro or higher" },
@@ -71,27 +145,7 @@ async function handleScan(request: NextRequest) {
     );
   }
 
-  let apiCallsToday = profile.api_calls_today || 0;
-  const now = new Date();
-  const resetAt = new Date(profile.api_calls_reset_at || now);
-  if (now.toDateString() !== resetAt.toDateString()) {
-    apiCallsToday = 0;
-    await supabaseAdmin
-      .from("profiles")
-      .update({
-        api_calls_today: 0,
-        api_calls_reset_at: now.toISOString(),
-      })
-      .eq("id", profile.id);
-  }
-
-  const limit = tier === "command_control" ? Infinity : 1000;
-  if (apiCallsToday >= limit) {
-    return NextResponse.json(
-      { error: "Rate limit exceeded. Daily API limit reached." },
-      { status: 429, headers },
-    );
-  }
+  const limit = tier === "command_control" ? -1 : 1000;
 
   // ── Extract target ────────────────────────────────────────────────
   let rawTarget: string | null = null;
@@ -128,8 +182,24 @@ async function handleScan(request: NextRequest) {
   const validTarget = normalizeTarget(rawTarget);
 
   try {
-    const supabase = await createClient(); // Still used for unprivileged reads/writes if needed, but we'll use admin for writes below
     const date = new Date().toISOString();
+
+    let quota: ApiQuotaResult | null = null;
+    if (limit >= 0) {
+      quota = await consumeApiCall(supabaseAdmin, matchedProfile.id, limit);
+      if (!quota.allowed) {
+        return NextResponse.json(
+          { error: "Rate limit exceeded. Daily API limit reached." },
+          { status: 429, headers },
+        );
+      }
+    }
+
+    headers["X-RateLimit-Limit"] = limit < 0 ? "Unlimited" : String(limit);
+    headers["X-RateLimit-Remaining"] =
+      limit < 0 || !quota
+        ? "Unlimited"
+        : String(Math.max(0, limit - quota.api_calls_today));
 
     // ── Gate 1: Whitelist Check ──────────────────────────────────
     const { data: whitelistHit } = await supabaseAdmin
@@ -164,20 +234,9 @@ async function handleScan(request: NextRequest) {
           risk_score: 0,
           threat_category: "Whitelisted",
           payload: whitelistHit,
-          user_id: profile.id,
+          user_id: matchedProfile.id,
         },
       ]);
-
-      apiCallsToday++;
-      await supabaseAdmin
-        .from("profiles")
-        .update({ api_calls_today: apiCallsToday })
-        .eq("id", profile.id);
-      headers["X-RateLimit-Limit"] = "1000";
-      headers["X-RateLimit-Remaining"] =
-        tier === "command_control"
-          ? "Unlimited"
-          : String(Math.max(0, 1000 - apiCallsToday));
 
       return NextResponse.json({ success: true, data: result }, { headers });
     }
@@ -214,7 +273,7 @@ async function handleScan(request: NextRequest) {
           risk_score: 100,
           threat_category: "Proprietary Local Intel",
           payload: intelHit,
-          user_id: profile.id,
+          user_id: matchedProfile.id,
         },
       ]);
 
@@ -249,17 +308,6 @@ async function handleScan(request: NextRequest) {
           }),
         }).catch(() => {});
       }
-
-      apiCallsToday++;
-      await supabaseAdmin
-        .from("profiles")
-        .update({ api_calls_today: apiCallsToday })
-        .eq("id", profile.id);
-      headers["X-RateLimit-Limit"] = "1000";
-      headers["X-RateLimit-Remaining"] =
-        tier === "command_control"
-          ? "Unlimited"
-          : String(Math.max(0, 1000 - apiCallsToday));
 
       return NextResponse.json({ success: true, data: result }, { headers });
     }
@@ -300,7 +348,7 @@ async function handleScan(request: NextRequest) {
           risk_score: 100,
           threat_category: "Tier0 Prevention",
           payload: finding,
-          user_id: profile.id,
+          user_id: matchedProfile.id,
         },
       ]);
 
@@ -315,18 +363,6 @@ async function handleScan(request: NextRequest) {
         },
         created_at: new Date().toISOString(),
       });
-
-      apiCallsToday++;
-      await supabaseAdmin
-        .from("profiles")
-        .update({ api_calls_today: apiCallsToday })
-        .eq("id", profile.id);
-
-      headers["X-RateLimit-Limit"] = "1000";
-      headers["X-RateLimit-Remaining"] =
-        tier === "command_control"
-          ? "Unlimited"
-          : String(Math.max(0, 1000 - apiCallsToday));
 
       return NextResponse.json(
         {
@@ -367,7 +403,7 @@ async function handleScan(request: NextRequest) {
         risk_score: result.risk_score,
         threat_category: result.threat_category,
         payload: finding,
-        user_id: profile.id,
+        user_id: matchedProfile.id,
       },
     ]);
 
@@ -408,17 +444,6 @@ async function handleScan(request: NextRequest) {
         }).catch(() => {});
       }
     }
-
-    apiCallsToday++;
-    await supabaseAdmin
-      .from("profiles")
-      .update({ api_calls_today: apiCallsToday })
-      .eq("id", profile.id);
-    headers["X-RateLimit-Limit"] = "1000";
-    headers["X-RateLimit-Remaining"] =
-      tier === "command_control"
-        ? "Unlimited"
-        : String(Math.max(0, 1000 - apiCallsToday));
 
     return NextResponse.json({ success: true, data: result }, { headers });
   } catch (err: any) {

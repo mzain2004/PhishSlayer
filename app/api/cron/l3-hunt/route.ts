@@ -815,6 +815,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
 
   try {
     await saveReasoningChain({
+      organization_id: tenantId,
       agent_level: "L3",
       decision: reviewer.verdict || "PROCEED",
       confidence_score: reviewer.confidence,

@@ -25,6 +25,7 @@ import DashboardCard from "@/components/dashboard/DashboardCard";
 
 export default function ApiKeysPage() {
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const [apiKeyLast4, setApiKeyLast4] = useState<string | null>(null);
   const [showKey, setShowKey] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -32,7 +33,8 @@ export default function ApiKeysPage() {
 
   const fetchKey = async () => {
     const user = await getUser();
-    setApiKey(user?.apiKey || null);
+    setApiKey(null);
+    setApiKeyLast4(user?.apiKeyLast4 || null);
     setLoaded(true);
   };
 
@@ -54,6 +56,7 @@ export default function ApiKeysPage() {
       else {
         toast.success("New API key generated.");
         setApiKey(result.key || null);
+        setApiKeyLast4(result.key ? result.key.slice(-4) : null);
       }
     });
   };
@@ -72,6 +75,7 @@ export default function ApiKeysPage() {
       else {
         toast.success("API key revoked.");
         setApiKey(null);
+        setApiKeyLast4(null);
       }
     });
   };
@@ -120,7 +124,7 @@ export default function ApiKeysPage() {
             <h3 className="text-lg font-semibold text-[#e6edf3]">
               Production Key
             </h3>
-            {!apiKey && (
+            {!apiKeyLast4 && (
               <PhishButton
                 onClick={handleGenerate}
                 disabled={isPending}
@@ -204,25 +208,54 @@ export default function ApiKeysPage() {
             ) : (
               <div className="text-center py-8">
                 <Key className="w-12 h-12 text-[#8B949E] mx-auto mb-3" />
-                <h4 className="text-lg font-bold text-[#e6edf3] mb-1">
-                  No API Key Configured
-                </h4>
-                <p className="text-sm text-[#8B949E] mb-6 max-w-sm mx-auto">
-                  Generate an API key to integrate Phish-Slayer scanning
-                  natively into your CI/CD pipelines or SOAR playbook.
-                </p>
-                <PhishButton
-                  onClick={handleGenerate}
-                  disabled={isPending}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#2dd4bf] px-6 py-2.5 text-sm font-bold text-black transition-colors hover:bg-teal-400 disabled:opacity-50"
-                >
-                  {isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="w-4 h-4" />
-                  )}
-                  Generate API Key
-                </PhishButton>
+                {apiKeyLast4 ? (
+                  <>
+                    <h4 className="text-lg font-bold text-[#e6edf3] mb-1">
+                      API Key Saved
+                    </h4>
+                    <p className="text-sm text-[#8B949E] mb-4 max-w-sm mx-auto">
+                      For security, keys are shown once. Regenerate to view a
+                      new key.
+                    </p>
+                    <div className="mb-5 text-sm text-teal-400 font-mono">
+                      ************{apiKeyLast4}
+                    </div>
+                    <PhishButton
+                      onClick={handleGenerate}
+                      disabled={isPending}
+                      className="inline-flex items-center gap-2 rounded-lg bg-[#2dd4bf] px-6 py-2.5 text-sm font-bold text-black transition-colors hover:bg-teal-400 disabled:opacity-50"
+                    >
+                      {isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                      Regenerate API Key
+                    </PhishButton>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="text-lg font-bold text-[#e6edf3] mb-1">
+                      No API Key Configured
+                    </h4>
+                    <p className="text-sm text-[#8B949E] mb-6 max-w-sm mx-auto">
+                      Generate an API key to integrate Phish-Slayer scanning
+                      natively into your CI/CD pipelines or SOAR playbook.
+                    </p>
+                    <PhishButton
+                      onClick={handleGenerate}
+                      disabled={isPending}
+                      className="inline-flex items-center gap-2 rounded-lg bg-[#2dd4bf] px-6 py-2.5 text-sm font-bold text-black transition-colors hover:bg-teal-400 disabled:opacity-50"
+                    >
+                      {isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                      Generate API Key
+                    </PhishButton>
+                  </>
+                )}
               </div>
             )}
           </div>

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { generateWithGemini } from "@/lib/sigma-generator";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { checkTierAccess } from "@/lib/tier-guard";
+import { getAuthenticatedUser, resolveTenantForUser } from "@/lib/tenancy";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -127,9 +128,13 @@ export async function POST(request: NextRequest) {
       analysisData,
     );
 
+    const organizationId =
+      typeof alert.organization_id === "string" ? alert.organization_id : null;
+
     const { data: insertedRule, error: insertError } = await adminClient
       .from("sigma_rules")
       .insert({
+        organization_id: organizationId,
         alert_id,
         analysis_id: analysis_id || null,
         rule_name: generatedRule.rule_name,
@@ -159,6 +164,7 @@ export async function POST(request: NextRequest) {
     }
 
     await adminClient.from("agent_reasoning").insert({
+      organization_id: organizationId,
       alert_id,
       agent_level: "L3",
       decision: "SIGMA_GENERATED",
@@ -189,6 +195,14 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const parsedQuery = QuerySchema.safeParse({
       page: searchParams.get("page") ?? "1",
@@ -209,6 +223,17 @@ export async function GET(request: NextRequest) {
     }
 
     const { page, limit, rule_level, rule_status } = parsedQuery.data;
+    const tenant = await resolveTenantForUser({
+      userId: user.id,
+      autoCreate: false,
+    });
+
+    if (!tenant) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 },
+      );
+    }
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
@@ -216,6 +241,7 @@ export async function GET(request: NextRequest) {
     let query = adminClient
       .from("sigma_rules")
       .select("*", { count: "exact" })
+      .eq("organization_id", tenant.tenantId)
       .order("created_at", { ascending: false })
       .range(from, to);
 

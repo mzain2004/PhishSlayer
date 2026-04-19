@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { getAuthenticatedUser, resolveTenantForUser } from "@/lib/tenancy";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const QuerySchema = z.object({
+  organization_id: z.string().uuid().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   agent_level: z.enum(["L1", "L2", "L3"]).optional(),
@@ -21,8 +23,14 @@ function getAdminClient() {
 }
 
 export async function GET(request: Request) {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const parsedQuery = QuerySchema.safeParse({
+    organization_id: searchParams.get("organization_id") ?? undefined,
     page: searchParams.get("page") ?? "1",
     limit: searchParams.get("limit") ?? "20",
     agent_level: searchParams.get("agent_level") ?? undefined,
@@ -39,7 +47,17 @@ export async function GET(request: Request) {
     );
   }
 
-  const { page, limit, agent_level, alert_id } = parsedQuery.data;
+  const { page, limit, agent_level, alert_id, organization_id } =
+    parsedQuery.data;
+  const tenant = await resolveTenantForUser({
+    userId: user.id,
+    preferredTenantId: organization_id,
+    autoCreate: false,
+  });
+
+  if (!tenant) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
@@ -48,6 +66,7 @@ export async function GET(request: Request) {
   let query = supabase
     .from("agent_reasoning")
     .select("*", { count: "exact" })
+    .eq("organization_id", tenant.tenantId)
     .order("created_at", { ascending: false })
     .range(from, to);
 

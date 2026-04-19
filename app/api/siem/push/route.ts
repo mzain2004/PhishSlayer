@@ -27,10 +27,12 @@ const PRIVATE_IPV4_RANGES: Array<[number, number]> = [
 ];
 
 function ipv4ToInt(ip: string): number {
-  return ip
-    .split(".")
-    .map((octet) => parseInt(octet, 10))
-    .reduce((acc, octet) => (acc << 8) + (octet & 0xff), 0) >>> 0;
+  return (
+    ip
+      .split(".")
+      .map((octet) => parseInt(octet, 10))
+      .reduce((acc, octet) => (acc << 8) + (octet & 0xff), 0) >>> 0
+  );
 }
 
 function isPrivateIp(address: string): boolean {
@@ -44,7 +46,11 @@ function isPrivateIp(address: string): boolean {
 
   if (ipType === 6) {
     const normalized = address.toLowerCase();
-    return normalized === "::1" || normalized.startsWith("fc") || normalized.startsWith("fd");
+    return (
+      normalized === "::1" ||
+      normalized.startsWith("fc") ||
+      normalized.startsWith("fd")
+    );
   }
 
   return false;

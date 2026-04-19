@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { getAuthenticatedUser, resolveTenantForUser } from "@/lib/tenancy";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const PostSchema = z.object({
+  organization_id: z.string().uuid().optional(),
   asset_name: z.string().min(1),
   asset_type: z.enum([
     "server",
@@ -22,6 +24,7 @@ const PostSchema = z.object({
 });
 
 const QuerySchema = z.object({
+  organization_id: z.string().uuid().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   status: z.enum(["open", "in_progress", "resolved", "accepted"]).optional(),
@@ -38,6 +41,14 @@ function getAdminClient() {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
     const payload = await request.json();
     const parsed = PostSchema.safeParse(payload);
 
@@ -52,6 +63,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const tenant = await resolveTenantForUser({
+      userId: user.id,
+      preferredTenantId: parsed.data.organization_id,
+      autoCreate: false,
+    });
+
+    if (!tenant || !["owner", "admin"].includes(tenant.role)) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 },
+      );
+    }
+
     const adminClient = getAdminClient();
     const now = new Date().toISOString();
     const body = parsed.data;
@@ -60,6 +84,7 @@ export async function POST(request: NextRequest) {
       .from("ctem_exposures")
       .upsert(
         {
+          organization_id: tenant.tenantId,
           asset_name: body.asset_name,
           asset_type: body.asset_type,
           exposure_type: body.exposure_type,
@@ -70,7 +95,7 @@ export async function POST(request: NextRequest) {
           status: "open",
           last_seen: now,
         },
-        { onConflict: "asset_name,exposure_type" },
+        { onConflict: "organization_id,asset_name,exposure_type" },
       )
       .select("*")
       .single();
@@ -100,8 +125,17 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const parsedQuery = QuerySchema.safeParse({
+      organization_id: searchParams.get("organization_id") ?? undefined,
       page: searchParams.get("page") ?? "1",
       limit: searchParams.get("limit") ?? "20",
       status: searchParams.get("status") ?? undefined,
@@ -119,7 +153,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { page, limit, status, severity } = parsedQuery.data;
+    const { page, limit, status, severity, organization_id } = parsedQuery.data;
+    const tenant = await resolveTenantForUser({
+      userId: user.id,
+      preferredTenantId: organization_id,
+      autoCreate: false,
+    });
+
+    if (!tenant) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 },
+      );
+    }
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
@@ -127,6 +173,7 @@ export async function GET(request: NextRequest) {
     let query = adminClient
       .from("ctem_exposures")
       .select("*", { count: "exact" })
+      .eq("organization_id", tenant.tenantId)
       .order("last_seen", { ascending: false })
       .range(from, to);
 
@@ -152,7 +199,8 @@ export async function GET(request: NextRequest) {
 
     const { data: severityRows, error: severityError } = await adminClient
       .from("ctem_exposures")
-      .select("severity");
+      .select("severity")
+      .eq("organization_id", tenant.tenantId);
 
     if (severityError) {
       return NextResponse.json(

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { sanitizePromptInput } from "@/lib/security/sanitize";
 import type { MitreTechnique } from "@/lib/mitre-mapper";
 
 export type EntropyRisk = "low" | "medium" | "high" | "critical";
@@ -21,6 +22,7 @@ export interface StaticAnalysisInput {
 }
 
 export interface StaticAnalysisRecord {
+  organization_id?: string | null;
   alert_id?: string | null;
   file_name: string;
   file_hash_md5?: string | null;
@@ -180,16 +182,27 @@ export async function checkVirusTotal(hash: string): Promise<VirusTotalResult> {
 }
 
 export function buildGeminiAnalysisPrompt(data: StaticAnalysisInput): string {
+  const safeFileName = sanitizePromptInput(data.fileName, 200);
+  const safeFileType = sanitizePromptInput(data.fileType, 120);
+  const safeStrings = sanitizePromptInput(
+    JSON.stringify(data.suspiciousStrings.slice(0, 50)),
+    1200,
+  );
+  const safeScore = sanitizePromptInput(data.vtScore, 40);
+  const safeImports = sanitizePromptInput(
+    JSON.stringify(data.peImports.slice(0, 100)),
+    1200,
+  );
   return `You are a malware reverse-engineering analyst for an enterprise SOC.
 Analyze this potentially malicious file and produce concise, actionable output.
 
 File metadata:
-- File name: ${data.fileName}
-- File type: ${data.fileType}
+- File name: ${safeFileName}
+- File type: ${safeFileType}
 - Shannon entropy: ${data.entropy.toFixed(3)} / 8
-- Suspicious strings: ${JSON.stringify(data.suspiciousStrings.slice(0, 50))}
-- VirusTotal score: ${data.vtScore}
-- PE imports: ${JSON.stringify(data.peImports.slice(0, 100))}
+- Suspicious strings: ${safeStrings}
+- VirusTotal score: ${safeScore}
+- PE imports: ${safeImports}
 
 Return ONLY valid JSON with this exact schema:
 {

@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { checkTierAccess } from "@/lib/tier-guard";
+import { getAuthenticatedUser, resolveTenantForUser } from "@/lib/tenancy";
 import {
   buildGeminiAnalysisPrompt,
   calculateEntropy,
@@ -20,6 +21,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const StaticAnalysisRequestSchema = z.object({
+  organization_id: z.string().uuid().optional(),
   file_name: z.string().min(1),
   file_content_base64: z.string(),
   file_hash_sha256: z.string().min(32).optional(),
@@ -177,6 +179,9 @@ export async function POST(request: Request) {
       Boolean(process.env.CRON_SECRET) &&
       authHeader === `Bearer ${process.env.CRON_SECRET}`;
 
+    let organizationId: string | null = null;
+    let currentUserId: string | null = null;
+
     if (!isCronRequest) {
       const supabase = await createServerClient();
       const {
@@ -189,6 +194,8 @@ export async function POST(request: Request) {
           { status: 401 },
         );
       }
+
+      currentUserId = user.id;
 
       const access = await checkTierAccess(user.id, "static_analysis");
       if (!access.allowed) {
@@ -204,7 +211,15 @@ export async function POST(request: Request) {
       }
     }
 
-    const payload = await request.json();
+    let payload: unknown;
+    try {
+      payload = await request.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Invalid JSON body" },
+        { status: 400 },
+      );
+    }
     const parsedPayload = StaticAnalysisRequestSchema.safeParse(payload);
 
     if (!parsedPayload.success) {
@@ -219,12 +234,46 @@ export async function POST(request: Request) {
     }
 
     const {
+      organization_id,
       file_name,
       file_content_base64,
       file_hash_sha256,
       file_hash_md5,
       alert_id,
     } = parsedPayload.data;
+
+    const adminClient = getAdminClient();
+
+    if (alert_id) {
+      const { data: alertRow } = await adminClient
+        .from("alerts")
+        .select("organization_id")
+        .eq("id", alert_id)
+        .maybeSingle();
+      if (alertRow?.organization_id) {
+        organizationId = alertRow.organization_id;
+      }
+    }
+
+    if (!organizationId) {
+      if (currentUserId) {
+        const tenant = await resolveTenantForUser({
+          userId: currentUserId,
+          preferredTenantId: organization_id,
+          autoCreate: false,
+        });
+        organizationId = tenant?.tenantId || null;
+      } else if (organization_id) {
+        organizationId = organization_id;
+      }
+    }
+
+    if (!organizationId && !isCronRequest) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 },
+      );
+    }
 
     if (!file_content_base64 && !file_hash_sha256 && !file_hash_md5) {
       return NextResponse.json(
@@ -316,6 +365,7 @@ export async function POST(request: Request) {
     const analysisDurationMs = Date.now() - startedAt;
 
     const analysisId = await saveStaticAnalysis({
+      organization_id: organizationId,
       alert_id: alert_id || null,
       file_name,
       file_hash_md5: file_hash_md5 || null,
@@ -340,6 +390,7 @@ export async function POST(request: Request) {
     });
 
     await saveReasoningChain({
+      organization_id: organizationId,
       alert_id,
       agent_level: "L3",
       decision: verdict,
@@ -420,10 +471,44 @@ export async function GET(request: Request) {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
+    const access = await checkTierAccess(user.id, "static_analysis");
+    if (!access.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Upgrade required",
+          required_tier: "pro",
+          current_tier: access.tier,
+        },
+        { status: 403 },
+      );
+    }
+
+    const tenant = await resolveTenantForUser({
+      userId: user.id,
+      autoCreate: false,
+    });
+
+    if (!tenant) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 },
+      );
+    }
+
     const client = getAdminClient();
     let query = client
       .from("static_analysis")
       .select("*", { count: "exact" })
+      .eq("organization_id", tenant.tenantId)
       .order("created_at", { ascending: false })
       .range(from, to);
 

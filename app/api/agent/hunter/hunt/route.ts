@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { groqComplete } from "@/lib/ai/groq";
+import { sanitizePromptInput } from "@/lib/security/sanitize";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -221,14 +222,17 @@ async function callGemini(
 
   const text = await groqComplete(
     HUNTER_PROMPT,
-    JSON.stringify({
-      ioc,
-      matched_scan: scan,
-      l2_context: {
-        trigger: "retroactive_ioc_match",
-      },
-      historical_findings: [],
-    }),
+    sanitizePromptInput(
+      JSON.stringify({
+        ioc,
+        matched_scan: scan,
+        l2_context: {
+          trigger: "retroactive_ioc_match",
+        },
+        historical_findings: [],
+      }),
+      4000,
+    ),
   );
 
   const cleaned = stripCodeFence(text);

@@ -14,7 +14,7 @@ export default async function PlatformSettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, api_key, avatar_url")
+    .select("full_name, avatar_url")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -23,10 +23,7 @@ export default async function PlatformSettingsPage() {
       userId={user.id}
       userEmail={user.email ?? ""}
       initialFullName={(profile?.full_name as string | null) ?? ""}
-      initialApiKey={(profile?.api_key as string | null) ?? null}
       initialAvatarUrl={(profile?.avatar_url as string | null) ?? null}
     />
   );
 }
-
-

@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 import { logAuditEvent } from "@/lib/audit/auditLogger";
 import { groqComplete } from "@/lib/ai/groq";
+import { checkRateLimit, getClientIp } from "@/lib/security/rateLimit";
+import { sanitizePromptInput } from "@/lib/security/sanitize";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -40,6 +42,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const clientIp = getClientIp(request);
+    const rate = checkRateLimit(`ai-heuristic:${user.id}:${clientIp}`, {
+      windowMs: 60_000,
+      max: 5,
+    });
+
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded" },
+        { status: 429 },
+      );
+    }
+
     // Validate body
     let rawBody: unknown;
     try {
@@ -61,6 +76,8 @@ export async function POST(request: Request) {
     // Truncate domText if very long
     const truncatedText =
       domText.length > 50000 ? domText.slice(0, 50000) : domText;
+    const safeTarget = sanitizePromptInput(target, 300);
+    const safeText = sanitizePromptInput(truncatedText, 50000);
 
     // Call Groq for heuristic analysis
     if (!process.env.GROQ_API_KEY) {
@@ -74,7 +91,7 @@ export async function POST(request: Request) {
     try {
       responseText = await groqComplete(
         SYSTEM_PROMPT,
-        `--- WEBPAGE TEXT FROM: ${target} ---\n${truncatedText}\n--- END ---`,
+        `--- WEBPAGE TEXT FROM: ${safeTarget} ---\n${safeText}\n--- END ---`,
       );
     } catch (error) {
       console.warn("AI heuristic analysis fallback used", {

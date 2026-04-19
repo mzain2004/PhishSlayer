@@ -435,13 +435,21 @@ export async function calculateDailyMetrics(
   return inserted as SocMetricsRecord;
 }
 
-export async function getMetricsSummary(): Promise<MetricsSummary> {
+export async function getMetricsSummary(
+  organizationId?: string,
+): Promise<MetricsSummary> {
   const client = getServiceClient();
-  const { data, error } = await client
+  let query = client
     .from("soc_metrics")
     .select("*")
     .order("metric_date", { ascending: false })
     .limit(30);
+
+  if (organizationId) {
+    query = query.eq("organization_id", organizationId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(`Failed to fetch soc_metrics summary: ${error.message}`);

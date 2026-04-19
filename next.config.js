@@ -13,7 +13,7 @@ const cspHeader = [
 
 const securityHeaders = [
   { key: "X-DNS-Prefetch-Control", value: "on" },
-  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
@@ -23,7 +23,7 @@ const securityHeaders = [
   { key: "X-XSS-Protection", value: "1; mode=block" },
   {
     key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload",
+    value: "max-age=31536000; includeSubDomains",
   },
   {
     key: "Content-Security-Policy",

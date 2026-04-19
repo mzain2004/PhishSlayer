@@ -1,29 +1,60 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+import { checkRateLimit, getClientIp } from "@/lib/security/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-interface EmailPayload {
-  type?: string;
-  userEmail?: string;
-  email?: string;
-  name?: string;
-  message?: string;
-}
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EmailPayloadSchema = z.object({
+  type: z.string().trim().min(1).max(50).optional(),
+  userEmail: z.string().email().optional(),
+  email: z.string().email().optional(),
+  name: z.string().trim().max(120).optional(),
+  message: z.string().trim().max(2000).optional(),
+});
 
 export async function POST(request: Request) {
   try {
-    console.log("Communications POST: start");
-    const payload: EmailPayload = await request.json();
-    console.log("Communications payload:", payload);
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const email = (payload.email || payload.userEmail || "")
+    const clientIp = getClientIp(request);
+    const rate = checkRateLimit(`communications:${user.id}:${clientIp}`, {
+      windowMs: 60_000,
+      max: 3,
+    });
+
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded" },
+        { status: 429 },
+      );
+    }
+
+    let payload: unknown;
+    try {
+      payload = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const parsed = EmailPayloadSchema.safeParse(payload);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid communications payload" },
+        { status: 400 },
+      );
+    }
+
+    const email = (parsed.data.email || parsed.data.userEmail || "")
       .trim()
       .toLowerCase();
-    console.log("Communications normalized email:", email);
 
     if (!email) {
       return NextResponse.json(
@@ -32,32 +63,25 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!emailRegex.test(email)) {
+    if (!email) {
       return NextResponse.json(
-        { error: "Invalid email address." },
+        { error: "Email is required." },
         { status: 400 },
       );
     }
-
-    const supabase = await createClient();
-    console.log("Communications supabase client created");
 
     const { data, error } = await supabase
       .from("waitlist")
       .upsert({ email }, { onConflict: "email" })
       .select();
 
-    console.log("Communications upsert result:", { data, error });
-
     if (error) {
       console.error("Communications DB save error:", error);
     }
 
     const resendApiKey = process.env.RESEND_API_KEY;
-    console.log("Communications resend key present:", !!resendApiKey);
     if (resendApiKey) {
       try {
-        console.log("Communications sending welcome email");
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
@@ -91,7 +115,6 @@ export async function POST(request: Request) {
             `,
           }),
         });
-        console.log("Communications welcome email sent request complete");
       } catch (emailError) {
         console.error("Welcome email send failed:", emailError);
       }

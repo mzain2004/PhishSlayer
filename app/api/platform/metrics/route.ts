@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { calculateDailyMetrics, getMetricsSummary } from "@/lib/soc-metrics";
+import { getAuthenticatedUser, resolveTenantForUser } from "@/lib/tenancy";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -21,7 +22,23 @@ function isCronAuthorized(request: NextRequest): boolean {
 
 export async function GET() {
   try {
-    const summary = await getMetricsSummary();
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
+    const tenant = await resolveTenantForUser({ userId: user.id });
+    if (!tenant) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 },
+      );
+    }
+
+    const summary = await getMetricsSummary(tenant.tenantId);
     return NextResponse.json({ success: true, ...summary });
   } catch (error) {
     return NextResponse.json(

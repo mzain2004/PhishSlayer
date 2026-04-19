@@ -910,6 +910,7 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
 
       const groqModel = getGroqModel();
       await saveReasoningChain({
+        organization_id: tenantId,
         escalation_id: escalation.id,
         agent_level: "L2",
         decision: decision.decision,

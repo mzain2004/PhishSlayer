@@ -7,10 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 
 const RATE_LIMIT_MAX = 3;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
-const rateLimitByIp = new Map<
-  string,
-  { count: number; resetAt: number }
->();
+const rateLimitByIp = new Map<string, { count: number; resetAt: number }>();
 
 async function getClientIp() {
   const headerList = await headers();
@@ -77,7 +74,7 @@ export async function submitContact(formData: FormData) {
         <p><strong>Inquiry Type:</strong> ${type}</p>
         <hr />
         <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br/>')}</p>
+        <p>${message.replace(/\n/g, "<br/>")}</p>
       `,
     });
 

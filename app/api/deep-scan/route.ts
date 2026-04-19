@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
+import net from "node:net";
 import { getWhoisData } from "@/lib/deep-scan/whois";
 import { checkDnsRecords } from "@/lib/deep-scan/dnsCheck";
 import { getSslProfile } from "@/lib/deep-scan/sslProfile";
 import { detectTyposquatting } from "@/lib/deep-scan/typosquat";
 import { getDomTree } from "@/lib/deep-scan/domTree";
 import { sanitizeTarget } from "@/lib/security/safeCompare";
+import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit, getClientIp } from "@/lib/security/rateLimit";
+import { ensurePublicHostname, isPrivateIp } from "@/lib/security/ssrf";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -20,6 +24,27 @@ function stripTarget(input: string): string {
 
 export async function GET(request: Request) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const clientIp = getClientIp(request);
+    const rate = checkRateLimit(`deep-scan:${user.id}:${clientIp}`, {
+      windowMs: 60_000,
+      max: 8,
+    });
+
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded" },
+        { status: 429 },
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const rawTarget = searchParams.get("target");
 
@@ -39,6 +64,17 @@ export async function GET(request: Request) {
         { error: sanitizeError || "Invalid target." },
         { status: 400 },
       );
+    }
+
+    if (net.isIP(target)) {
+      if (isPrivateIp(target)) {
+        return NextResponse.json(
+          { error: "Private IP ranges are not allowed" },
+          { status: 400 },
+        );
+      }
+    } else {
+      await ensurePublicHostname(target);
     }
 
     // Run all 5 modules in parallel — never let one failure block others

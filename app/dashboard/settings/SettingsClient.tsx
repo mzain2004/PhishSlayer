@@ -19,30 +19,17 @@ type Props = {
   userId: string;
   userEmail: string;
   initialFullName: string;
-  initialApiKey: string | null;
   initialAvatarUrl: string | null;
 };
-
-function generateApiKey() {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let suffix = "";
-  for (let i = 0; i < 40; i += 1) {
-    suffix += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return `psk_${suffix}`;
-}
 
 export default function SettingsClient({
   userId,
   userEmail,
   initialFullName,
-  initialApiKey,
   initialAvatarUrl,
 }: Props) {
   const supabase = createClient();
   const [profileName, setProfileName] = useState(initialFullName);
-  const [apiKey, setApiKey] = useState(initialApiKey);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -251,24 +238,6 @@ export default function SettingsClient({
     });
   };
 
-  const regenerateApiKey = () => {
-    startTransition(async () => {
-      const nextKey = generateApiKey();
-      const { error } = await supabase.from("profiles").upsert({
-        id: userId,
-        api_key: nextKey,
-        updated_at: new Date().toISOString(),
-      });
-
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-      setApiKey(nextKey);
-      toast.success("API key regenerated");
-    });
-  };
-
   const hoverProps = {
     whileHover: {
       scale: 1.02,
@@ -394,35 +363,6 @@ export default function SettingsClient({
             <Lock className="h-4 w-4" />
           )}{" "}
           Update Password
-        </PhishButton>
-      </motion.section>
-
-      <motion.section
-        {...hoverProps}
-        className="rounded-xl border border-white/10 bg-white/5 p-6"
-      >
-        <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
-          <Key className="h-5 w-5 text-[#2DD4BF]" /> API Key
-        </div>
-        <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/40 px-3 py-2 text-sm text-white/90 break-all">
-          {apiKey ?? "No API key generated yet"}
-        </div>
-        <PhishButton
-          onClick={regenerateApiKey}
-          disabled={isPending}
-          whileHover={{
-            scale: 1.03,
-            boxShadow: "0 0 20px rgba(45,212,191,0.4)",
-          }}
-          whileTap={{ scale: 0.96 }}
-          className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-60"
-        >
-          {isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Key className="h-4 w-4" />
-          )}{" "}
-          Regenerate API Key
         </PhishButton>
       </motion.section>
 

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { sanitizePromptInput } from "@/lib/security/sanitize";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -6,6 +7,7 @@ const supabase = createClient(
 );
 
 export interface ReasoningChain {
+  organization_id?: string | null;
   alert_id?: string;
   escalation_id?: string;
   agent_level: "L1" | "L2" | "L3";
@@ -27,15 +29,27 @@ export async function saveReasoningChain(chain: ReasoningChain): Promise<void> {
 }
 
 export function buildL1ReasoningPrompt(alert: any): string {
+  const safeRule = sanitizePromptInput(
+    alert.rule_description || "Unknown",
+    300,
+  );
+  const safeSeverity = sanitizePromptInput(alert.level || "Unknown", 50);
+  const safeSourceIp = sanitizePromptInput(alert.source_ip || "Unknown", 100);
+  const safeAgent = sanitizePromptInput(alert.agent_name || "Unknown", 100);
+  const safeTimestamp = sanitizePromptInput(alert.timestamp || "Unknown", 80);
+  const safeLog = sanitizePromptInput(
+    JSON.stringify(alert.full_log || {}),
+    600,
+  );
   return `You are an L1 SOC Triage Analyst. Analyze this security alert and explain your decision.
 
 ALERT DATA:
-- Rule: ${alert.rule_description || "Unknown"}
-- Severity Level: ${alert.level || "Unknown"}
-- Source IP: ${alert.source_ip || "Unknown"}
-- Agent: ${alert.agent_name || "Unknown"}
-- Timestamp: ${alert.timestamp || "Unknown"}
-- Raw Data: ${JSON.stringify(alert.full_log || {}).slice(0, 500)}
+- Rule: ${safeRule}
+- Severity Level: ${safeSeverity}
+- Source IP: ${safeSourceIp}
+- Agent: ${safeAgent}
+- Timestamp: ${safeTimestamp}
+- Raw Data: ${safeLog}
 
 Respond in this EXACT JSON format:
 {
@@ -49,14 +63,31 @@ Respond in this EXACT JSON format:
 }
 
 export function buildL2ReasoningPrompt(escalation: any): string {
+  const safeRule = sanitizePromptInput(escalation.alert_rule || "Unknown", 300);
+  const safeSeverity = sanitizePromptInput(
+    escalation.severity || "Unknown",
+    50,
+  );
+  const safeSourceIp = sanitizePromptInput(
+    escalation.source_ip || "Unknown",
+    100,
+  );
+  const safeConfidence = sanitizePromptInput(
+    String(escalation.l1_confidence || "Unknown"),
+    50,
+  );
+  const safeReasoning = sanitizePromptInput(
+    escalation.l1_reasoning || "Unknown",
+    800,
+  );
   return `You are an L2 SOC Responder. An L1 agent escalated this alert. Decide what autonomous action to take.
 
 ESCALATION DATA:
-- Alert Rule: ${escalation.alert_rule || "Unknown"}
-- Severity: ${escalation.severity || "Unknown"}
-- Source IP: ${escalation.source_ip || "Unknown"}
-- L1 Confidence: ${escalation.l1_confidence || "Unknown"}
-- L1 Reasoning: ${escalation.l1_reasoning || "Unknown"}
+- Alert Rule: ${safeRule}
+- Severity: ${safeSeverity}
+- Source IP: ${safeSourceIp}
+- L1 Confidence: ${safeConfidence}
+- L1 Reasoning: ${safeReasoning}
 
 AVAILABLE ACTIONS: BLOCK_IP, ISOLATE_IDENTITY, ESCALATE_TO_HUMAN, MONITOR
 
@@ -71,10 +102,14 @@ Respond in this EXACT JSON format:
 }
 
 export function buildL3ReasoningPrompt(hunts: any[]): string {
+  const safeHunts = sanitizePromptInput(
+    JSON.stringify(hunts.slice(0, 10), null, 2),
+    1200,
+  );
   return `You are an L3 Threat Hunter. Review these IOC matches from CTI feeds and explain your findings.
 
 HUNT RESULTS:
-${JSON.stringify(hunts.slice(0, 10), null, 2).slice(0, 1000)}
+${safeHunts}
 
 Respond in this EXACT JSON format:
 {

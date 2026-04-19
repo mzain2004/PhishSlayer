@@ -7,6 +7,7 @@ import { buildIdentityChain } from "@/lib/microsoft/chainBuilder";
 import { buildTimeline, calculateMTTR } from "@/lib/microsoft/timelineBuilder";
 import { detectAnomalies } from "@/lib/microsoft/anomalyDetector";
 import { generateIdentityReport } from "@/lib/microsoft/pdfReportGenerator";
+import { getServerRole } from "@/lib/rbac/serverRole";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -25,6 +26,11 @@ export async function GET(request: Request) {
 
     if (error || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const role = await getServerRole();
+    if (!role || !["admin", "manager", "super_admin"].includes(role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);

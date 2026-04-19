@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import YAML from "yaml";
 import { generateWithFallback } from "@/lib/ollama-client";
+import { sanitizePromptInput } from "@/lib/security/sanitize";
 
 export interface SigmaInput {
   title: string;
@@ -181,7 +182,13 @@ export async function generateWithGemini(
         : "suspicious",
   });
 
-  const prompt = `Generate a valid Sigma rule YAML for this security alert. Return ONLY YAML.\n\nRequirements:\n- Include title, id, status, description, author, date, logsource, detection, falsepositives, level, tags\n- logsource.product must be \"wazuh\"\n- logsource.service must be \"alerts\"\n- Keep rule practical and concise\n\nAlert:\n${JSON.stringify(alert, null, 2)}\n\nStatic analysis (optional):\n${JSON.stringify(analysisData || {}, null, 2)}`;
+  const safeAlert = sanitizePromptInput(JSON.stringify(alert, null, 2), 3000);
+  const safeAnalysis = sanitizePromptInput(
+    JSON.stringify(analysisData || {}, null, 2),
+    3000,
+  );
+
+  const prompt = `Generate a valid Sigma rule YAML for this security alert. Return ONLY YAML.\n\nRequirements:\n- Include title, id, status, description, author, date, logsource, detection, falsepositives, level, tags\n- logsource.product must be \"wazuh\"\n- logsource.service must be \"alerts\"\n- Keep rule practical and concise\n\nAlert:\n${safeAlert}\n\nStatic analysis (optional):\n${safeAnalysis}`;
 
   try {
     const rawText = await generateWithFallback(prompt, prompt);

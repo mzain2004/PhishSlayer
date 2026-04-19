@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { redactSensitive } from "@/lib/security/redact";
 
 export type AuditAction =
   | "scan_launched"
@@ -49,6 +50,8 @@ export async function logAuditEvent(entry: AuditEntry): Promise<void> {
       .eq("id", user.id)
       .single();
 
+    const safeDetails = redactSensitive(entry.details || undefined) || null;
+
     await supabase.from("audit_logs").insert([
       {
         user_id: user.id,
@@ -57,7 +60,7 @@ export async function logAuditEvent(entry: AuditEntry): Promise<void> {
         action: entry.action,
         resource_type: entry.resource_type || null,
         resource_id: entry.resource_id || null,
-        details: entry.details || null,
+        details: safeDetails,
         ip_address: entry.ip_address || null,
       },
     ]);

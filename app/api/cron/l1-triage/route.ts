@@ -87,6 +87,7 @@ export async function GET(request: NextRequest) {
       const recordId = result.item_id || result.scan_id;
       const normalizedRecordId = recordId ?? undefined;
       return saveReasoningChain({
+        organization_id: organizationId ?? null,
         alert_id: result.source === "wazuh" ? normalizedRecordId : undefined,
         agent_level: "L1",
         decision: result.decision,

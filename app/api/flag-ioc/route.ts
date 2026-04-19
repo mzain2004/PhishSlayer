@@ -9,12 +9,16 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 // Admin Supabase client (bypasses RLS for agent writes)
-const getSupabaseAdmin = () =>
-  createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+const getSupabaseAdmin = () => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    throw new Error("Missing Supabase service role configuration");
+  }
+
+  return createClient(url, key);
+};
 
 const SAFE_PROCESSES = new Set([
   "chrome",
@@ -64,7 +68,11 @@ function isPrivateIp(ip: string): boolean {
   const ipType = net.isIP(ip);
   if (ipType === 6) {
     const normalized = ip.toLowerCase();
-    return normalized === "::1" || normalized.startsWith("fc") || normalized.startsWith("fd");
+    return (
+      normalized === "::1" ||
+      normalized.startsWith("fc") ||
+      normalized.startsWith("fd")
+    );
   }
 
   if (ip.startsWith("10.")) return true;

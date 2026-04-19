@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { logAuditEvent } from "@/lib/audit/auditLogger";
+import { hash as bcryptHash } from "bcryptjs";
 
 // IMPORTANT: Before this works you must:
 // 1. Go to Supabase Dashboard -> Storage -> Create bucket
@@ -98,7 +99,7 @@ export async function getUser() {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, display_name, avatar_url, role, department, phone_number, email, api_key, notify_email, notify_critical, notify_assignments, notify_digest",
+      "id, display_name, avatar_url, role, department, phone_number, email, api_key_last4, notify_email, notify_critical, notify_assignments, notify_digest",
     )
     .eq("id", user.id)
     .single();
@@ -111,7 +112,7 @@ export async function getUser() {
     department: profile?.department || "Security Operations",
     avatarUrl: profile?.avatar_url || null,
     role: profile?.role || "analyst",
-    apiKey: profile?.api_key || null,
+    apiKeyLast4: profile?.api_key_last4 || null,
     // Notification prefs
     notifyEmail: profile?.notify_email ?? true,
     notifyCritical: profile?.notify_critical ?? true,
@@ -269,13 +270,7 @@ export async function uploadAvatar(formData: FormData) {
     "image/gif",
     "image/webp",
   ]);
-  const allowedExtensions = new Set([
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-    ".webp",
-  ]);
+  const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp"]);
   const maxSizeBytes = 5 * 1024 * 1024;
 
   if (!allowedMimeTypes.has(file.type)) {
@@ -294,7 +289,12 @@ export async function uploadAvatar(formData: FormData) {
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const magicMime = (() => {
-    if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    if (
+      buffer.length >= 3 &&
+      buffer[0] === 0xff &&
+      buffer[1] === 0xd8 &&
+      buffer[2] === 0xff
+    ) {
       return "image/jpeg";
     }
     if (
@@ -408,9 +408,11 @@ export async function generateApiKey() {
   if (!user) return { error: "Not authenticated" };
 
   const newKey = "pk_live_" + crypto.randomUUID().replace(/-/g, "");
+  const apiKeyHash = await bcryptHash(newKey, 12);
+  const apiKeyLast4 = newKey.slice(-4);
   const { error } = await supabase
     .from("profiles")
-    .update({ api_key: newKey })
+    .update({ api_key: apiKeyHash, api_key_last4: apiKeyLast4 })
     .eq("id", user.id);
 
   if (error) return { error: error.message };
@@ -432,7 +434,7 @@ export async function revokeApiKey() {
 
   const { error } = await supabase
     .from("profiles")
-    .update({ api_key: null })
+    .update({ api_key: null, api_key_last4: null })
     .eq("id", user.id);
 
   if (error) return { error: error.message };

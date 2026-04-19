@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { groqComplete } from "@/lib/ai/groq";
+import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit, getClientIp } from "@/lib/security/rateLimit";
+import { sanitizePromptInput } from "@/lib/security/sanitize";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +16,28 @@ const bodySchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const clientIp = getClientIp(request);
+    const rate = checkRateLimit(`support-chat:${user.id}:${clientIp}`, {
+      windowMs: 60_000,
+      max: 6,
+    });
+
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded" },
+        { status: 429 },
+      );
+    }
+
     const parsed = bodySchema.safeParse(await request.json());
 
     if (!parsed.success) {
@@ -32,7 +57,9 @@ export async function POST(request: Request) {
 
     const systemPrompt =
       "You are Phish-Slayer AI Support, an expert cybersecurity SOC assistant. Help users navigate the platform, understand alerts, use features, and resolve issues. Be concise and technical.";
-    const userPrompt = `Context:\n- User ID: ${parsed.data.userId || "unknown"}\n- User Email: ${parsed.data.userEmail || "unknown"}\n\nUser message: ${parsed.data.message}`;
+    const safeMessage = sanitizePromptInput(parsed.data.message, 2000);
+    const safeUserId = sanitizePromptInput(parsed.data.userId || user.id, 80);
+    const userPrompt = `Context:\n- User ID: ${safeUserId}\n\nUser message: ${safeMessage}`;
 
     let reply = "";
     try {

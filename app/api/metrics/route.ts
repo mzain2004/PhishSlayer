@@ -2,11 +2,23 @@ import { NextResponse } from "next/server";
 import os from "os";
 import { createClient } from "@supabase/supabase-js";
 import { ollamaHealth } from "@/lib/ollama-client";
+import { getAuthenticatedUser } from "@/lib/tenancy";
+import { getServerRole } from "@/lib/rbac/serverRole";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const role = await getServerRole();
+  if (!role || !["admin", "manager", "super_admin"].includes(role)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const ollamaOnline = await ollamaHealth();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

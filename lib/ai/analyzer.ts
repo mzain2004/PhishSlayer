@@ -1,6 +1,7 @@
 "use server";
 
 import { groqComplete } from "@/lib/ai/groq";
+import { sanitizePromptInput } from "@/lib/security/sanitize";
 
 export async function analyzeThreat(incidentDescription: string) {
   if (!process.env.GROQ_API_KEY) {
@@ -10,7 +11,8 @@ export async function analyzeThreat(incidentDescription: string) {
 
   const systemPrompt =
     "You are an elite Level 3 SOC Analyst. Analyze this incident description. Return ONLY a valid JSON object with exactly three keys: risk_score (number 1-10), threat_category (string), and remediation_steps (array of 3 strings). No markdown formatting, no conversational text.";
-  const userPrompt = `Incident Description:\n${incidentDescription}`;
+  const safeDescription = sanitizePromptInput(incidentDescription, 4000);
+  const userPrompt = `Incident Description:\n${safeDescription}`;
 
   try {
     let text = await groqComplete(systemPrompt, userPrompt);
@@ -47,7 +49,11 @@ export async function scoreCtiFinding(summary: {
 
   const systemPrompt =
     "You are an elite Level 3 SOC Analyst. Review this stripped VirusTotal threat data. Return ONLY a valid JSON object with exactly three keys: risk_score (number 1-10), threat_category (string), and ai_summary (a concise, 2-sentence summary of the threat level and reputation). No markdown formatting, no conversational text.";
-  const userPrompt = `VirusTotal Data:\n${JSON.stringify(summary, null, 2)}`;
+  const safeSummary = sanitizePromptInput(
+    JSON.stringify(summary, null, 2),
+    4000,
+  );
+  const userPrompt = `VirusTotal Data:\n${safeSummary}`;
 
   try {
     let text = await groqComplete(systemPrompt, userPrompt);

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-const GEMINI_BACKOFF_MS = [2000, 4000, 8000];
+const GEMINI_BACKOFF_BASE_MS = 3000;
+const GEMINI_MAX_RETRIES = 3;
 
 const GeminiResponseSchema = z.object({
   candidates: z
@@ -125,15 +126,19 @@ export async function geminiGenerateText(
 ): Promise<string> {
   let lastError: Error | null = null;
 
-  for (let attempt = 0; attempt <= GEMINI_BACKOFF_MS.length; attempt += 1) {
+  for (let attempt = 0; attempt < GEMINI_MAX_RETRIES; attempt += 1) {
     try {
       return await attemptGeminiCall(payload, options.signal);
     } catch (error) {
-      const isRateLimit = error instanceof GeminiRateLimitError;
+      const status =
+        error instanceof GeminiRateLimitError
+          ? error.status
+          : (error as { status?: number | string } | null)?.status;
+      const isRateLimit = status === 429 || status === "429";
       lastError = error instanceof Error ? error : new Error("Gemini failure");
 
-      if (isRateLimit && attempt < GEMINI_BACKOFF_MS.length) {
-        await sleep(GEMINI_BACKOFF_MS[attempt]);
+      if (isRateLimit && attempt < GEMINI_MAX_RETRIES - 1) {
+        await sleep((2 ** attempt) * GEMINI_BACKOFF_BASE_MS);
         continue;
       }
 

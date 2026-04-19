@@ -12,6 +12,14 @@ export const runtime = "nodejs";
 
 const PROCESSING_WINDOW_MS = 5 * 60 * 1000;
 const SWEEP_ESCALATION_MIN_AGE_MINUTES = 5;
+const GEMINI_RESPONSE_CACHE_TTL_MS = 5 * 60 * 1000;
+const geminiResponseCache = new Map<
+  string,
+  {
+    text: string;
+    cachedAt: number;
+  }
+>();
 
 const GeminiDecisionSchema = z.object({
   decision: z.enum(["BLOCK_IP", "ISOLATE_IDENTITY", "MANUAL_REVIEW"]),
@@ -111,6 +119,59 @@ function stripCodeFence(text: string): string {
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/, "")
     .trim();
+}
+
+function extractRuleIdFromTelemetry(telemetry: unknown): string | null {
+  if (!telemetry || typeof telemetry !== "object") {
+    return null;
+  }
+
+  const record = telemetry as Record<string, unknown>;
+  const directRuleId =
+    typeof record.rule_id === "string"
+      ? record.rule_id
+      : typeof record.ruleId === "string"
+        ? record.ruleId
+        : null;
+
+  if (directRuleId && directRuleId.trim().length > 0) {
+    return directRuleId.trim();
+  }
+
+  const nestedRule = record.rule as Record<string, unknown> | null | undefined;
+  if (nestedRule && typeof nestedRule.id === "string") {
+    return nestedRule.id.trim();
+  }
+
+  return null;
+}
+
+function buildGeminiCacheKey(escalation: EscalationRow): string | null {
+  const ruleId = extractRuleIdFromTelemetry(escalation.telemetry_snapshot);
+  if (!ruleId) {
+    return null;
+  }
+
+  const alertType = inferAlertSource(escalation);
+  return `${alertType}:${ruleId}`;
+}
+
+function readGeminiCache(key: string): string | null {
+  const cached = geminiResponseCache.get(key);
+  if (!cached) {
+    return null;
+  }
+
+  if (Date.now() - cached.cachedAt > GEMINI_RESPONSE_CACHE_TTL_MS) {
+    geminiResponseCache.delete(key);
+    return null;
+  }
+
+  return cached.text;
+}
+
+function writeGeminiCache(key: string, text: string) {
+  geminiResponseCache.set(key, { text, cachedAt: Date.now() });
 }
 
 async function generateGeminiText(payload: unknown): Promise<string> {
@@ -313,6 +374,20 @@ function toEscalationRow(row: RawEscalationRow): EscalationRow | null {
 
 async function getDecision(escalation: EscalationRow): Promise<Decision> {
   try {
+    const cacheKey = buildGeminiCacheKey(escalation);
+    if (cacheKey) {
+      const cachedText = readGeminiCache(cacheKey);
+      if (cachedText) {
+        const parsedJson = JSON.parse(stripCodeFence(cachedText));
+        const parsedDecision = GeminiDecisionSchema.safeParse(parsedJson);
+        if (!parsedDecision.success) {
+          return fallbackDecision();
+        }
+
+        return normalizeDecision(parsedDecision.data, escalation);
+      }
+    }
+
     const geminiPayload = {
       systemInstruction: {
         parts: [{ text: L2_PROMPT }],
@@ -326,6 +401,9 @@ async function getDecision(escalation: EscalationRow): Promise<Decision> {
     };
 
     const text = await generateGeminiText(geminiPayload);
+    if (cacheKey) {
+      writeGeminiCache(cacheKey, text);
+    }
     const cleaned = stripCodeFence(text);
 
     const parsedJson = JSON.parse(cleaned);

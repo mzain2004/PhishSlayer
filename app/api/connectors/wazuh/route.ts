@@ -11,6 +11,14 @@ const L3_TRIGGER_ACTIONS = new Set(["HUNT", "BLOCK_IP", "ISOLATE_IDENTITY"]);
 const TenantIdSchema = z.string().uuid();
 const TENANT_RATE_LIMIT_PER_MINUTE = 1000;
 const TENANT_RATE_LIMIT_WINDOW_MS = 60_000;
+const L3_RESPONSE_CACHE_TTL_MS = 5 * 60 * 1000;
+const l3ResponseCache = new Map<
+  string,
+  {
+    result: L3ChainResult;
+    cachedAt: number;
+  }
+>();
 const tenantRateLimitStore = new Map<
   string,
   {
@@ -272,6 +280,32 @@ function enforceTenantRateLimit(tenantId: string) {
     remaining: Math.max(0, TENANT_RATE_LIMIT_PER_MINUTE - existing.count),
     retryAfterSeconds: 0,
   };
+}
+
+function buildL3CacheKey(alertType: string, ruleId: string | null): string | null {
+  if (!ruleId) {
+    return null;
+  }
+
+  return `${alertType}:${ruleId}`;
+}
+
+function readL3Cache(key: string): L3ChainResult | null {
+  const cached = l3ResponseCache.get(key);
+  if (!cached) {
+    return null;
+  }
+
+  if (Date.now() - cached.cachedAt > L3_RESPONSE_CACHE_TTL_MS) {
+    l3ResponseCache.delete(key);
+    return null;
+  }
+
+  return cached.result;
+}
+
+function writeL3Cache(key: string, result: L3ChainResult) {
+  l3ResponseCache.set(key, { result, cachedAt: Date.now() });
 }
 
 async function verifyTenantWebhookAuth(
@@ -580,6 +614,7 @@ async function runEventDrivenAgentChain(
   alertId: string,
   severity: Severity,
   tenantId: string | null,
+  alertContext: { alertType: string; ruleId: string | null },
 ): Promise<ChainExecutionResult> {
   const chainStartedAt = Date.now();
   const stagesExecuted: string[] = [];
@@ -759,6 +794,8 @@ async function runEventDrivenAgentChain(
         duration_ms: l2Result.duration_ms,
         timed_out: l2Result.timed_out,
         error: l2Result.error,
+        alert_type: alertContext.alertType,
+        rule_id: alertContext.ruleId,
       };
 
       await writeAuditLogSafe(
@@ -773,46 +810,88 @@ async function runEventDrivenAgentChain(
         tenantId,
       );
 
-      const l3Stage = await callStageJson(
-        `${baseUrl}/api/cron/l3-hunt`,
-        {
-          trigger_reason: `l2_action_${l2Result.action}`,
-          min_hunt_record_age_minutes: 0,
-          l2_context: l2Context,
-        },
-        STAGE_TIMEOUT_MS,
+      const cacheKey = buildL3CacheKey(
+        alertContext.alertType,
+        alertContext.ruleId,
       );
+      if (cacheKey) {
+        const cached = readL3Cache(cacheKey);
+        if (cached) {
+          l3Result = cached;
+          stagesExecuted.push("L3");
+          await writeAuditLogSafe(
+            "L3_COMPLETED",
+            severity,
+            {
+              alert_id: alertId,
+              escalation_id: l1Result.escalation_id,
+              findings_count: l3Result.findings_count,
+              duration_ms: l3Result.duration_ms,
+              timed_out: l3Result.timed_out,
+              error: l3Result.error,
+              cache_hit: true,
+            },
+            tenantId,
+          );
+          return {
+            alert_id: alertId,
+            l1: l1Result,
+            l2: l2Result,
+            l3: l3Result,
+            stages_executed: stagesExecuted,
+            total_duration_ms: Date.now() - chainStartedAt,
+            success:
+              !l1Result.error &&
+              (!l2Result || !l2Result.error) &&
+              (!l3Result || !l3Result.error),
+          };
+        }
+      }
 
-      l3Result = {
-        findings_count: l3Stage.ok ? extractL3FindingsCount(l3Stage.data) : 0,
-        duration_ms: l3Stage.duration_ms,
-        timed_out: l3Stage.timed_out,
-        error: l3Stage.error,
-      };
+      const l3Action = l2Result.action;
+      setTimeout(() => {
+        void (async () => {
+          const l3Stage = await callStageJson(
+            `${baseUrl}/api/cron/l3-hunt`,
+            {
+              trigger_reason: `l2_action_${l3Action}`,
+              min_hunt_record_age_minutes: 0,
+              l2_context: l2Context,
+            },
+            STAGE_TIMEOUT_MS,
+          );
 
-      stagesExecuted.push("L3");
+          const asyncL3Result: L3ChainResult = {
+            findings_count: l3Stage.ok ? extractL3FindingsCount(l3Stage.data) : 0,
+            duration_ms: l3Stage.duration_ms,
+            timed_out: l3Stage.timed_out,
+            error: l3Stage.error,
+          };
 
-      await writeAuditLogSafe(
-        "L3_COMPLETED",
-        severity,
-        {
-          alert_id: alertId,
-          escalation_id: l1Result.escalation_id,
-          findings_count: l3Result.findings_count,
-          duration_ms: l3Result.duration_ms,
-          timed_out: l3Result.timed_out,
-          error: l3Result.error,
-        },
-        tenantId,
-      );
+          if (cacheKey && l3Stage.ok) {
+            writeL3Cache(cacheKey, asyncL3Result);
+          }
+
+          await writeAuditLogSafe(
+            "L3_COMPLETED",
+            severity,
+            {
+              alert_id: alertId,
+              escalation_id: l1Result.escalation_id,
+              findings_count: asyncL3Result.findings_count,
+              duration_ms: asyncL3Result.duration_ms,
+              timed_out: asyncL3Result.timed_out,
+              error: asyncL3Result.error,
+            },
+            tenantId,
+          );
+        })();
+      }, 0);
     }
   }
 
   const totalDurationMs = Date.now() - chainStartedAt;
-  const chainSuccess =
-    !l1Result.error &&
-    (!l2Result || !l2Result.error) &&
-    (!l3Result || !l3Result.error);
+  const chainSuccess = !l1Result.error && (!l2Result || !l2Result.error);
 
   await writeAuditLogSafe(
     "AGENT_CHAIN_COMPLETED",
@@ -945,6 +1024,10 @@ async function processSingleAlert(
       insertedAlertId,
       severity,
       tenantContext?.tenantId || null,
+      {
+        alertType: "wazuh",
+        ruleId: toText(alert.rule?.id),
+      },
     );
   } else {
     await writeAuditLogSafe(

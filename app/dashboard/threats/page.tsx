@@ -142,14 +142,14 @@ export default function ThreatIntelligencePage() {
   if (!loaded) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
   if (!scan) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <Radar className="w-16 h-16 text-[#8B949E] mb-4" />
+        <Radar className="w-16 h-16 text-white/50 mb-4" />
         <h2 className="dashboard-section-heading text-white mb-2">
           No threat data available
         </h2>
@@ -157,7 +157,7 @@ export default function ThreatIntelligencePage() {
           Run a scan from the{" "}
           <a
             href="/dashboard/scans"
-            className="text-[#2DD4BF] font-semibold hover:underline"
+            className="text-accent font-semibold hover:underline"
           >
             Scans
           </a>{" "}
@@ -178,10 +178,10 @@ export default function ThreatIntelligencePage() {
   const verdictLabel = scan.verdict || "Unknown";
   const verdictColor =
     verdictLabel.toLowerCase() === "malicious"
-      ? "text-[#F85149]"
+      ? "text-danger"
       : verdictLabel.toLowerCase() === "clean"
-        ? "text-[#3FB950]"
-        : "text-[#E3B341]";
+        ? "text-accent"
+        : "text-warning";
   const threatTag = scan.threat_category || "Unclassified";
   const malicious = scan.malicious_count ?? 0;
   const totalEngines = scan.total_engines ?? 0;
@@ -209,26 +209,26 @@ export default function ThreatIntelligencePage() {
   const theme =
     riskScore >= 70
       ? {
-          text: "text-[#F85149]",
-          bg: "bg-[#F85149]",
-          bgLight: "bg-[#F85149]/10",
-          border: "border-[#F85149]",
-          ring: "ring-red-500/20",
+          text: "text-danger",
+          bg: "bg-danger",
+          bgLight: "bg-danger/10",
+          border: "border-danger",
+          ring: "ring-danger/20",
         }
       : riskScore >= 40
         ? {
-            text: "text-[#E3B341]",
-            bg: "bg-[#E3B341]",
-            bgLight: "bg-[#E3B341]/10",
-            border: "border-[#E3B341]",
-            ring: "ring-orange-500/20",
+            text: "text-warning",
+            bg: "bg-warning",
+            bgLight: "bg-warning/10",
+            border: "border-warning",
+            ring: "ring-warning/20",
           }
         : {
-            text: "text-[#3FB950]",
-            bg: "bg-[#3FB950]",
-            bgLight: "bg-[#3FB950]/10",
-            border: "border-[#3FB950]",
-            ring: "ring-emerald-500/20",
+            text: "text-accent",
+            bg: "bg-accent",
+            bgLight: "bg-accent/10",
+            border: "border-accent",
+            ring: "ring-accent/20",
           };
 
   const handleTakeAction = () => {
@@ -283,7 +283,7 @@ export default function ThreatIntelligencePage() {
     const w = doc.internal.pageSize.getWidth();
     doc.setFillColor(15, 23, 42);
     doc.rect(0, 0, w, 38, "F");
-    doc.setFillColor(13, 148, 136);
+    doc.setFillColor(0, 212, 170);
     doc.rect(0, 38, w, 3, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
@@ -374,7 +374,7 @@ export default function ThreatIntelligencePage() {
       ],
       theme: "grid",
       headStyles: {
-        fillColor: [13, 148, 136],
+        fillColor: [0, 212, 170],
         textColor: [255, 255, 255],
         fontStyle: "bold",
         fontSize: 9,
@@ -406,7 +406,7 @@ export default function ThreatIntelligencePage() {
     <div className="flex-1 grid grid-cols-1 xl:grid-cols-2 gap-0 min-h-[400px]">
       {/* Visual Sandbox */}
       <div className="flex-1 bg-black/80 p-6 flex flex-col items-center justify-center relative border-r border-white/10">
-        <div className="w-full max-w-md bg-white/5 rounded-2xl shadow-md overflow-hidden border border-[rgba(48,54,61,0.9)] relative">
+        <div className="w-full max-w-md glass rounded-2xl overflow-hidden relative">
           <div className="bg-black/80 border-b border-white/10 p-2.5 flex items-center justify-between">
             <div className="flex gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
@@ -433,7 +433,7 @@ export default function ThreatIntelligencePage() {
               <>
                 {!imageLoaded && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-black/80 z-10 animate-pulse">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#14B8A6] mb-4" />
+                    <Loader2 className="w-8 h-8 animate-spin text-accent mb-4" />
                     <h4 className="text-sm font-bold text-[#8B949E] mb-1.5">
                       Generating Sandbox...
                     </h4>
@@ -481,10 +481,10 @@ export default function ThreatIntelligencePage() {
         </div>
       </div>
       {/* Source Analysis */}
-      <div className="w-full flex flex-col bg-white/5 text-white font-mono text-[11px] overflow-hidden">
+      <div className="w-full flex flex-col glass text-white font-mono text-[11px] overflow-hidden">
         <div className="bg-black/50 px-4 py-3 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Code className="w-4 h-4 text-[#2DD4BF]" />
+            <Code className="w-4 h-4 text-accent" />
             <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
               Source Analysis
             </span>
@@ -497,7 +497,7 @@ export default function ThreatIntelligencePage() {
           </pre>
         </div>
         <div
-          className={`p-4 border-t ${riskScore >= 70 ? "bg-[#F85149] border-[#F85149]" : riskScore >= 40 ? "bg-[#E3B341] border-[#E3B341]" : "bg-[#3FB950] border-[#3FB950]"}`}
+          className={`p-4 border-t ${riskScore >= 70 ? "bg-danger border-danger" : riskScore >= 40 ? "bg-warning border-warning" : "bg-accent border-accent"}`}
         >
           <div className="flex items-start gap-3">
             <div className="bg-white/20 p-1 rounded">
@@ -563,7 +563,7 @@ export default function ThreatIntelligencePage() {
         if (!canAccessFeature(userTier, "aiHeuristics")) {
           return (
             <div className="p-8 min-h-[400px] flex flex-col items-center justify-center gap-4 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <span className="text-2xl">🔒</span>
               </div>
               <h3 className="text-lg font-bold text-white">
@@ -575,7 +575,7 @@ export default function ThreatIntelligencePage() {
               </p>
               <a
                 href="/pricing"
-                className="rounded-full px-[30px] py-[14px] bg-violet-600 text-white text-sm font-bold hover:bg-violet-700 transition-colors"
+                className="rounded-full px-[30px] py-[14px] bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors"
               >
                 Upgrade Now
               </a>
@@ -603,7 +603,7 @@ export default function ThreatIntelligencePage() {
               </p>
               <a
                 href="/pricing"
-                className="rounded-full px-[30px] py-[14px] bg-[#E3B341] text-white text-sm font-bold hover:bg-orange-700 transition-colors"
+                className="rounded-full px-[30px] py-[14px] bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors"
               >
                 Upgrade Now
               </a>
@@ -629,10 +629,10 @@ export default function ThreatIntelligencePage() {
         <motion.section
           whileHover={{
             scale: 1.005,
-            boxShadow: "0 8px 32px rgba(45,212,191,0.15)",
+            boxShadow: "0 8px 32px rgba(124,106,247,0.2)",
           }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="liquid-glass bg-white/5 backdrop-blur shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] border border-[rgba(48,54,61,0.9)] rounded-2xl px-6 py-4 pointer-events-auto"
+          className="glass px-6 py-4 pointer-events-auto"
         >
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-6 w-full lg:w-auto">
@@ -664,7 +664,7 @@ export default function ThreatIntelligencePage() {
                         />
                       </PhishButton>
                       {selectorOpen && (
-                        <div className="absolute top-full left-0 mt-2 w-80 bg-white/5 border border-[rgba(48,54,61,0.9)] rounded-2xl shadow-xl z-50 overflow-hidden">
+                        <div className="absolute top-full left-0 mt-2 w-80 glass shadow-xl z-50 overflow-hidden">
                           <div className="px-3 py-2 border-b border-white/10 bg-white/5">
                             <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
                               Recent Scans
@@ -681,12 +681,12 @@ export default function ThreatIntelligencePage() {
                                   setSelectorOpen(false);
                                 }}
                                 className={`w-full text-left px-3 py-2.5 hover:bg-white/10 transition-colors border-b border-white/10 last:border-b-0 ${
-                                  s.id === scan.id ? "bg-[#2DD4BF]/10" : ""
+                                  s.id === scan.id ? "bg-accent/10" : ""
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
                                   <span
-                                    className={`font-mono text-xs font-bold truncate max-w-[180px] ${s.id === scan.id ? "text-[#2DD4BF]" : "text-white"}`}
+                                    className={`font-mono text-xs font-bold truncate max-w-[180px] ${s.id === scan.id ? "text-accent" : "text-white"}`}
                                   >
                                     {s.target}
                                   </span>
@@ -696,8 +696,8 @@ export default function ThreatIntelligencePage() {
                                         s.verdict?.toLowerCase() === "malicious"
                                           ? "bg-[#F85149]/10 text-[#F85149]"
                                           : s.verdict?.toLowerCase() === "clean"
-                                            ? "bg-[#3FB950]/10 text-[#3FB950]"
-                                            : "bg-[#E3B341]/10 text-[#E3B341]"
+                                            ? "bg-accent/10 text-accent"
+                                            : "bg-warning/10 text-warning"
                                       }`}
                                     >
                                       {s.verdict?.toUpperCase() || "UNKNOWN"}
@@ -736,7 +736,7 @@ export default function ThreatIntelligencePage() {
                     ? "Upgrade to SOC Pro to export reports"
                     : "Export PDF Report"
                 }
-                className="rounded-full flex items-center justify-center px-[30px] py-[14px] border border-[rgba(48,54,61,0.9)] bg-[#2DD4BF]/12 text-[#2DD4BF] font-bold text-xs hover:bg-[#2DD4BF]/22 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-full flex items-center justify-center px-[30px] py-[14px] border border-[rgba(48,54,61,0.9)] bg-accent/15 text-accent font-bold text-xs hover:bg-accent/25 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FileDown className="w-4 h-4 mr-1.5" />
                 Report
@@ -744,7 +744,7 @@ export default function ThreatIntelligencePage() {
               <PhishButton
                 onClick={() => setTakedownOpen(true)}
                 disabled={!scan}
-                className="rounded-full flex items-center justify-center px-[30px] py-[14px] border border-[rgba(48,54,61,0.9)] bg-indigo-500/12 text-indigo-300 font-bold text-xs hover:bg-indigo-500/22 transition-all shadow-sm disabled:opacity-50"
+                className="rounded-full flex items-center justify-center px-[30px] py-[14px] border border-[rgba(48,54,61,0.9)] bg-primary/15 text-primary font-bold text-xs hover:bg-primary/25 transition-all shadow-sm disabled:opacity-50"
               >
                 <Gavel className="w-4 h-4 mr-1.5" />
                 Takedown
@@ -755,14 +755,14 @@ export default function ThreatIntelligencePage() {
                 className="rounded-full flex items-center justify-center px-[30px] py-[14px] border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.92)] text-[#E6EDF3] font-bold text-xs hover:bg-[rgba(30,35,42,0.95)] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <CheckCircle2
-                  className={`w-4 h-4 mr-1.5 ${isWhitelisted ? "text-[#3FB950]" : ""}`}
+                  className={`w-4 h-4 mr-1.5 ${isWhitelisted ? "text-accent" : ""}`}
                 />
                 {isWhitelisted ? "Whitelisted" : "Whitelist"}
               </PhishButton>
               <PhishButton
                 onClick={handleTakeAction}
                 disabled={isPendingAction}
-                className="rounded-full flex items-center justify-center px-[30px] py-[14px] border border-[#F85149]/40 bg-[#F85149] hover:bg-[#f26d66] text-white font-black text-xs transition-all shadow-lg disabled:opacity-50"
+                className="rounded-full flex items-center justify-center px-[30px] py-[14px] border border-danger/40 bg-danger hover:bg-danger/90 text-white font-black text-xs transition-all shadow-lg disabled:opacity-50"
               >
                 {isPendingAction ? (
                   <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
@@ -777,14 +777,17 @@ export default function ThreatIntelligencePage() {
       </div>
 
       {/* Main Grid Content */}
-      <main data-stagger-container className="flex-1 px-4 sm:px-6 py-8 w-full max-w-7xl mx-auto flex flex-col gap-6">
+      <main
+        data-stagger-container
+        className="flex-1 px-4 sm:px-6 py-8 w-full max-w-7xl mx-auto flex flex-col gap-6"
+      >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
           {/* Scan Summary Panel */}
           <div className="lg:col-span-1 flex flex-col">
-            <div className="liquid-glass bg-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] rounded-xl border border-white/10 flex flex-col h-full overflow-hidden">
+            <div className="glass flex flex-col h-full overflow-hidden">
               <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
                 <h3 className="font-bold text-sm text-white flex items-center gap-2 uppercase tracking-wide">
-                  <Activity className="w-5 h-5 text-[#2DD4BF]" />
+                  <Activity className="w-5 h-5 text-accent" />
                   Scan Summary
                 </h3>
                 <span
@@ -852,9 +855,9 @@ export default function ThreatIntelligencePage() {
                       Risk score: {riskScore}/100
                     </p>
                   </div>
-                  <div className="p-4 hover:bg-white/10 border-l-[6px] border-[#2DD4BF] transition-colors">
+                  <div className="p-4 hover:bg-white/10 border-l-[6px] border-accent transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-[10px] font-bold text-[#2DD4BF] bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] font-bold text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded">
                         AI ANALYSIS
                       </span>
                     </div>
@@ -864,7 +867,7 @@ export default function ThreatIntelligencePage() {
                   </div>
                   <div className="p-4 hover:bg-white/10 border-l-[6px] border-transparent transition-colors">
                     <div className="flex justify-between items-start mb-1">
-                      <span className="text-[10px] font-bold text-[#2DD4BF] bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] font-bold text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded">
                         SCANNED
                       </span>
                     </div>
@@ -879,7 +882,7 @@ export default function ThreatIntelligencePage() {
 
           {/* Sandbox & Deep Scan Panel */}
           <div className="lg:col-span-2 flex flex-col gap-6">
-            <div className="liquid-glass bg-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] rounded-xl border border-white/10 flex flex-col overflow-hidden h-full">
+            <div className="glass flex flex-col overflow-hidden h-full">
               {/* Tab Header */}
               <div className="flex items-center bg-white/5 border-b border-white/10 px-4 pt-2.5 overflow-x-auto">
                 <div className="flex gap-1">
@@ -889,7 +892,7 @@ export default function ThreatIntelligencePage() {
                       onClick={() => setActiveTab(tab.key)}
                       className={`px-4 py-2.5 text-[11px] font-black tracking-wide whitespace-nowrap transition-colors ${
                         activeTab === tab.key
-                          ? "bg-white/5 border-t border-x border-white/10 rounded-t-lg text-[#2DD4BF] border-b-2 border-b-[#0f1629] z-10"
+                          ? "bg-white/5 border-t border-x border-white/10 rounded-t-lg text-accent border-b-2 border-b-base z-10"
                           : "text-[#8B949E] hover:text-white"
                       }`}
                     >
@@ -905,7 +908,7 @@ export default function ThreatIntelligencePage() {
                   <div className="flex gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#F85149]"></span>
                     <span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#3FB950]"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-accent"></span>
                   </div>
                 </div>
               </div>
@@ -914,10 +917,10 @@ export default function ThreatIntelligencePage() {
 
             {/* Risk Flag Summary Strip */}
             {allRiskFlags.length > 0 && (
-              <div className="bg-white/5 rounded-2xl border border-[#E3B341]/30 shadow-sm p-4">
+              <div className="glass border-warning/30 shadow-sm p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="w-4 h-4 text-[#E3B341]" />
-                  <span className="text-[10px] font-black text-[#E3B341] uppercase tracking-widest">
+                  <AlertTriangle className="w-4 h-4 text-warning" />
+                  <span className="text-[10px] font-black text-warning uppercase tracking-widest">
                     Risk Flag Summary ({allRiskFlags.length})
                   </span>
                 </div>
@@ -925,7 +928,7 @@ export default function ThreatIntelligencePage() {
                   {allRiskFlags.map((flag: string, i: number) => (
                     <span
                       key={i}
-                      className="text-[10px] font-bold text-[#E3B341] bg-[#E3B341]/10 border border-[#E3B341]/20 px-2.5 py-1 rounded-full"
+                      className="text-[10px] font-bold text-warning bg-warning/10 border border-warning/20 px-2.5 py-1 rounded-full"
                     >
                       {flag}
                     </span>
@@ -936,9 +939,9 @@ export default function ThreatIntelligencePage() {
 
             {/* Deep scan error display */}
             {deepScanError && (
-              <div className="bg-[#F85149]/10 rounded-2xl border border-[#F85149]/20 p-4 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-[#F85149]" />
-                <span className="text-xs text-[#F85149]">
+              <div className="glass border-danger/30 p-4 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-danger" />
+                <span className="text-xs text-danger">
                   Deep scan error: {deepScanError}
                 </span>
               </div>
@@ -946,7 +949,7 @@ export default function ThreatIntelligencePage() {
 
             {/* Quick Intel Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="liquid-glass bg-white/5 p-4 rounded-xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col gap-1">
+              <div className="glass p-4 flex flex-col gap-1">
                 <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
                   Engine Detection
                 </span>
@@ -959,7 +962,7 @@ export default function ThreatIntelligencePage() {
                     : "No engine data"}
                 </span>
               </div>
-              <div className="liquid-glass bg-white/5 p-4 rounded-xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col gap-1">
+              <div className="glass p-4 flex flex-col gap-1">
                 <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
                   Verdict
                 </span>
@@ -977,17 +980,17 @@ export default function ThreatIntelligencePage() {
                   Risk: {riskScore}/100
                 </span>
               </div>
-              <div className="liquid-glass bg-white/5 p-4 rounded-xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col gap-1">
+              <div className="glass p-4 flex flex-col gap-1">
                 <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">
                   Category
                 </span>
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-white/10 rounded flex items-center justify-center text-[10px] text-[#2DD4BF] font-bold">
+                  <div className="w-5 h-5 bg-white/10 rounded flex items-center justify-center text-[10px] text-accent font-bold">
                     <ShieldAlert className="w-3 h-3" />
                   </div>
                   <span className="font-bold text-white">{threatTag}</span>
                 </div>
-                <span className="text-[11px] text-[#F85149] font-bold">
+                <span className="text-[11px] text-danger font-bold">
                   {riskScore >= 70 ? "Action recommended" : "Monitor"}
                 </span>
               </div>

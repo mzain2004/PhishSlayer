@@ -241,29 +241,23 @@ export default function SettingsClient({
   const hoverProps = {
     whileHover: {
       scale: 1.02,
-      boxShadow: "0 8px 32px rgba(45, 212, 191, 0.15)",
+      boxShadow: "0 8px 32px rgba(124, 106, 247, 0.2)",
     },
     transition: { type: "spring" as const, stiffness: 300, damping: 20 },
   };
 
   return (
     <div className="flex flex-col gap-6 text-white">
-      <motion.header
-        {...hoverProps}
-        className="rounded-xl border border-white/10 bg-white/5 p-6"
-      >
+      <motion.header {...hoverProps} className="glass p-6">
         <h1 className="dashboard-page-title">Platform Settings</h1>
         <p className="mt-2 text-sm text-white/60">
           Manage profile information, account security, and API access.
         </p>
       </motion.header>
 
-      <motion.section
-        {...hoverProps}
-        className="rounded-xl border border-white/10 bg-white/5 p-6"
-      >
+      <motion.section {...hoverProps} className="glass p-6">
         <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
-          <User className="h-5 w-5 text-[#2DD4BF]" /> Profile
+          <User className="h-5 w-5 text-accent" /> Profile
         </div>
         <div className="mb-6 flex items-center gap-4">
           {avatarUrl ? (
@@ -303,7 +297,7 @@ export default function SettingsClient({
             <input
               value={profileName}
               onChange={(e) => setProfileName(e.target.value)}
-              className="w-full rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/40 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-[#2DD4BF]/50 focus:outline-none"
+              className="w-full rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/40 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-primary/50 focus:outline-none"
               placeholder="Security Engineer"
             />
           </div>
@@ -313,10 +307,10 @@ export default function SettingsClient({
           disabled={isPending}
           whileHover={{
             scale: 1.03,
-            boxShadow: "0 0 20px rgba(45,212,191,0.4)",
+            boxShadow: "0 0 20px rgba(124,106,247,0.4)",
           }}
           whileTap={{ scale: 0.96 }}
-          className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-black [transition:all_0.2s_ease] [background:linear-gradient(135deg,#2DD4BF,#22c55e)] disabled:opacity-60"
+          className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-white [transition:all_0.2s_ease] bg-gradient-to-r from-primary to-accent disabled:opacity-60"
         >
           {isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -327,26 +321,23 @@ export default function SettingsClient({
         </PhishButton>
       </motion.section>
 
-      <motion.section
-        {...hoverProps}
-        className="rounded-xl border border-white/10 bg-white/5 p-6"
-      >
+      <motion.section {...hoverProps} className="glass p-6">
         <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
-          <Lock className="h-5 w-5 text-[#A78BFA]" /> Password
+          <Lock className="h-5 w-5 text-primary" /> Password
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/40 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-[#2DD4BF]/50 focus:outline-none"
+            className="w-full rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/40 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-primary/50 focus:outline-none"
             placeholder="New password"
           />
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/40 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-[#2DD4BF]/50 focus:outline-none"
+            className="w-full rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/40 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-primary/50 focus:outline-none"
             placeholder="Confirm password"
           />
         </div>
@@ -366,12 +357,9 @@ export default function SettingsClient({
         </PhishButton>
       </motion.section>
 
-      <motion.section
-        {...hoverProps}
-        className="rounded-xl border border-white/10 bg-white/5 p-6"
-      >
+      <motion.section {...hoverProps} className="glass p-6">
         <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
-          <ShieldCheck className="h-5 w-5 text-cyan-300" /> Multi-factor
+          <ShieldCheck className="h-5 w-5 text-accent" /> Multi-factor
           Authentication
         </div>
         <p className="text-sm text-white/60">
@@ -380,7 +368,7 @@ export default function SettingsClient({
         </p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 p-4">
+          <div className="glass p-4">
             <p className="text-sm font-semibold text-white">
               Passkey (WebAuthn)
             </p>
@@ -388,7 +376,7 @@ export default function SettingsClient({
               Use device biometrics or a security key for passwordless
               second-factor verification.
             </p>
-            <p className="mt-2 text-xs text-cyan-200">
+            <p className="mt-2 text-xs text-accent">
               Status: {hasPasskey ? "Registered" : "Not configured"}
             </p>
             <PhishButton
@@ -396,7 +384,7 @@ export default function SettingsClient({
               disabled={isPending || mfaLoading}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="mt-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-teal-400 px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+              className="mt-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-accent px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
             >
               {mfaLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -407,7 +395,7 @@ export default function SettingsClient({
             </PhishButton>
           </div>
 
-          <div className="rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 p-4">
+          <div className="glass p-4">
             <p className="text-sm font-semibold text-white">
               Authenticator App (TOTP)
             </p>
@@ -415,7 +403,7 @@ export default function SettingsClient({
               Connect Google Authenticator/Authy and verify with a 6-digit
               time-based code.
             </p>
-            <p className="mt-2 text-xs text-cyan-200">
+            <p className="mt-2 text-xs text-accent">
               Status: {hasTotp ? "Verified" : "Not configured"}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -438,7 +426,7 @@ export default function SettingsClient({
         </div>
 
         {totpQr ? (
-          <div className="mt-4 rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/30 p-4">
+          <div className="mt-4 glass p-4">
             <p className="text-sm text-white/80 mb-3">
               Scan this QR code and verify your 6-digit code:
             </p>
@@ -454,14 +442,14 @@ export default function SettingsClient({
                 onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
                 maxLength={6}
                 placeholder="123456"
-                className="w-36 rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/40 px-3 py-2 text-sm tracking-[0.2em] text-white placeholder:text-white/40 focus:border-[#2DD4BF]/50 focus:outline-none"
+                className="w-36 rounded-lg border border-[rgba(48,54,61,0.9)] bg-black/40 px-3 py-2 text-sm tracking-[0.2em] text-white placeholder:text-white/40 focus:border-primary/50 focus:outline-none"
               />
               <PhishButton
                 onClick={verifyTotp}
                 disabled={isPending || mfaLoading || totpCode.length !== 6}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="rounded-full bg-gradient-to-r from-cyan-400 to-teal-400 px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+                className="rounded-full bg-gradient-to-r from-primary to-accent px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
               >
                 Verify Code
               </PhishButton>

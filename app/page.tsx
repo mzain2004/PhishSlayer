@@ -54,8 +54,7 @@ const GlobalSupportWidget = dynamic(
   { ssr: false },
 );
 
-const glassCard =
-  "bg-white/5 backdrop-blur-3xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl";
+const glassCard = "glass";
 
 const BlurText = ({
   text,
@@ -265,7 +264,7 @@ const AuthModal = ({
       </motion.button>
 
       <div className="flex items-center justify-center gap-2 mb-8">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#A78BFA] to-[#2DD4BF] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
           <Shield className="w-4 h-4 text-black" />
         </div>
         <span className="font-space-grotesk font-bold text-xl tracking-tight text-white">
@@ -335,20 +334,20 @@ const AuthModal = ({
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-[#2DD4BF]/50 transition-colors"
+              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-accent/50 transition-colors"
             />
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-[#2DD4BF]/50 transition-colors"
+              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-accent/50 transition-colors"
             />
             <div className="flex justify-between items-center">
               <label className="flex items-center gap-2 text-sm text-white/70 cursor-pointer hover:text-white transition-colors">
                 <input
                   type="checkbox"
-                  className="rounded border-white/10 bg-black/50 text-[#2DD4BF] focus:ring-[#2DD4BF]/50"
+                  className="rounded border-white/10 bg-black/50 text-accent focus:ring-accent/50"
                 />
                 Remember me
               </label>
@@ -359,7 +358,7 @@ const AuthModal = ({
                   setError(null);
                   setView("forgot");
                 }}
-                className="text-xs text-[#2DD4BF] hover:text-[#2DD4BF]/80 transition-colors"
+                className="text-xs text-accent hover:text-accent/80 transition-colors"
               >
                 Forgot password?
               </motion.button>
@@ -372,13 +371,13 @@ const AuthModal = ({
             <motion.button
               whileHover={{
                 scale: 1.02,
-                backgroundColor: "#14B8A6",
-                boxShadow: "0 0 15px rgba(45,212,191,0.5)",
+                backgroundColor: "#6e5df0",
+                boxShadow: "0 0 15px rgba(124,106,247,0.5)",
               }}
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={loading}
-              className="w-full bg-[#2DD4BF] text-black font-semibold py-2.5 rounded-lg transition-colors duration-300 mt-2 disabled:opacity-60"
+              className="w-full bg-primary text-white font-semibold py-2.5 rounded-lg transition-colors duration-300 mt-2 disabled:opacity-60"
             >
               {loading ? "Logging in..." : "Log In"}
             </motion.button>
@@ -393,7 +392,7 @@ const AuthModal = ({
                 setSignupSuccess(false);
                 setView("signup");
               }}
-              className="text-[#2DD4BF] hover:text-[#2DD4BF]/80 transition-colors font-medium"
+              className="text-accent hover:text-accent/80 transition-colors font-medium"
             >
               Sign up
             </motion.button>
@@ -411,7 +410,7 @@ const AuthModal = ({
           </p>
 
           {signupSuccess ? (
-            <div className="mb-4 rounded-lg border border-[#2DD4BF]/30 bg-[#2DD4BF]/10 p-3 text-sm text-[#2DD4BF] text-center">
+            <div className="mb-4 rounded-lg border border-accent/30 bg-accent/10 p-3 text-sm text-accent text-center">
               Check your email to confirm your account
             </div>
           ) : null}
@@ -467,21 +466,21 @@ const AuthModal = ({
               placeholder="Full name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-[#2DD4BF]/50 transition-colors"
+              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-accent/50 transition-colors"
             />
             <input
               type="email"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-[#2DD4BF]/50 transition-colors"
+              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-accent/50 transition-colors"
             />
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-[#2DD4BF]/50 transition-colors"
+              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-accent/50 transition-colors"
             />
             {error ? (
               <p className="text-xs text-red-400 border border-red-500/20 bg-red-500/10 rounded-lg px-3 py-2">
@@ -491,13 +490,13 @@ const AuthModal = ({
             <motion.button
               whileHover={{
                 scale: 1.02,
-                backgroundColor: "#14B8A6",
-                boxShadow: "0 0 15px rgba(45,212,191,0.5)",
+                backgroundColor: "#6e5df0",
+                boxShadow: "0 0 15px rgba(124,106,247,0.5)",
               }}
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={loading}
-              className="w-full bg-[#2DD4BF] text-black font-semibold py-2.5 rounded-lg transition-colors duration-300 mt-2 disabled:opacity-60"
+              className="w-full bg-primary text-white font-semibold py-2.5 rounded-lg transition-colors duration-300 mt-2 disabled:opacity-60"
             >
               {loading ? "Creating account..." : "Create Account"}
             </motion.button>
@@ -510,7 +509,7 @@ const AuthModal = ({
                 setError(null);
                 setView("login");
               }}
-              className="text-[#2DD4BF] hover:text-[#2DD4BF]/80 transition-colors font-medium"
+              className="text-accent hover:text-accent/80 transition-colors font-medium"
             >
               Log in
             </button>
@@ -533,7 +532,7 @@ const AuthModal = ({
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-[#2DD4BF]/50 transition-colors"
+              className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-accent/50 transition-colors"
             />
             {error ? (
               <p className="text-xs text-red-400 border border-red-500/20 bg-red-500/10 rounded-lg px-3 py-2">
@@ -543,13 +542,13 @@ const AuthModal = ({
             <motion.button
               whileHover={{
                 scale: 1.02,
-                backgroundColor: "#14B8A6",
-                boxShadow: "0 0 15px rgba(45,212,191,0.5)",
+                backgroundColor: "#6e5df0",
+                boxShadow: "0 0 15px rgba(124,106,247,0.5)",
               }}
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={loading}
-              className="w-full bg-[#2DD4BF] text-black font-semibold py-2.5 rounded-lg transition-colors duration-300 mt-2 disabled:opacity-60"
+              className="w-full bg-primary text-white font-semibold py-2.5 rounded-lg transition-colors duration-300 mt-2 disabled:opacity-60"
             >
               {loading ? "Sending..." : "Send Reset Link"}
             </motion.button>
@@ -559,7 +558,7 @@ const AuthModal = ({
             Remember your password?{" "}
             <button
               onClick={() => setView("login")}
-              className="text-[#2DD4BF] hover:text-[#2DD4BF]/80 transition-colors font-medium"
+              className="text-accent hover:text-accent/80 transition-colors font-medium"
             >
               Log in
             </button>
@@ -597,9 +596,9 @@ export default function Home() {
     <main className="relative min-h-screen overflow-hidden flex flex-col items-center">
       {/* Background Gradients */}
       <div className="fixed inset-0 z-[-1] pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#A78BFA] opacity-20 blur-[150px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#2DD4BF] opacity-20 blur-[150px]" />
-        <div className="absolute top-[30%] left-[50%] w-[40vw] h-[40vw] rounded-full bg-[#A78BFA] opacity-10 blur-[150px]"></div>
+        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-primary opacity-20 blur-[150px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-accent opacity-20 blur-[150px]" />
+        <div className="absolute top-[30%] left-[50%] w-[40vw] h-[40vw] rounded-full bg-primary opacity-10 blur-[150px]"></div>
       </div>
 
       {/* Navbar */}
@@ -607,7 +606,7 @@ export default function Home() {
         className={`w-full max-w-7xl mx-auto px-6 py-4 mt-6 flex items-center justify-between ${glassCard} rounded-full`}
       >
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#A78BFA] to-[#2DD4BF] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
             <Shield className="w-4 h-4 text-black" />
           </div>
           <span className="font-space-grotesk font-bold text-xl tracking-tight">
@@ -642,7 +641,7 @@ export default function Home() {
               setAuthIntent("login");
               setIsAuthOpen(true);
             }}
-            className="text-sm font-medium border border-white/20 text-white bg-transparent rounded-full px-5 py-2 transition-all duration-300 ease-out hover:bg-[#2DD4BF] hover:text-black hover:shadow-[0_0_20px_rgba(45,212,191,0.4)] hidden md:block"
+            className="text-sm font-medium border border-white/20 text-white bg-transparent rounded-full px-5 py-2 transition-all duration-300 ease-out hover:bg-accent hover:text-black hover:shadow-[0_0_20px_rgba(0,212,170,0.4)] hidden md:block"
           >
             Log In
           </button>
@@ -653,7 +652,7 @@ export default function Home() {
               setAuthIntent("signup");
               setIsAuthOpen(true);
             }}
-            className="text-sm font-medium bg-[#2DD4BF] text-black px-5 py-2 rounded-full transition-all duration-300"
+            className="text-sm font-medium bg-primary text-white px-5 py-2 rounded-full transition-all duration-300"
           >
             Sign Up
           </motion.button>
@@ -670,7 +669,7 @@ export default function Home() {
         <div
           className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 ${glassCard}`}
         >
-          <span className="w-2 h-2 rounded-full bg-[#A78BFA]"></span>
+          <span className="w-2 h-2 rounded-full bg-primary"></span>
           <span className="text-sm font-medium text-white/80">
             AI Threat Detection Active
           </span>
@@ -699,7 +698,7 @@ export default function Home() {
               setAuthIntent("signup");
               setIsAuthOpen(true);
             }}
-            className="bg-[#2DD4BF] text-black font-semibold px-8 py-4 rounded-full transition-all duration-300 flex items-center gap-2 group"
+            className="bg-primary text-white font-semibold px-8 py-4 rounded-full transition-all duration-300 flex items-center gap-2 group hover:bg-primary/90"
           >
             ACTIVATE FREE TRIAL NOW
             <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -812,8 +811,8 @@ export default function Home() {
             {...tactileProps}
             className={`p-8 text-left ${glassCard}`}
           >
-            <div className="w-10 h-10 rounded-full bg-[#A78BFA]/20 flex items-center justify-center mb-6">
-              <Shield className="w-5 h-5 text-[#A78BFA]" />
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mb-6">
+              <Shield className="w-5 h-5 text-primary" />
             </div>
             <h3 className="font-space-grotesk text-2xl font-bold text-white mb-3">
               Our Mission
@@ -829,8 +828,8 @@ export default function Home() {
             {...tactileProps}
             className={`p-8 text-left ${glassCard}`}
           >
-            <div className="w-10 h-10 rounded-full bg-[#2DD4BF]/20 flex items-center justify-center mb-6">
-              <Network className="w-5 h-5 text-[#2DD4BF]" />
+            <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center mb-6">
+              <Network className="w-5 h-5 text-accent" />
             </div>
             <h3 className="font-space-grotesk text-2xl font-bold text-white mb-3">
               Our Vision
@@ -865,7 +864,7 @@ export default function Home() {
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className="w-4 h-4 fill-[#2DD4BF] text-[#2DD4BF]"
+                  className="w-4 h-4 fill-accent text-accent"
                 />
               ))}
             </div>
@@ -887,18 +886,18 @@ export default function Home() {
             key="testimonial-center"
             variants={gridItem}
             {...tactileProps}
-            className={`p-8 w-full md:w-1/3 z-10 border-[#2DD4BF]/30 ${glassCard}`}
+            className={`p-8 w-full md:w-1/3 z-10 border-primary/30 ${glassCard}`}
           >
             <div className="flex justify-between items-start mb-6">
               <div className="flex gap-1">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className="w-5 h-5 fill-[#2DD4BF] text-[#2DD4BF]"
+                    className="w-5 h-5 fill-accent text-accent"
                   />
                 ))}
               </div>
-              <span className="text-xs font-bold bg-[#A78BFA]/20 text-[#A78BFA] px-2 py-1 rounded">
+              <span className="text-xs font-bold bg-primary/20 text-primary px-2 py-1 rounded">
                 G2
               </span>
             </div>
@@ -932,7 +931,7 @@ export default function Home() {
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className="w-4 h-4 fill-[#2DD4BF] text-[#2DD4BF]"
+                  className="w-4 h-4 fill-accent text-accent"
                 />
               ))}
             </div>
@@ -952,7 +951,7 @@ export default function Home() {
 
         <div className="flex justify-center gap-2 mt-8">
           <div className="w-2 h-2 rounded-full bg-white/20"></div>
-          <div className="w-6 h-2 rounded-full bg-[#2DD4BF]"></div>
+          <div className="w-6 h-2 rounded-full bg-accent"></div>
           <div className="w-2 h-2 rounded-full bg-white/20"></div>
           <div className="w-2 h-2 rounded-full bg-white/20"></div>
         </div>
@@ -975,7 +974,7 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
                 <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <div className="w-3 h-3 rounded-full bg-accent"></div>
               </div>
               <div className="bg-white/10 px-4 py-1 rounded-full text-xs text-white/50 border border-white/5">
                 Threat Landscape View
@@ -984,10 +983,10 @@ export default function Home() {
 
             {/* Abstract Network Graph Mock */}
             <div className="relative w-full h-full flex items-center justify-center opacity-80">
-              <div className="absolute w-64 h-64 rounded-full border border-[#A78BFA]/30"></div>
-              <div className="absolute w-96 h-96 rounded-full border border-[#2DD4BF]/20"></div>
-              <div className="absolute w-32 h-32 rounded-full bg-[#A78BFA]/10 blur-xl"></div>
-              <Network className="w-16 h-16 text-[#2DD4BF] relative z-10" />
+              <div className="absolute w-64 h-64 rounded-full border border-primary/30"></div>
+              <div className="absolute w-96 h-96 rounded-full border border-accent/20"></div>
+              <div className="absolute w-32 h-32 rounded-full bg-primary/10 blur-xl"></div>
+              <Network className="w-16 h-16 text-accent relative z-10" />
 
               {/* Nodes */}
               {[...Array(12)].map((_, i) => (
@@ -1000,7 +999,7 @@ export default function Home() {
                   }}
                 >
                   {i % 3 === 0 && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#A78BFA]/40"></div>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary/40"></div>
                   )}
                 </div>
               ))}
@@ -1056,9 +1055,9 @@ export default function Home() {
             key="plan-pro"
             variants={gridItem}
             {...tactileProps}
-            className={`p-8 relative transform md:-translate-y-4 border-[#2DD4BF]/50 shadow-[0_0_30px_rgba(45,212,191,0.15)] ${glassCard}`}
+            className={`p-8 relative transform md:-translate-y-4 border-primary/50 shadow-[0_0_30px_rgba(124,106,247,0.2)] ${glassCard}`}
           >
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#2DD4BF] text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
               Most Popular
             </div>
             <h3 className="font-space-grotesk text-2xl font-bold text-white mb-2">
@@ -1077,7 +1076,7 @@ export default function Home() {
                 setIsAuthOpen(true);
               }}
               {...tactileProps}
-              className="w-full py-3 rounded-full bg-[#2DD4BF] text-black transition-all duration-300 font-bold"
+              className="w-full py-3 rounded-full bg-primary text-white transition-all duration-300 font-bold hover:bg-primary/90"
             >
               Start Free Trial
             </motion.button>
@@ -1116,7 +1115,7 @@ export default function Home() {
           {...tactileProps}
           className={`p-12 md:p-16 flex flex-col items-center text-center ${glassCard} relative overflow-hidden`}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-[#A78BFA]/10 to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
           <h2 className="font-space-grotesk text-3xl md:text-5xl font-bold text-white mb-4 relative z-10 uppercase tracking-tight">
             Secure Your Future Today
           </h2>
@@ -1128,7 +1127,7 @@ export default function Home() {
             <input
               type="email"
               placeholder="Enter email"
-              className="flex-1 bg-black/50 border border-white/10 rounded-full px-6 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#2DD4BF]/50 transition-colors"
+              className="flex-1 bg-black/50 border border-white/10 rounded-full px-6 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-primary/50 transition-colors"
             />
             <motion.button
               onClick={() => {
@@ -1136,7 +1135,7 @@ export default function Home() {
                 setIsAuthOpen(true);
               }}
               {...tactileProps}
-              className="bg-[#2DD4BF] text-black font-semibold px-8 py-3 rounded-full transition-all duration-300 whitespace-nowrap hover:bg-[#14B8A6] hover:shadow-[0_0_15px_rgba(45,212,191,0.5)]"
+              className="bg-primary text-white font-semibold px-8 py-3 rounded-full transition-all duration-300 whitespace-nowrap hover:bg-primary/90 hover:shadow-[0_0_15px_rgba(124,106,247,0.45)]"
             >
               Sign Up Free
             </motion.button>
@@ -1175,7 +1174,7 @@ export default function Home() {
                 <motion.a
                   {...tactileProps}
                   href="#"
-                  className="text-white/60 hover:text-[#2DD4BF] transition-colors inline-block"
+                  className="text-white/60 hover:text-accent transition-colors inline-block"
                 >
                   Features
                 </motion.a>
@@ -1184,7 +1183,7 @@ export default function Home() {
                 <motion.a
                   {...tactileProps}
                   href="#"
-                  className="text-white/60 hover:text-[#2DD4BF] transition-colors inline-block"
+                  className="text-white/60 hover:text-accent transition-colors inline-block"
                 >
                   AI Agent
                 </motion.a>
@@ -1193,7 +1192,7 @@ export default function Home() {
                 <motion.a
                   {...tactileProps}
                   href="#"
-                  className="text-white/60 hover:text-[#2DD4BF] transition-colors inline-block"
+                  className="text-white/60 hover:text-accent transition-colors inline-block"
                 >
                   Protocols
                 </motion.a>
@@ -1202,7 +1201,7 @@ export default function Home() {
                 <motion.a
                   {...tactileProps}
                   href="#"
-                  className="text-white/60 hover:text-[#2DD4BF] transition-colors inline-block"
+                  className="text-white/60 hover:text-accent transition-colors inline-block"
                 >
                   Dashboard
                 </motion.a>
@@ -1218,7 +1217,7 @@ export default function Home() {
                 <motion.a
                   {...tactileProps}
                   href="#"
-                  className="text-white/60 hover:text-[#2DD4BF] transition-colors inline-block"
+                  className="text-white/60 hover:text-accent transition-colors inline-block"
                 >
                   Docs
                 </motion.a>
@@ -1227,7 +1226,7 @@ export default function Home() {
                 <motion.a
                   {...tactileProps}
                   href="#pricing"
-                  className="text-white/60 hover:text-[#2DD4BF] transition-colors inline-block"
+                  className="text-white/60 hover:text-accent transition-colors inline-block"
                 >
                   Pricing
                 </motion.a>
@@ -1236,7 +1235,7 @@ export default function Home() {
                 <motion.a
                   {...tactileProps}
                   href="#"
-                  className="text-white/60 hover:text-[#2DD4BF] transition-colors inline-block"
+                  className="text-white/60 hover:text-accent transition-colors inline-block"
                 >
                   Blog
                 </motion.a>
@@ -1245,7 +1244,7 @@ export default function Home() {
                 <motion.a
                   {...tactileProps}
                   href="#"
-                  className="text-white/60 hover:text-[#2DD4BF] transition-colors inline-block"
+                  className="text-white/60 hover:text-accent transition-colors inline-block"
                 >
                   Support
                 </motion.a>
@@ -1261,7 +1260,7 @@ export default function Home() {
                 <motion.a
                   {...tactileProps}
                   href="/privacy"
-                  className="text-white/60 hover:text-[#2DD4BF] transition-colors inline-block"
+                  className="text-white/60 hover:text-accent transition-colors inline-block"
                 >
                   Privacy
                 </motion.a>
@@ -1270,7 +1269,7 @@ export default function Home() {
                 <motion.a
                   {...tactileProps}
                   href="/terms"
-                  className="text-white/60 hover:text-[#2DD4BF] transition-colors inline-block"
+                  className="text-white/60 hover:text-accent transition-colors inline-block"
                 >
                   Terms
                 </motion.a>
@@ -1305,11 +1304,11 @@ export default function Home() {
               <input
                 type="email"
                 placeholder="Email address"
-                className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#2DD4BF]/50 w-full"
+                className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-primary/50 w-full"
               />
               <motion.button
                 {...tactileProps}
-                className="bg-[#2DD4BF] text-black font-semibold px-4 py-2 rounded-lg text-sm transition-all duration-300 hover:bg-[#14B8A6] hover:shadow-[0_0_15px_rgba(45,212,191,0.5)]"
+                className="bg-primary text-white font-semibold px-4 py-2 rounded-lg text-sm transition-all duration-300 hover:bg-primary/90 hover:shadow-[0_0_15px_rgba(124,106,247,0.45)]"
               >
                 Subscribe
               </motion.button>

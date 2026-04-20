@@ -85,7 +85,7 @@ export default function AIHeuristicsPanel({
 
   const scoreColor = (score: number) => {
     if (score <= 3)
-      return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+      return "text-accent bg-accent/10 border-accent/20";
     if (score <= 7)
       return "text-orange-400 bg-orange-500/10 border-orange-500/20";
     return "text-red-400 bg-red-500/10 border-red-500/20";
@@ -93,7 +93,7 @@ export default function AIHeuristicsPanel({
 
   const riskColor = (score: number) => {
     if (score <= 30)
-      return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+      return "text-accent bg-accent/10 border-accent/20";
     if (score <= 70)
       return "text-orange-400 bg-orange-500/10 border-orange-500/20";
     return "text-red-400 bg-red-500/10 border-red-500/20";
@@ -106,7 +106,7 @@ export default function AIHeuristicsPanel({
       case "medium":
         return "bg-orange-500/10 text-orange-400 border-orange-500/20";
       default:
-        return "bg-slate-500/10 text-[#8B949E] border-slate-500/20";
+        return "bg-white/10 text-[#8B949E] border-white/10";
     }
   };
 
@@ -115,10 +115,10 @@ export default function AIHeuristicsPanel({
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <div className="relative">
-          <div className="w-16 h-16 rounded-full bg-violet-500/10 flex items-center justify-center animate-pulse">
-            <Brain className="w-8 h-8 text-violet-400" />
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+            <Brain className="w-8 h-8 text-primary" />
           </div>
-          <Loader2 className="absolute -top-1 -right-1 w-5 h-5 text-violet-400 animate-spin" />
+          <Loader2 className="absolute -top-1 -right-1 w-5 h-5 text-primary animate-spin" />
         </div>
         <p className="text-sm font-semibold text-white">
           Gemini is analyzing page content...
@@ -139,9 +139,10 @@ export default function AIHeuristicsPanel({
           <AlertTriangle className="w-7 h-7 text-red-400" />
         </div>
         <p className="text-sm font-semibold text-red-400">{error}</p>
-        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runAnalysis}
-          className="rounded-full flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-400 text-white text-xs font-bold rounded-lg transition-colors"
+          className="rounded-full flex items-center gap-2 px-4 py-2 bg-danger hover:bg-danger/90 text-white text-xs font-bold rounded-lg transition-colors"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           Retry Analysis
@@ -154,8 +155,8 @@ export default function AIHeuristicsPanel({
   if (!result) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-5">
-        <div className="w-20 h-20 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shadow-sm">
-          <Brain className="w-10 h-10 text-violet-400" />
+        <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
+          <Brain className="w-10 h-10 text-primary" />
         </div>
         <div className="text-center">
           <h3 className="text-lg font-bold text-white">AI Heuristics Engine</h3>
@@ -163,9 +164,10 @@ export default function AIHeuristicsPanel({
             Deep behavioral analysis of page content using Gemini AI
           </p>
         </div>
-        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runAnalysis}
-          className="rounded-full flex items-center gap-2 px-6 py-3 bg-violet-600 text-white font-bold text-sm rounded-xl hover:bg-violet-500 transition-all shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 hover:-translate-y-0.5"
+          className="rounded-full flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-0.5"
         >
           <Sparkles className="w-4 h-4" />
           Run AI Analysis
@@ -180,17 +182,18 @@ export default function AIHeuristicsPanel({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Brain className="w-5 h-5 text-violet-400" />
+          <Brain className="w-5 h-5 text-primary" />
           <h3 className="text-base font-bold text-white">
             AI Heuristics Engine
           </h3>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-full">
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-full">
             Powered by Gemini
           </span>
         </div>
-        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runAnalysis}
-          className="rounded-full flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-violet-400 bg-violet-500/10 rounded-lg hover:bg-violet-500/20 border border-violet-500/20 transition-colors"
+          className="rounded-full flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 border border-primary/20 transition-colors"
         >
           <RefreshCw className="w-3 h-3" />
           Re-analyze
@@ -200,7 +203,7 @@ export default function AIHeuristicsPanel({
       {/* Metric cards */}
       <div className="grid grid-cols-3 gap-3">
         <div
-          className={`rounded-xl border p-4 ${scoreColor(result.heuristicScore)}`}
+          className={`rounded-xl border p-4 glass ${scoreColor(result.heuristicScore)}`}
         >
           <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">
             Heuristic Score
@@ -211,7 +214,7 @@ export default function AIHeuristicsPanel({
           </p>
         </div>
         <div
-          className={`rounded-xl border p-4 ${riskColor(result.combinedRiskScore)}`}
+          className={`rounded-xl border p-4 glass ${riskColor(result.combinedRiskScore)}`}
         >
           <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">
             Combined Risk
@@ -221,7 +224,7 @@ export default function AIHeuristicsPanel({
             <span className="text-lg">/100</span>
           </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <div className="rounded-xl glass p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">
             Confidence
           </p>
@@ -236,7 +239,7 @@ export default function AIHeuristicsPanel({
       </div>
 
       {/* Manipulation Tactics */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-xl glass p-4">
         <div className="flex items-center gap-2 mb-3">
           <Eye className="w-4 h-4 text-orange-400" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -255,14 +258,14 @@ export default function AIHeuristicsPanel({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-emerald-400 font-medium">
+          <p className="text-sm text-accent font-medium">
             ✓ No manipulation tactics detected
           </p>
         )}
       </div>
 
       {/* Credential Harvesting */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-xl glass p-4">
         <div className="flex items-center gap-2 mb-3">
           <Lock className="w-4 h-4 text-red-400" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -281,14 +284,14 @@ export default function AIHeuristicsPanel({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-emerald-400 font-medium">
+          <p className="text-sm text-accent font-medium">
             ✓ No credential harvesting signals detected
           </p>
         )}
       </div>
 
       {/* Key Indicators */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-xl glass p-4">
         <div className="flex items-center gap-2 mb-3">
           <ShieldAlert className="w-4 h-4 text-[#8B949E]" />
           <h4 className="text-xs font-bold uppercase tracking-wider text-white">
@@ -308,14 +311,14 @@ export default function AIHeuristicsPanel({
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-emerald-400 font-medium">
+          <p className="text-sm text-accent font-medium">
             ✓ No suspicious indicators found
           </p>
         )}
       </div>
 
       {/* AI Summary */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-xl glass p-4">
         <h4 className="text-xs font-bold uppercase tracking-wider text-[#8B949E] mb-2">
           AI Threat Summary
         </h4>

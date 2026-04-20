@@ -173,6 +173,7 @@ jobs:
           NEXT_PUBLIC_PADDLE_CLIENT_TOKEN=${{ secrets.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN }}
           NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_SOC_PRO_PRICE_ID }}
           NEXT_PUBLIC_PADDLE_CC_PRICE_ID=${{ secrets.NEXT_PUBLIC_PADDLE_CC_PRICE_ID }}
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
           ENVEOF
 
             echo "=== Pulling latest image from GHCR ==="

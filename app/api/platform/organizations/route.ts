@@ -92,6 +92,17 @@ export async function POST(request: NextRequest) {
 
     const adminClient = getAdminClient();
     const { name, slug, plan, owner_id } = parsed.data;
+
+    if (owner_id && owner_id !== user.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "owner_id must match the authenticated user",
+        },
+        { status: 403 },
+      );
+    }
+
     const ownerId = owner_id || user.id;
     const resolvedPlan = plan || "trial";
     const resolvedSlug = slug || slugifyOrganizationName(name);
@@ -184,12 +195,48 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
     const adminClient = getAdminClient();
+    const { data: memberships, error: memberError } = await adminClient
+      .from("organization_members")
+      .select("organization_id")
+      .eq("user_id", user.id);
+
+    if (memberError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Failed to resolve memberships: ${memberError.message}`,
+        },
+        { status: 500 },
+      );
+    }
+
+    const orgIds = (memberships || [])
+      .map((row) => row.organization_id)
+      .filter(Boolean);
+
+    if (orgIds.length === 0) {
+      return NextResponse.json({ success: true, data: [] });
+    }
 
     const { data: organizations, error: orgError } = await adminClient
       .from("organizations")
       .select("*")
       .eq("is_active", true)
+      .in("id", orgIds)
       .order("created_at", { ascending: false });
 
     if (orgError) {
@@ -203,14 +250,14 @@ export async function GET() {
     }
 
     const orgRows = organizations || [];
-    const orgIds = orgRows.map((org: any) => org.id).filter(Boolean);
+    const orgIdsFromRows = orgRows.map((org: any) => org.id).filter(Boolean);
 
     let memberCountMap = new Map<string, number>();
-    if (orgIds.length > 0) {
+    if (orgIdsFromRows.length > 0) {
       const { data: members, error: membersError } = await adminClient
         .from("organization_members")
         .select("organization_id")
-        .in("organization_id", orgIds);
+        .in("organization_id", orgIdsFromRows);
 
       if (membersError) {
         return NextResponse.json(

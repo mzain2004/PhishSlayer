@@ -109,7 +109,6 @@ function requestWazuhEnrollment(
         port: 55000,
         path: "/agents",
         method: "POST",
-        rejectUnauthorized: false,
         headers: {
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(requestBody),
@@ -234,7 +233,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const managerIp = process.env.WAZUH_MANAGER_IP || "167.172.85.62";
+  const managerIp = process.env.WAZUH_MANAGER_IP;
+  const sshUser = process.env.WAZUH_SSH_USER;
+
+  if (!managerIp || !sshUser) {
+    return NextResponse.json(
+      { success: false, error: "Wazuh manager configuration is missing" },
+      { status: 500 },
+    );
+  }
 
   try {
     const { agentName, agentIp, agentOs, agentArch } = parsedPayload.data;
@@ -274,6 +281,7 @@ export async function POST(request: NextRequest) {
       agent_id: enrollment.agentId,
       agent_key: enrollment.agentKey,
       install_script: installScript,
+      manager_ssh_user: sshUser,
       instructions: "Paste this script into your target machine terminal",
     });
   } catch (error) {

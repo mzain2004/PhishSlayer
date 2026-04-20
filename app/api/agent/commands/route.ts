@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const CommandSchema = z.object({
+  agentId: z.string().uuid(),
+  command: z.string().min(1).max(100),
+  payload: z.record(z.string(), z.unknown()).optional(),
+});
 
 export async function POST(request: Request) {
   try {
@@ -32,14 +39,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { agentId, command, payload } = await request.json();
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    if (!agentId || !command) {
+    const parsed = CommandSchema.safeParse(rawBody);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Missing agentId or command" },
+        { error: "Invalid payload", details: parsed.error.flatten() },
         { status: 400 },
       );
     }
+
+    const { agentId, command, payload } = parsed.data;
 
     const validCommands = [
       "block_ip",

@@ -41,6 +41,7 @@
 
   body {
     color: #fff;
+    background: #0a0a0f;
   }
 
   code,
@@ -105,6 +106,10 @@
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
+  }
+
+  .glass {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl;
   }
 }
 
@@ -202,9 +207,9 @@
 .shiny-teal {
   background-image: linear-gradient(
     100deg,
-    #2dd4bf 20%,
+    #7c6af7 20%,
     #ffffff 50%,
-    #2dd4bf 80%
+    #7c6af7 80%
   );
 }
 
@@ -248,9 +253,9 @@
 .shiny-teal {
   background-image: linear-gradient(
     100deg,
-    #2dd4bf 20%,
+    #7c6af7 20%,
     #ffffff 50%,
-    #2dd4bf 80%
+    #7c6af7 80%
   );
 }
 
@@ -356,7 +361,7 @@ body {
 
 .dashboard-theme .btn-primary,
 .dashboard-theme button[data-variant="primary"] {
-  background: linear-gradient(135deg, #2dd4bf, #22c55e);
+  background: linear-gradient(135deg, #7c6af7, #00d4aa);
   color: #000;
   font-weight: 700;
   border: none;
@@ -366,7 +371,7 @@ body {
 .dashboard-theme .btn-primary:hover,
 .dashboard-theme button[data-variant="primary"]:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 28px rgba(45, 212, 191, 0.5);
+  box-shadow: 0 0 28px rgba(124, 106, 247, 0.5);
 }
 
 .dashboard-theme .btn-danger,
@@ -395,14 +400,14 @@ body {
 
 .dashboard-theme .btn-success,
 .dashboard-theme button[data-variant="success"] {
-  background: rgba(63, 185, 80, 0.12);
-  color: #3fb950;
-  border: 1px solid rgba(63, 185, 80, 0.3);
+  background: rgba(0, 212, 170, 0.12);
+  color: #00d4aa;
+  border: 1px solid rgba(0, 212, 170, 0.3);
 }
 
 .dashboard-theme .btn-success:hover,
 .dashboard-theme button[data-variant="success"]:hover {
-  background: rgba(63, 185, 80, 0.22);
+  background: rgba(0, 212, 170, 0.22);
 }
 
 .dashboard-theme input,
@@ -432,8 +437,8 @@ body {
 .dashboard-theme input:focus,
 .dashboard-theme textarea:focus,
 .dashboard-theme select:focus {
-  border-color: #2dd4bf;
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.15);
+  border-color: #7c6af7;
+  box-shadow: 0 0 0 3px rgba(124, 106, 247, 0.15);
 }
 
 .dashboard-theme .badge,
@@ -460,14 +465,14 @@ body {
 
 .dashboard-theme .badge-clean,
 .dashboard-theme [data-badge="clean"] {
-  background: rgba(63, 185, 80, 0.2);
-  color: #3fb950;
+  background: rgba(0, 212, 170, 0.2);
+  color: #00d4aa;
 }
 
 .dashboard-theme .badge-info,
 .dashboard-theme [data-badge="info"] {
-  background: rgba(45, 212, 191, 0.15);
-  color: #2dd4bf;
+  background: rgba(124, 106, 247, 0.15);
+  color: #7c6af7;
 }
 
 .dashboard-theme .badge-offline,

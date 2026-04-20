@@ -10,8 +10,7 @@ type SignupModalProps = {
   onSwitchToLogin: () => void;
 };
 
-const glassCard =
-  "bg-[radial-gradient(circle_at_top,#0f172a,#020617)] backdrop-blur-md border border-slate-800 shadow-[0_0_40px_rgba(20,184,166,0.15)] rounded-2xl";
+const glassCard = "glass";
 
 const tactileProps = {
   whileHover: { scale: 1.02 },
@@ -66,7 +65,7 @@ export default function SignupModal({
       className={`relative w-full max-w-md p-8 ${glassCard} flex flex-col`}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="pointer-events-none absolute inset-0 rounded-2xl border border-cyan-300/20 shadow-[0_0_0_1px_rgba(45,212,191,0.15),0_0_36px_rgba(45,212,191,0.12)]" />
+      <div className="pointer-events-none absolute inset-0 rounded-2xl border border-primary/20 shadow-[0_0_0_1px_rgba(124,106,247,0.18),0_0_36px_rgba(124,106,247,0.18)]" />
       <motion.button
         {...tactileProps}
         onClick={onClose}
@@ -76,7 +75,7 @@ export default function SignupModal({
       </motion.button>
 
       <div className="flex items-center justify-center gap-2 mb-8">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#A78BFA] to-[#2DD4BF] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
           <Shield className="w-4 h-4 text-black" />
         </div>
         <span className="font-space-grotesk font-extrabold text-xl tracking-tight text-white">
@@ -136,7 +135,7 @@ export default function SignupModal({
             </button>
             <button
               type="button"
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#24292F] text-white font-medium hover:shadow-[0_0_18px_rgba(45,212,191,0.28)] transition-all"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#24292F] text-white font-medium hover:shadow-[0_0_18px_rgba(124,106,247,0.28)] transition-all"
             >
               <Github className="w-5 h-5" />
               Sign up with GitHub
@@ -147,7 +146,7 @@ export default function SignupModal({
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/10"></div>
             </div>
-            <span className="relative bg-[#050505] px-4 text-xs text-white/50 uppercase">
+            <span className="relative bg-base px-4 text-xs text-white/50 uppercase">
               Or continue with email
             </span>
           </div>
@@ -158,21 +157,21 @@ export default function SignupModal({
               placeholder="Full name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]/60 focus:border-[#2DD4BF] transition-colors"
+              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary transition-colors"
             />
             <input
               type="email"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]/60 focus:border-[#2DD4BF] transition-colors"
+              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary transition-colors"
             />
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]/60 focus:border-[#2DD4BF] transition-colors"
+              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary transition-colors"
             />
 
             {error ? (
@@ -182,14 +181,11 @@ export default function SignupModal({
             ) : null}
 
             <motion.button
-              whileHover={{
-                scale: 1.02,
-                boxShadow: "0 0 15px rgba(45,212,191,0.5)",
-              }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={loading}
-              className="group relative overflow-hidden w-full bg-gradient-to-r from-cyan-400 to-teal-400 text-black font-semibold py-3 rounded-lg transition-colors duration-300 mt-2 disabled:opacity-60"
+              className="group relative overflow-hidden w-full bg-primary text-white font-semibold py-3 rounded-lg transition-colors duration-300 mt-2 hover:shadow-[0_0_24px_rgba(124,106,247,0.45)] disabled:opacity-60"
             >
               <span className="pointer-events-none absolute inset-y-0 -left-10 w-10 bg-white/40 blur-sm group-hover:translate-x-[300px] transition-transform duration-700" />
               {loading ? "Creating Account..." : "Create Account"}
@@ -201,7 +197,7 @@ export default function SignupModal({
             <button
               type="button"
               onClick={onSwitchToLogin}
-              className="text-[#2DD4BF] hover:text-[#2DD4BF]/80 transition-colors font-medium"
+              className="text-accent hover:text-accent/80 transition-colors font-medium"
             >
               Log in
             </button>

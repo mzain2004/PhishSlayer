@@ -16,8 +16,7 @@ type LoginModalProps = {
   onSwitchToForgot: () => void;
 };
 
-const glassCard =
-  "bg-[radial-gradient(circle_at_top,#0f172a,#020617)] backdrop-blur-md border border-slate-800 shadow-[0_0_40px_rgba(20,184,166,0.15)] rounded-2xl";
+const glassCard = "glass";
 
 const tactileProps = {
   whileHover: { scale: 1.02 },
@@ -195,7 +194,7 @@ export default function LoginModal({
       className={`relative w-full max-w-md p-10 ${glassCard} flex flex-col`}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="pointer-events-none absolute inset-0 rounded-2xl border border-cyan-300/20 shadow-[0_0_0_1px_rgba(45,212,191,0.15),0_0_36px_rgba(45,212,191,0.12)]" />
+      <div className="pointer-events-none absolute inset-0 rounded-2xl border border-primary/20 shadow-[0_0_0_1px_rgba(124,106,247,0.18),0_0_36px_rgba(124,106,247,0.18)]" />
       <motion.button
         {...tactileProps}
         onClick={onClose}
@@ -205,7 +204,7 @@ export default function LoginModal({
       </motion.button>
 
       <div className="flex items-center justify-center gap-2 mb-8 relative z-10">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#A78BFA] to-[#2DD4BF] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
           <Shield className="w-4 h-4 text-black" />
         </div>
         <span className="font-space-grotesk font-bold text-xl tracking-tight text-white">
@@ -233,7 +232,7 @@ export default function LoginModal({
               placeholder="123456"
               value={mfaCode}
               onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
-              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white tracking-[0.35em] text-center text-lg placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]/60 focus:border-[#2DD4BF] transition-colors"
+              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white tracking-[0.35em] text-center text-lg placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary transition-colors"
             />
 
             {error ? (
@@ -247,7 +246,7 @@ export default function LoginModal({
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loading || mfaCode.trim().length !== 6}
-              className="w-full bg-gradient-to-r from-cyan-400 to-teal-400 text-black font-semibold py-3 rounded-lg transition-all mt-1 disabled:opacity-60"
+              className="w-full bg-primary text-white font-semibold py-3 rounded-lg transition-all mt-1 hover:shadow-[0_0_24px_rgba(124,106,247,0.45)] disabled:opacity-60"
             >
               {loading ? "Verifying..." : "Verify & Continue"}
             </motion.button>
@@ -267,7 +266,7 @@ export default function LoginModal({
               {...tactileProps}
               type="button"
               onClick={() => void handlePasskeySignIn()}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-slate-900 text-cyan-200 border border-cyan-300/25 font-semibold hover:shadow-[0_0_20px_rgba(45,212,191,0.3)] transition-all"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-slate-900 text-accent border border-accent/30 font-semibold hover:shadow-[0_0_20px_rgba(0,212,170,0.3)] transition-all"
             >
               <KeyRound className="w-4 h-4" />
               Sign in with Passkey
@@ -301,7 +300,7 @@ export default function LoginModal({
             <motion.button
               {...tactileProps}
               type="button"
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#24292F] text-white font-medium hover:shadow-[0_0_18px_rgba(45,212,191,0.28)] transition-all"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#24292F] text-white font-medium hover:shadow-[0_0_18px_rgba(124,106,247,0.28)] transition-all"
             >
               <Github className="w-5 h-5" />
               Continue with GitHub
@@ -312,7 +311,7 @@ export default function LoginModal({
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/10" />
             </div>
-            <span className="relative bg-[#050505] px-4 text-xs text-white/50 uppercase">
+            <span className="relative bg-base px-4 text-xs text-white/50 uppercase">
               Or continue with email
             </span>
           </div>
@@ -326,14 +325,14 @@ export default function LoginModal({
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]/60 focus:border-[#2DD4BF] transition-colors"
+              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary transition-colors"
             />
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]/60 focus:border-[#2DD4BF] transition-colors"
+              className="w-full bg-slate-900/90 border border-white/15 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary transition-colors"
             />
             <div className="flex justify-between items-center">
               <label className="flex items-center gap-2 text-sm text-white/70 cursor-pointer hover:text-white transition-colors">
@@ -341,7 +340,7 @@ export default function LoginModal({
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-white/10 bg-black/50 text-[#2DD4BF] focus:ring-[#2DD4BF]/50"
+                  className="rounded border-white/10 bg-black/50 text-accent focus:ring-accent/50"
                 />
                 Remember me
               </label>
@@ -349,7 +348,7 @@ export default function LoginModal({
                 {...tactileProps}
                 type="button"
                 onClick={onSwitchToForgot}
-                className="text-xs text-[#2DD4BF] hover:text-[#2DD4BF]/80 transition-colors"
+                className="text-xs text-primary hover:text-primary/80 transition-colors"
               >
                 Forgot password?
               </motion.button>
@@ -362,14 +361,11 @@ export default function LoginModal({
             ) : null}
 
             <motion.button
-              whileHover={{
-                scale: 1.02,
-                boxShadow: "0 0 24px rgba(45,212,191,0.45)",
-              }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={loading}
-              className="group relative overflow-hidden w-full bg-gradient-to-r from-cyan-400 to-teal-400 text-black font-semibold py-3 rounded-lg transition-colors duration-300 mt-2 disabled:opacity-60"
+              className="group relative overflow-hidden w-full bg-primary text-white font-semibold py-3 rounded-lg transition-colors duration-300 mt-2 hover:shadow-[0_0_24px_rgba(124,106,247,0.45)] disabled:opacity-60"
             >
               <span className="pointer-events-none absolute inset-y-0 -left-10 w-10 bg-white/40 blur-sm group-hover:translate-x-[300px] transition-transform duration-700" />
               {loading ? "Logging In..." : "Log In"}
@@ -382,7 +378,7 @@ export default function LoginModal({
               {...tactileProps}
               type="button"
               onClick={onSwitchToSignup}
-              className="text-[#2DD4BF] hover:text-[#2DD4BF]/80 transition-colors font-medium"
+              className="text-accent hover:text-accent/80 transition-colors font-medium"
             >
               Sign up
             </motion.button>

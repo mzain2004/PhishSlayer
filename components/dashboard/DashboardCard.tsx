@@ -12,7 +12,7 @@ export default function DashboardCard({
   return (
     <div
       className={cn(
-        "rounded-xl border border-white/10 bg-white/5 p-6",
+        "glass p-6",
         className,
       )}
     >

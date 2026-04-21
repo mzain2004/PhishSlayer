@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useHeuristicStore } from "@/lib/stores/heuristicStore";
 import { useThreatStore } from "@/lib/stores/threatStore";
 import {
@@ -15,7 +14,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 import PhishButton from "@/components/ui/PhishButton";
 
 interface AIHeuristicsPanelProps {
@@ -84,16 +82,14 @@ export default function AIHeuristicsPanel({
   };
 
   const scoreColor = (score: number) => {
-    if (score <= 3)
-      return "text-accent bg-accent/10 border-accent/20";
+    if (score <= 3) return "text-accent bg-accent/10 border-accent/20";
     if (score <= 7)
       return "text-orange-400 bg-orange-500/10 border-orange-500/20";
     return "text-red-400 bg-red-500/10 border-red-500/20";
   };
 
   const riskColor = (score: number) => {
-    if (score <= 30)
-      return "text-accent bg-accent/10 border-accent/20";
+    if (score <= 30) return "text-accent bg-accent/10 border-accent/20";
     if (score <= 70)
       return "text-orange-400 bg-orange-500/10 border-orange-500/20";
     return "text-red-400 bg-red-500/10 border-red-500/20";
@@ -332,4 +328,3 @@ export default function AIHeuristicsPanel({
     </div>
   );
 }
-

@@ -13,7 +13,6 @@ import {
   Info,
 } from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 import PhishButton from "@/components/ui/PhishButton";
 
 interface PortScanResult {
@@ -172,7 +171,8 @@ export default function PortPatrolPanel({
           <AlertTriangle className="w-7 h-7 text-red-500" />
         </div>
         <p className="text-sm font-semibold text-red-400">{error}</p>
-        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runScan}
           className="rounded-full px-4 py-2 bg-danger text-white text-xs font-bold rounded-lg hover:bg-danger/90 transition-colors"
         >
@@ -204,7 +204,8 @@ export default function PortPatrolPanel({
             </p>
           </div>
         </div>
-        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runScan}
           className="rounded-full flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-bold text-sm rounded-xl hover:bg-orange-500 transition-all shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5"
         >
@@ -228,7 +229,8 @@ export default function PortPatrolPanel({
             Active Recon
           </span>
         </div>
-        <PhishButton transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <PhishButton
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
           onClick={runScan}
           className="rounded-full flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-orange-400 bg-orange-500/10 rounded-lg hover:bg-orange-500/20 border border-orange-500/20 transition-colors"
         >
@@ -352,4 +354,3 @@ export default function PortPatrolPanel({
     </div>
   );
 }
-

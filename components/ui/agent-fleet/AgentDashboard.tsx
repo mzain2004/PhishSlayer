@@ -144,7 +144,7 @@ export default function AgentDashboard() {
                   disabled={agent.status === "offline"}
                   title={
                     agent.status === "offline"
-                        ? "Agent offline - cannot send commands"
+                      ? "Agent offline - cannot send commands"
                       : ""
                   }
                   className="py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-[#e6edf3] text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -162,7 +162,7 @@ export default function AgentDashboard() {
                       ? "Agent offline - cannot send commands"
                       : ""
                   }
-                    className="py-1.5 bg-primary text-white hover:bg-primary/90 border border-primary/30 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="py-1.5 bg-primary text-white hover:bg-primary/90 border border-primary/30 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Block IP
                 </button>

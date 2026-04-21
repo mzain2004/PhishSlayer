@@ -438,15 +438,6 @@ export default function AgentSwarmPanel() {
     setErrorText(null);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        throw new Error("You must be authenticated to trigger this agent.");
-      }
-
       const response = await fetch("/api/agent/triage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -471,15 +462,6 @@ export default function AgentSwarmPanel() {
     setErrorText(null);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        throw new Error("You must be authenticated to trigger this agent.");
-      }
-
       const response = await fetch("/api/agent/respond", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -511,15 +493,6 @@ export default function AgentSwarmPanel() {
     setErrorText(null);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        throw new Error("You must be authenticated to trigger this agent.");
-      }
-
       const response = await fetch("/api/agent/hunt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

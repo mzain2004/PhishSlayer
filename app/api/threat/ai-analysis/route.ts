@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { z } from "zod";
 import { logAuditEvent } from "@/lib/audit/auditLogger";
 import { groqComplete } from "@/lib/ai/groq";
@@ -34,16 +35,15 @@ Return ONLY a valid JSON object with NO markdown, NO backticks:
 export async function POST(request: Request) {
   try {
     // Auth check
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const { userId } = await auth();
+  if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  }
+
+  const supabase = await createClient();
 
     const clientIp = getClientIp(request);
-    const rate = checkRateLimit(`ai-heuristic:${user.id}:${clientIp}`, {
+    const rate = checkRateLimit(`ai-heuristic:${userId}:${clientIp}`, {
       windowMs: 60_000,
       max: 5,
     });

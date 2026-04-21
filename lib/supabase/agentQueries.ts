@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
 
 export interface EndpointEvent {
   id: string;
@@ -31,11 +32,9 @@ export interface EndpointStats {
 
 export async function getEndpointEvents(limit = 100): Promise<EndpointEvent[]> {
   try {
+    const { userId } = await auth();
+    if (!userId) return [];
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return [];
 
     try {
       const { data, error } = await supabase
@@ -71,11 +70,9 @@ export async function getEndpointStats(): Promise<EndpointStats> {
   };
 
   try {
+    const { userId } = await auth();
+    if (!userId) return empty;
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return empty;
 
     let data: any[] | null = null;
     try {
@@ -132,11 +129,9 @@ export async function getRecentCriticalEvents(
   limit = 5,
 ): Promise<EndpointEvent[]> {
   try {
+    const { userId } = await auth();
+    if (!userId) return [];
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return [];
 
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     try {

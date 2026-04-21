@@ -40,6 +40,7 @@ import {
 import type { EndpointEvent, EndpointStats } from "@/lib/supabase/agentQueries";
 import { blockIp } from "@/lib/supabase/actions";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@clerk/nextjs";
 import PhishButton from "@/components/ui/PhishButton";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 
@@ -77,6 +78,7 @@ function threatLevelToStatus(level: string) {
 
 export default function AgentsPage() {
   const router = useRouter();
+  const { userId } = useAuth();
   const [activeTab, setActiveTab] = useState<TabKey>("fleet");
   const [events, setEvents] = useState<EndpointEvent[]>([]);
   const [stats, setStats] = useState<EndpointStats | null>(null);
@@ -104,20 +106,16 @@ export default function AgentsPage() {
 
   useEffect(() => {
     const verifyAccess = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
+      if (!userId) {
         router.replace("/auth/login");
         return;
       }
 
+      const supabase = createClient();
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", user.id)
+        .eq("id", userId)
         .single();
 
       const allowedRoles = ["manager", "admin", "super_admin"];
@@ -131,7 +129,7 @@ export default function AgentsPage() {
     };
 
     void verifyAccess();
-  }, [router]);
+  }, [router, userId]);
 
   useEffect(() => {
     if (activeTab !== "events") {

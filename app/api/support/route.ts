@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
@@ -8,14 +9,12 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const { userId } = await auth();
+  if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  }
+
+  const supabase = await createClient();
 
     const formData = await request.formData();
     const subject = formData.get("subject") as string;
@@ -83,7 +82,7 @@ export async function POST(request: Request) {
 
       // Sanitize Filename: use UUID to prevent path traversal or overwrites
       const fileExt = fileName.split(".").pop();
-      const sanitizedPath = `${user.id}/${uuidv4()}.${fileExt}`;
+      const sanitizedPath = `${userId}/${uuidv4()}.${fileExt}`;
 
       const { data: uploadData, error: uploadError } = await adminClient.storage
         .from("support-attachments")
@@ -119,7 +118,7 @@ export async function POST(request: Request) {
     const { error: dbError } = await adminClient
       .from("support_tickets")
       .insert({
-        user_id: user.id,
+        user_id: userId,
         subject,
         category,
         priority,

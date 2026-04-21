@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { checkTierAccess } from "@/lib/tier-guard";
 
 export const dynamic = "force-dynamic";
@@ -51,19 +52,16 @@ function getAdminClient() {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { userId } = await auth();
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 },
       );
     }
 
-    const access = await checkTierAccess(user.id, "multi_org");
+    const access = await checkTierAccess(userId, "multi_org");
     if (!access.allowed) {
       return NextResponse.json(
         {
@@ -93,7 +91,7 @@ export async function POST(request: NextRequest) {
     const adminClient = getAdminClient();
     const { name, slug, plan, owner_id } = parsed.data;
 
-    if (owner_id && owner_id !== user.id) {
+    if (owner_id && owner_id !== userId) {
       return NextResponse.json(
         {
           success: false,
@@ -103,7 +101,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ownerId = owner_id || user.id;
+    const ownerId = owner_id || userId;
     const resolvedPlan = plan || "trial";
     const resolvedSlug = slug || slugifyOrganizationName(name);
 
@@ -195,13 +193,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const supabase = await createServerClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const { userId } = await auth();
+    if (!userId) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 },
@@ -212,7 +205,7 @@ export async function GET() {
     const { data: memberships, error: memberError } = await adminClient
       .from("organization_members")
       .select("organization_id")
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
 
     if (memberError) {
       return NextResponse.json(

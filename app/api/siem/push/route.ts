@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dns from "node:dns/promises";
 import net from "node:net";
 import { createClient } from "@/lib/supabase/server";
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { z } from "zod";
 import { buildSIEMPayload } from "@/lib/siem/stixFormatter";
 import { logAuditEvent } from "@/lib/audit/auditLogger";
@@ -59,13 +60,12 @@ function isPrivateIp(address: string): boolean {
 export async function POST(request: Request) {
   try {
     // Auth + role check
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const { userId } = await auth();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const supabase = await createClient();
 
     const role = await getServerRole();
     if (!role || (role !== "super_admin" && role !== "manager")) {
@@ -124,13 +124,15 @@ export async function POST(request: Request) {
     }
 
     // Build payload
+    const clerkUser = await currentUser();
+    const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress || "";
     const deepScanData = scanData.payload || {};
     const heuristicData = scanData.ai_heuristic || {};
     const payload = buildSIEMPayload(
       scanData,
       deepScanData,
       heuristicData,
-      user.email || "",
+      userEmail,
     );
 
     // Push to webhook with 10s timeout

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { z } from "zod";
 import {
   closeSsh,
@@ -28,32 +29,32 @@ function getAdminClient() {
 
 async function getCallerUserAndRole() {
   const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return { user: null, role: null };
+  const { userId } = await auth();
+    if (!userId) {
+    return { userId: null, role: null };
   }
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
-    .eq("id", user.id)
+    .eq("id", userId)
     .single();
 
   if (profileError || !profile) {
-    return { user: null, role: null };
+    return { userId: null, role: null };
   }
 
   return {
-    user,
+    userId,
     role: profile.role as string,
   };
 }
 
-function buildIntegrationBlock(webhookUrl: string, webhookSecret: string, alertLevel: number) {
+function buildIntegrationBlock(
+  webhookUrl: string,
+  webhookSecret: string,
+  alertLevel: number,
+) {
   const normalizedUrl = webhookUrl.replace(/\/+$/, "");
 
   return [
@@ -67,23 +68,30 @@ function buildIntegrationBlock(webhookUrl: string, webhookSecret: string, alertL
   ].join("\n");
 }
 
-function upsertIntegrationBlock(configText: string, integrationBlock: string): string {
-  const customWebhookBlockRegex = /<integration>[\s\S]*?<name>custom-webhook<\/name>[\s\S]*?<\/integration>/m;
+function upsertIntegrationBlock(
+  configText: string,
+  integrationBlock: string,
+): string {
+  const customWebhookBlockRegex =
+    /<integration>[\s\S]*?<name>custom-webhook<\/name>[\s\S]*?<\/integration>/m;
 
   if (customWebhookBlockRegex.test(configText)) {
     return configText.replace(customWebhookBlockRegex, integrationBlock);
   }
 
   if (configText.includes("</ossec_config>")) {
-    return configText.replace("</ossec_config>", `${integrationBlock}\n</ossec_config>`);
+    return configText.replace(
+      "</ossec_config>",
+      `${integrationBlock}\n</ossec_config>`,
+    );
   }
 
   return `${configText}\n${integrationBlock}`;
 }
 
 export async function POST(request: NextRequest) {
-  const { user, role } = await getCallerUserAndRole();
-  if (!user || !role || !["admin", "super_admin"].includes(role)) {
+  const { userId: callerId, role } = await getCallerUserAndRole();
+  if (!callerId || !role || !["admin", "super_admin"].includes(role)) {
     return NextResponse.json(
       { success: false, error: "Forbidden: admin or super_admin required" },
       { status: 403 },
@@ -142,7 +150,10 @@ export async function POST(request: NextRequest) {
       parsed.data.webhookSecret,
       parsed.data.alertLevel,
     );
-    const updatedConfig = upsertIntegrationBlock(currentConfig, integrationBlock);
+    const updatedConfig = upsertIntegrationBlock(
+      currentConfig,
+      integrationBlock,
+    );
 
     const encoded = Buffer.from(updatedConfig, "utf8").toString("base64");
     await runSshCommand(
@@ -172,7 +183,7 @@ export async function POST(request: NextRequest) {
         webhookUrl: parsed.data.webhookUrl,
         alertLevel: parsed.data.alertLevel,
       },
-      actor_id: user.id,
+      actor_id: callerId,
       created_at: new Date().toISOString(),
     });
 

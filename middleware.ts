@@ -1,9 +1,18 @@
-import { type NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  return await updateSession(request);
-}
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+const isAuthRoute = createRouteMatcher(["/auth(.*)"]);
+
+export default clerkMiddleware(async (auth, request) => {
+  if (isProtectedRoute(request)) {
+    await auth.protect();
+  }
+
+  // Redirect old /auth/* pages to /sign-in for authenticated users
+  // Clerk handles the reverse redirect (signed-in → /dashboard) via CLERK_AFTER_SIGN_IN_URL
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: [

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { polar } from "@/lib/polar-client";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,8 @@ function planFromProductId(productId: string | null | undefined): BillingPlan {
 
   if (productId === process.env.POLAR_SOC_PRO_MONTHLY_ID) return "pro_monthly";
   if (productId === process.env.POLAR_SOC_PRO_ANNUAL_ID) return "pro_annual";
-  if (productId === process.env.POLAR_CC_MONTHLY_ID) return "enterprise_monthly";
+  if (productId === process.env.POLAR_CC_MONTHLY_ID)
+    return "enterprise_monthly";
   if (productId === process.env.POLAR_CC_ANNUAL_ID) return "enterprise_annual";
   if (productId === process.env.POLAR_FREE_PRODUCT_ID) return "free";
 
@@ -30,23 +31,25 @@ export async function GET() {
   }
 
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const { userId } = await auth();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!user.email) {
+    const user = await currentUser();
+    const userEmail = user?.emailAddresses?.[0]?.emailAddress;
+
+    if (!userEmail) {
       return NextResponse.json(
         { error: "Missing user email" },
         { status: 400 },
       );
     }
 
-    const customers = await polar.customers.list({ email: user.email, limit: 1 });
+    const customers = await polar.customers.list({
+      email: userEmail,
+      limit: 1,
+    });
     const customer = customers.result.items[0];
 
     if (!customer) {

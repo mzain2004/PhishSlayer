@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { fetchRecentSignIns } from "@/lib/microsoft/signInIngestion";
 import { getServerRole } from "@/lib/rbac/serverRole";
 
@@ -13,13 +14,8 @@ const querySchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error || !user) {
+    const { userId } = await auth();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { polar } from "@/lib/polar-client";
@@ -15,17 +16,13 @@ async function getBillingPortal() {
     const supabase = await createClient();
 
     // 1. Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const { userId } = await auth();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const session = await polar.customerSessions.create({
-      externalCustomerId: user.id,
+      externalCustomerId: userId,
     });
 
     const parsed = z

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { checkTierAccess } from "@/lib/tier-guard";
 import { getAuthenticatedUser, resolveTenantForUser } from "@/lib/tenancy";
 import {
@@ -184,20 +185,18 @@ export async function POST(request: Request) {
 
     if (!isCronRequest) {
       const supabase = await createServerClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { userId } = await auth();
 
-      if (!user) {
+      if (!userId) {
         return NextResponse.json(
           { success: false, error: "Unauthorized" },
           { status: 401 },
         );
       }
 
-      currentUserId = user.id;
+      currentUserId = userId;
 
-      const access = await checkTierAccess(user.id, "static_analysis");
+      const access = await checkTierAccess(userId, "static_analysis");
       if (!access.allowed) {
         return NextResponse.json(
           {
@@ -471,15 +470,15 @@ export async function GET(request: Request) {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    const user = await getAuthenticatedUser();
-    if (!user) {
+    const { userId: currentUserId } = await auth();
+    if (!currentUserId) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 },
       );
     }
 
-    const access = await checkTierAccess(user.id, "static_analysis");
+    const access = await checkTierAccess(currentUserId, "static_analysis");
     if (!access.allowed) {
       return NextResponse.json(
         {
@@ -493,7 +492,7 @@ export async function GET(request: Request) {
     }
 
     const tenant = await resolveTenantForUser({
-      userId: user.id,
+      userId: currentUserId,
       autoCreate: false,
     });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import {
@@ -10,7 +10,7 @@ import {
 import { DashboardErrorBoundary } from "./components/ErrorBoundary";
 import { usePathname } from "next/navigation";
 import SessionGuard from "@/components/auth/SessionGuard";
-import type { User } from "@supabase/supabase-js";
+import { useUser } from "@clerk/nextjs";
 
 type ProfileState = {
   name: string;
@@ -34,31 +34,24 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user: clerkUser } = useUser();
   const [profile, setProfile] = useState<ProfileState>({
     name: "Authenticated User",
     email: "user@phishslayer.tech",
     avatarUrl: "",
   });
 
-  const handleUserChange = useCallback((user: User | null) => {
-    if (!user) {
-      return;
-    }
+  // Sync profile from Clerk user data
+  useEffect(() => {
+    if (!clerkUser) return;
+    const email = clerkUser.emailAddresses?.[0]?.emailAddress || "user@phishslayer.tech";
+    const name = clerkUser.fullName || clerkUser.firstName || email;
+    const avatarUrl = clerkUser.imageUrl || "";
+    setProfile({ name, email, avatarUrl });
+  }, [clerkUser]);
 
-    const userName =
-      typeof user.user_metadata?.full_name === "string"
-        ? user.user_metadata.full_name
-        : user.email || "Authenticated User";
-    const avatarUrl =
-      typeof user.user_metadata?.avatar_url === "string"
-        ? user.user_metadata.avatar_url
-        : "";
-
-    setProfile({
-      name: userName,
-      email: user.email || "user@phishslayer.tech",
-      avatarUrl,
-    });
+  const handleUserChange = useCallback((_userId: string | null) => {
+    // Profile is now managed via useUser() above; no action needed here
   }, []);
 
   const loadingFallback = (

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import {
   closeSsh,
   connectSsh,
@@ -44,19 +45,15 @@ function isCronAuthorized(request: NextRequest): boolean {
 
 async function hasPrivilegedRole(): Promise<boolean> {
   const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  const { userId } = await auth();
+    if (!userId) {
     return false;
   }
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
-    .eq("id", user.id)
+    .eq("id", userId)
     .single();
 
   if (profileError || !profile) {
@@ -67,7 +64,10 @@ async function hasPrivilegedRole(): Promise<boolean> {
 }
 
 function parseDiskPercent(dfOutput: string): number {
-  const lines = dfOutput.split("\n").map((line) => line.trim()).filter(Boolean);
+  const lines = dfOutput
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
   const dataLine = lines[1] || lines[0] || "";
   const match = dataLine.match(/(\d+)%/);
   return match ? Number(match[1]) : 0;
@@ -99,7 +99,10 @@ function parseActiveAgents(controlStatusOutput: string): number {
   return match ? Number(match[1]) : 0;
 }
 
-async function triggerInfraEscalation(serviceName: ServiceName, baseUrl: string) {
+async function triggerInfraEscalation(
+  serviceName: ServiceName,
+  baseUrl: string,
+) {
   try {
     await fetch(`${baseUrl}/api/actions/escalate`, {
       method: "POST",
@@ -174,7 +177,8 @@ async function collectWazuhHealth(request: NextRequest) {
         client,
         `systemctl is-active ${serviceName} || true`,
       );
-      services[serviceName] = statusRaw.trim() === "active" ? "active" : "inactive";
+      services[serviceName] =
+        statusRaw.trim() === "active" ? "active" : "inactive";
     }
 
     const failedServices = WAZUH_SERVICES.filter(
@@ -194,7 +198,8 @@ async function collectWazuhHealth(request: NextRequest) {
           client,
           `systemctl is-active ${serviceName} || true`,
         );
-        services[serviceName] = statusRaw.trim() === "active" ? "active" : "inactive";
+        services[serviceName] =
+          statusRaw.trim() === "active" ? "active" : "inactive";
 
         if (services[serviceName] !== "active") {
           await triggerInfraEscalation(serviceName, request.nextUrl.origin);
@@ -259,7 +264,10 @@ export async function GET(request: NextRequest) {
   if (!cronAuthorized) {
     const roleAuthorized = await hasPrivilegedRole();
     if (!roleAuthorized) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
     }
   }
 

@@ -33,7 +33,10 @@ export async function POST(request: Request) {
       process.env.POLAR_CC_ANNUAL_ID,
     ].filter(Boolean) as string[];
 
-    if (allowedProducts.length > 0 && !allowedProducts.includes(payload.data.productId)) {
+    if (
+      allowedProducts.length > 0 &&
+      !allowedProducts.includes(payload.data.productId)
+    ) {
       return NextResponse.json({ error: "Invalid product" }, { status: 400 });
     }
 

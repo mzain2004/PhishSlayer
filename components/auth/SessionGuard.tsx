@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
+import { useEffect } from "react";
 
 type SessionGuardProps = {
   children: React.ReactNode;
   loadingFallback?: React.ReactNode;
-  onUserChange?: (user: User | null) => void;
+  onUserChange?: (userId: string | null) => void;
 };
 
 export default function SessionGuard({
@@ -16,62 +15,20 @@ export default function SessionGuard({
   loadingFallback = null,
   onUserChange,
 }: SessionGuardProps) {
+  const { userId, isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
-  const mountedRef = useRef(false);
-  const initialSessionResolvedRef = useRef(false);
-  const [initialSessionResolved, setInitialSessionResolved] = useState(false);
 
   useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      onUserChange?.(null);
+      router.replace("/");
+    } else {
+      onUserChange?.(userId ?? null);
+    }
+  }, [isLoaded, isSignedIn, userId, onUserChange, router]);
 
-  useEffect(() => {
-    const supabase = createClient();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!mountedRef.current) {
-        return;
-      }
-
-      if (event === "INITIAL_SESSION") {
-        initialSessionResolvedRef.current = true;
-        setInitialSessionResolved(true);
-        onUserChange?.(session?.user ?? null);
-        return;
-      }
-
-      if (!initialSessionResolvedRef.current) {
-        return;
-      }
-
-      if (event === "SIGNED_OUT") {
-        onUserChange?.(null);
-        router.replace("/");
-        return;
-      }
-
-      if (event === "SIGNED_IN") {
-        onUserChange?.(session?.user ?? null);
-        router.replace("/dashboard");
-        return;
-      }
-
-      if (event === "TOKEN_REFRESHED") {
-        return;
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [onUserChange, router]);
-
-  if (!initialSessionResolved) {
+  if (!isLoaded) {
     return loadingFallback;
   }
 

@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { generateWithGemini } from "@/lib/sigma-generator";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { checkTierAccess } from "@/lib/tier-guard";
 import { getAuthenticatedUser, resolveTenantForUser } from "@/lib/tenancy";
 
@@ -41,19 +42,16 @@ export async function POST(request: NextRequest) {
       authHeader === `Bearer ${process.env.CRON_SECRET}`;
 
     if (!isCronRequest) {
-      const supabase = await createServerClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { userId } = await auth();
 
-      if (!user) {
+      if (!userId) {
         return NextResponse.json(
           { success: false, error: "Unauthorized" },
           { status: 401 },
         );
       }
 
-      const access = await checkTierAccess(user.id, "sigma_rules");
+      const access = await checkTierAccess(userId, "sigma_rules");
       if (!access.allowed) {
         return NextResponse.json(
           {

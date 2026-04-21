@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import { createClient } from "@/lib/supabase/server";
 import KpiCards from "./components/KpiCards";
 import QuickActionsPanel from "./components/QuickActionsPanel";
@@ -26,14 +27,13 @@ type IncidentRow = {
 };
 
 export default async function DashboardOverviewPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { userId } = await auth();
 
-  if (!user) {
+  if (!userId) {
     redirect("/");
   }
+
+  const supabase = await createClient();
 
   const [{ data: scans }, { data: incidents }, { count: intelCount }] =
     await Promise.all([

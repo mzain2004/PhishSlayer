@@ -22,6 +22,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { submitSupportTicket } from "@/lib/supabase/actions";
 import { useTransition } from "react";
+import { useAuth, useUser } from "@clerk/nextjs";
 import PhishButton from "@/components/ui/PhishButton";
 
 const SYSTEM_STATUS = [
@@ -78,6 +79,8 @@ const FAQS = [
 
 export default function SupportPage() {
   const router = useRouter();
+  const { userId } = useAuth();
+  const { user: clerkUser } = useUser();
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [tier, setTier] = useState<string>("free");
   const [loading, setLoading] = useState(true);
@@ -124,22 +127,21 @@ export default function SupportPage() {
 
   useEffect(() => {
     async function loadUser() {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        const { data: p } = await supabase
-          .from("profiles")
-          .select("subscription_tier")
-          .eq("id", user.id)
-          .single();
-        if (p?.subscription_tier) setTier(p.subscription_tier.toLowerCase());
+      if (!userId) {
+        setLoading(false);
+        return;
       }
+      const supabase = createClient();
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("subscription_tier")
+        .eq("id", userId)
+        .single();
+      if (p?.subscription_tier) setTier(p.subscription_tier.toLowerCase());
       setLoading(false);
     }
     loadUser();
-  }, []);
+  }, [userId]);
 
   const [isSubmitting, startTransition] = useTransition();
 
@@ -174,18 +176,16 @@ export default function SupportPage() {
 
         // Send notification email (legacy bridge)
         try {
-          const supabase = createClient();
-          const {
-            data: { user },
-          } = await supabase.auth.getUser();
+          const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress || "unknown@user.com";
+          const userName = clerkUser?.fullName || userEmail;
 
           await fetch("/api/communications", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               type: `Support Ticket (${category})`,
-              userEmail: user?.email || "unknown@user.com",
-              name: user?.email || "Authenticated User",
+              userEmail,
+              name: userName,
               message: `Priority: ${priority}\nSubject: ${subject}\n\n${message}${attachedFile ? `\n\n[Attachment: ${attachedFile.name}]` : ""}`,
             }),
           });

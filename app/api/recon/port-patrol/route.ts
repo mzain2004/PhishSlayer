@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { z } from "zod";
 import { runPortPatrol } from "@/lib/recon/portPatrol";
 import { sanitizeTarget } from "@/lib/security/safeCompare";
@@ -15,13 +16,12 @@ const bodySchema = z.object({
 export async function POST(request: Request) {
   try {
     // Auth check
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const { userId } = await auth();
+  if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  }
+
+  const supabase = await createClient();
 
     // Parse & validate body
     let rawBody: unknown;

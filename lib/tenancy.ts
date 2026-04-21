@@ -1,5 +1,5 @@
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
-import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
 
 export type TenantRole = "owner" | "admin" | "analyst";
 
@@ -47,17 +47,13 @@ export function getServiceRoleClient() {
 }
 
 export async function getAuthenticatedUser() {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const { userId } = await auth();
 
-  if (error || !user) {
+  if (!userId) {
     return null;
   }
 
-  return user;
+  return { id: userId };
 }
 
 async function getTenantById(tenantId: string): Promise<TenantRow | null> {

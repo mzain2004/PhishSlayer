@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { hash as bcryptHash } from "bcryptjs";
 import { z } from "zod";
+import { currentUser } from "@clerk/nextjs/server";
 import {
   getAuthenticatedUser,
   getServiceRoleClient,
@@ -59,14 +60,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const clerkUser = await currentUser();
+    const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress;
+    const userFullName = clerkUser?.fullName || undefined;
+
     const tenant = await resolveTenantForUser({
       userId: user.id,
       preferredTenantId: parsed.data.tenant_id,
-      tenantNameHint:
-        (user.user_metadata?.full_name as string | undefined) ||
-        user.email ||
-        undefined,
-      userEmail: user.email || undefined,
+      tenantNameHint: userFullName || userEmail || undefined,
+      userEmail: userEmail || undefined,
       autoCreate: true,
     });
 

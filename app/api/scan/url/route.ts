@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { checkTierAccess } from "@/lib/tier-guard";
 import { scanTarget } from "@/lib/scanners/threatScanner";
 
@@ -13,16 +14,14 @@ const ScanSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const { userId } = await auth();
+  if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  }
 
-    const access = await checkTierAccess(user.id, "url_scan");
+  const supabase = await createClient();
+
+    const access = await checkTierAccess(userId, "url_scan");
     if (!access.allowed) {
       return NextResponse.json(
         {

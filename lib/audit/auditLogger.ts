@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
 import { redactSensitive } from "@/lib/security/redact";
 
 export type AuditAction =
@@ -38,24 +39,23 @@ export interface AuditEntry {
 
 export async function logAuditEvent(entry: AuditEntry): Promise<void> {
   try {
+    const { userId } = await auth();
+    if (!userId) return;
+
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, display_name")
-      .eq("id", user.id)
+      .select("role, display_name, email")
+      .eq("id", userId)
       .single();
 
     const safeDetails = redactSensitive(entry.details || undefined) || null;
 
     await supabase.from("audit_logs").insert([
       {
-        user_id: user.id,
-        user_email: user.email,
+        user_id: userId,
+        user_email: profile?.email || null,
         user_role: profile?.role || "unknown",
         action: entry.action,
         resource_type: entry.resource_type || null,

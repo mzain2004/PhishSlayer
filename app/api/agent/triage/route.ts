@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { z } from "zod";
 import { groqComplete } from "@/lib/ai/groq";
 
@@ -135,7 +136,7 @@ Rules:
   AND clear threat indicators exist
 - CLOSE only if you are highly confident (>= 0.85)
   this is a false positive
-- When uncertain, always ESCALATE — missing a real threat
+- When uncertain, always ESCALATE â€” missing a real threat
   is worse than a false escalation
 - Never CLOSE a MITRE-mapped technique without explicit
   false positive evidence
@@ -337,20 +338,18 @@ function isCronAuthorized(request: NextRequest): boolean {
 }
 
 async function hasPrivilegedRole(): Promise<boolean> {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const { userId } = await auth();
 
-  if (authError || !user) {
+  if (!userId) {
     return false;
   }
+
+  const supabase = await createServerSupabaseClient();
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
-    .eq("id", user.id)
+    .eq("id", userId)
     .single();
 
   if (profileError || !profile) {

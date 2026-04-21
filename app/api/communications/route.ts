@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { z } from "zod";
 import { checkRateLimit, getClientIp } from "@/lib/security/rateLimit";
 
@@ -16,16 +17,15 @@ const EmailPayloadSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const { userId } = await auth();
+  if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  }
+
+  const supabase = await createClient();
 
     const clientIp = getClientIp(request);
-    const rate = checkRateLimit(`communications:${user.id}:${clientIp}`, {
+    const rate = checkRateLimit(`communications:${userId}:${clientIp}`, {
       windowMs: 60_000,
       max: 3,
     });

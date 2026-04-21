@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { currentUser } from "@clerk/nextjs/server";
 import {
   getAuthenticatedUser,
   getServiceRoleClient,
@@ -41,14 +42,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const clerkUser = await currentUser();
+    const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress;
+    const userFullName = clerkUser?.fullName || undefined;
+
     const tenant = await resolveTenantForUser({
       userId: user.id,
       preferredTenantId: parsedQuery.data.tenant,
-      tenantNameHint:
-        (user.user_metadata?.full_name as string | undefined) ||
-        user.email ||
-        undefined,
-      userEmail: user.email || undefined,
+      tenantNameHint: userFullName || userEmail || undefined,
+      userEmail: userEmail || undefined,
       autoCreate: true,
     });
 

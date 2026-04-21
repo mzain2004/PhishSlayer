@@ -66,15 +66,6 @@ export default function L1AgentStatusWidget() {
     setLiveResults([]);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        throw new Error("You must be authenticated to run L1 triage.");
-      }
-
       const response = await fetch("/api/agent/triage", {
         method: "POST",
         headers: {

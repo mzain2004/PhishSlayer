@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { getWazuhApiToken } from "@/lib/wazuh-client";
 import https from "https";
 import { z } from "zod";
@@ -30,27 +31,23 @@ function getAdminClient() {
 
 async function getCallerProfile() {
   const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return { user: null, role: null };
+  const { userId } = await auth();
+    if (!userId) {
+    return { userId: null, role: null };
   }
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
-    .eq("id", user.id)
+    .eq("id", userId)
     .single();
 
   if (profileError || !profile) {
-    return { user: null, role: null };
+    return { userId: null, role: null };
   }
 
   return {
-    user,
+    userId,
     role: profile.role as string,
   };
 }
@@ -202,9 +199,9 @@ function buildInstallScript(
 }
 
 export async function POST(request: NextRequest) {
-  const { user, role } = await getCallerProfile();
+  const { userId: callerId, role } = await getCallerProfile();
 
-  if (!user || !role || !["admin", "manager", "super_admin"].includes(role)) {
+  if (!callerId || !role || !["admin", "manager", "super_admin"].includes(role)) {
     return NextResponse.json(
       { success: false, error: "Forbidden: insufficient privileges" },
       { status: 403 },
@@ -268,7 +265,7 @@ export async function POST(request: NextRequest) {
         agent_ip: agentIp,
         agent_os: agentOs,
         status: "pending_connection",
-        enrolled_by: user.id,
+        enrolled_by: callerId,
         enrolled_at: new Date().toISOString(),
       });
 

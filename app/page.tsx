@@ -181,6 +181,8 @@ const AuthModal = ({
   const loginWithOAuth = async (provider: "google" | "github") => {
     setError(null);
     setLoading(true);
+    // Clerk handles OAuth now
+    /*
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${redirectBase}/auth/callback` },
@@ -189,6 +191,7 @@ const AuthModal = ({
       setError(authError.message);
       setLoading(false);
     }
+    */
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -215,7 +218,6 @@ const AuthModal = ({
       email,
       password,
       options: {
-        emailRedirectTo: `${redirectBase}/auth/callback`,
         data: {
           full_name: fullName,
         },
@@ -235,10 +237,7 @@ const AuthModal = ({
     setError(null);
     setLoading(true);
     const { error: authError } = await supabase.auth.resetPasswordForEmail(
-      email,
-      {
-        redirectTo: `${redirectBase}/auth/callback`,
-      },
+      email
     );
     if (authError) {
       setError(authError.message);
@@ -862,10 +861,7 @@ export default function Home() {
           >
             <div className="flex gap-1 mb-4">
               {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className="w-4 h-4 fill-accent text-accent"
-                />
+                <Star key={i} className="w-4 h-4 fill-accent text-accent" />
               ))}
             </div>
             <p className="text-white/70 mb-6 line-clamp-3">
@@ -891,10 +887,7 @@ export default function Home() {
             <div className="flex justify-between items-start mb-6">
               <div className="flex gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-5 h-5 fill-accent text-accent"
-                  />
+                  <Star key={i} className="w-5 h-5 fill-accent text-accent" />
                 ))}
               </div>
               <span className="text-xs font-bold bg-primary/20 text-primary px-2 py-1 rounded">
@@ -929,10 +922,7 @@ export default function Home() {
           >
             <div className="flex gap-1 mb-4">
               {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className="w-4 h-4 fill-accent text-accent"
-                />
+                <Star key={i} className="w-4 h-4 fill-accent text-accent" />
               ))}
             </div>
             <p className="text-white/70 mb-6 line-clamp-3">
@@ -1153,7 +1143,11 @@ export default function Home() {
           className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16"
         >
           {/* Brand & Desc */}
-          <motion.div key="footer-brand" variants={gridItem} className="lg:col-span-2">
+          <motion.div
+            key="footer-brand"
+            variants={gridItem}
+            className="lg:col-span-2"
+          >
             <div className="flex items-center gap-2 mb-6">
               <Shield className="w-6 h-6 text-white" />
               <span className="font-space-grotesk font-bold text-2xl tracking-tight text-white">

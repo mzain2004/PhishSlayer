@@ -7,6 +7,7 @@ import { detectTyposquatting } from "@/lib/deep-scan/typosquat";
 import { getDomTree } from "@/lib/deep-scan/domTree";
 import { sanitizeTarget } from "@/lib/security/safeCompare";
 import { createClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { checkRateLimit, getClientIp } from "@/lib/security/rateLimit";
 import { ensurePublicHostname, isPrivateIp } from "@/lib/security/ssrf";
 
@@ -24,16 +25,15 @@ function stripTarget(input: string): string {
 
 export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const { userId } = await auth();
+  if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  }
+
+  const supabase = await createClient();
 
     const clientIp = getClientIp(request);
-    const rate = checkRateLimit(`deep-scan:${user.id}:${clientIp}`, {
+    const rate = checkRateLimit(`deep-scan:${userId}:${clientIp}`, {
       windowMs: 60_000,
       max: 8,
     });

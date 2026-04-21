@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -13,21 +14,19 @@ const CommandSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const { userId } = await auth();
 
-    if (authError || !user) {
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const supabase = await createClient();
 
     // Role verification (must be manager or higher)
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
-      .eq("id", user.id)
+      .eq("id", userId)
       .single();
 
     if (
@@ -83,7 +82,7 @@ export async function POST(request: Request) {
     // Log audit event
     await supabase.from("audit_logs").insert({
       action: "agent_command_sent",
-      user_id: user.id,
+      user_id: userId,
       organization_id: null,
       severity: "medium",
       resource_type: "agent",

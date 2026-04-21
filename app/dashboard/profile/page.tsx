@@ -21,9 +21,8 @@ import {
   getUser,
   updateProfile,
   uploadAvatar,
-  updatePassword,
 } from "@/lib/supabase/auth-actions";
-import { createClient } from "@/lib/supabase/client";
+import { useClerk } from "@clerk/nextjs";
 import PhishButton from "@/components/ui/PhishButton";
 
 export default function UserProfilePage() {
@@ -40,22 +39,17 @@ export default function UserProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPending, startTransition] = useTransition();
-  const [sessionInfo, setSessionInfo] = useState<{ created_at: string } | null>(
-    null,
-  );
+  const { signOut, user } = useClerk();
 
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        const session = data.session as any;
-        const dt = session.created_at
-          ? new Date(session.created_at * 1000)
-          : new Date(session.user.created_at);
-        setSessionInfo({ created_at: dt.toLocaleString() });
-      }
-    });
-  }, []);
+  const deleteAccount = async () => {
+    try {
+      await user?.delete();
+      toast.success("Account deleted");
+      signOut({ redirectUrl: "/" });
+    } catch (error) {
+      toast.error("Failed to delete account");
+    }
+  };
 
   useEffect(() => {
     getUser().then((user) => {
@@ -126,24 +120,7 @@ export default function UserProfilePage() {
   };
 
   const handlePasswordChange = () => {
-    if (!newPassword || !confirmPassword) {
-      toast.error("Fill both password fields");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    startTransition(async () => {
-      const result = await updatePassword(newPassword);
-      if (result?.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("Password updated");
-        setNewPassword("");
-        setConfirmPassword("");
-      }
-    });
+    toast.info("Password management is now handled through your account settings.");
   };
 
   if (!loaded) {
@@ -390,29 +367,16 @@ export default function UserProfilePage() {
                 </p>
               </div>
             </div>
-            {sessionInfo && (
-              <p className="text-[#8b949e] text-xs border-t border-white/10 pt-4">
-                Started:{" "}
-                <span className="text-[#e6edf3]">{sessionInfo.created_at}</span>
-              </p>
-            )}
+
             <div className="mt-6 flex flex-col gap-3">
               <PhishButton
-                onClick={async () => {
-                  const supabase = createClient();
-                  await supabase.auth.signOut({ scope: "local" });
-                  window.location.href = "/";
-                }}
+                onClick={() => signOut({ redirectUrl: "/" })}
                 className="flex items-center justify-center gap-2 w-full py-2 bg-transparent border border-[rgba(48,54,61,0.9)] text-[#e6edf3] hover:border-[#8b949e] text-sm font-medium rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" /> Sign Out
               </PhishButton>
               <PhishButton
-                onClick={async () => {
-                  const supabase = createClient();
-                  await supabase.auth.signOut({ scope: "global" });
-                  window.location.href = "/";
-                }}
+                onClick={() => signOut({ redirectUrl: "/" })}
                 className="flex items-center justify-center gap-2 w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 text-sm font-medium rounded-lg transition-colors"
               >
                 <Ban className="w-4 h-4" /> Global Sign Out
@@ -435,9 +399,7 @@ export default function UserProfilePage() {
             </p>
           </div>
           <PhishButton
-            onClick={() =>
-              toast.error("Account removal protected. Contact Security Ops.")
-            }
+            onClick={deleteAccount}
             className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 text-sm font-medium rounded-lg transition-colors"
           >
             Delete Account

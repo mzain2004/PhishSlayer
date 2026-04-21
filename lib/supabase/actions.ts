@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { analyzeThreat, scoreCtiFinding } from "@/lib/ai/analyzer";
 import { scanTarget } from "@/lib/scanners/threatScanner";
@@ -113,22 +114,18 @@ const launchScanSchema = z.object({
     ),
 });
 export async function getIncidents() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
   const { data, error } = await supabase.from("incidents").select("*");
   if (error) throw new Error(error.message);
   return data || [];
 }
 
 export async function getScans() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
   const { data, error } = await supabase
     .from("scans")
     .select("*")
@@ -147,10 +144,8 @@ export async function createIncident(data: any) {
   }
   const validData = parsed.data;
 
+  const { userId } = await auth();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const payload: any = {
     title: validData.title,
@@ -159,7 +154,7 @@ export async function createIncident(data: any) {
     assignee: validData.assignee || "Unassigned",
     description: validData.description || "",
     timeline: validData.timeline || [],
-    created_by: user?.id || null,
+    created_by: userId || null,
   };
 
   if (payload.description) {
@@ -182,7 +177,7 @@ export async function createIncident(data: any) {
     return { error: error.message || "Failed to create incident" };
   }
 
-  await logAuditEvent(user?.id || "system", "incident_created", payload.title, {
+  await logAuditEvent(userId || "system", "incident_created", payload.title, {
     severity: payload.severity,
   });
 
@@ -239,10 +234,8 @@ export async function resolveIncident(id: string, comment: string) {
     throw new Error(updateError.message || "Failed to resolve incident");
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  await logAuditEvent(user?.id || "system", "incident_resolved", validId, {
+  const { userId } = await auth();
+  await logAuditEvent(userId || "system", "incident_resolved", validId, {
     comment: validComment,
   });
 
@@ -267,10 +260,8 @@ export async function deleteIncident(id: string) {
     throw new Error(error.message || "Failed to delete incident");
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  await logAuditEvent(user?.id || "system", "incident_deleted", validId);
+  const { userId } = await auth();
+  await logAuditEvent(userId || "system", "incident_deleted", validId);
 
   revalidatePath("/dashboard");
 }
@@ -319,10 +310,8 @@ export async function blockIp(ipAddress: string) {
     ai_summary: `Manual block executed by administrator. Indicator: ${validIp} (${isIp ? "IPv4" : "Domain"}) added to the proprietary intel vault with CRITICAL severity.`,
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  await logAuditEvent(user?.id || "system", "ip_blocked", validIp, {
+  const { userId } = await auth();
+  await logAuditEvent(userId || "system", "ip_blocked", validIp, {
     source: "Manual Administrative Block",
   });
 
@@ -353,21 +342,17 @@ export async function addToWhitelist(target: string) {
     return { error: error.message || "Failed to add target to whitelist" };
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  await logAuditEvent(user?.id || "system", "whitelist_added", validTarget);
+  const { userId } = await auth();
+  await logAuditEvent(userId || "system", "whitelist_added", validTarget);
 
   revalidatePath("/dashboard/threats");
   return { success: true };
 }
 
 export async function getWhitelist() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
   const { data, error } = await supabase
     .from("whitelist")
     .select("*")
@@ -397,11 +382,9 @@ export async function removeFromWhitelist(id: string) {
     throw new Error(error.message || "Failed to remove from whitelist");
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { userId } = await auth();
   await logAuditEvent(
-    user?.id || "system",
+    userId || "system",
     "whitelist_removed",
     parsed.data.id.toString(),
   );
@@ -412,12 +395,9 @@ export async function removeFromWhitelist(id: string) {
 }
 
 export async function launchScan(target: string): Promise<{ error?: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const userId = user?.id;
+  const { userId } = await auth();
   if (!userId) return { error: "Unauthorized" };
+  const supabase = await createClient();
 
   // 1. Validate and normalize target
   const parseResult = scanTargetSchema.safeParse(target);
@@ -498,7 +478,7 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
         risk_score: 0,
         threat_category: "Whitelisted",
         payload: whitelistHit,
-        user_id: user?.id || null,
+        user_id: userId,
       },
     ]);
 
@@ -538,7 +518,7 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
         risk_score: 100,
         threat_category: "Proprietary Local Intel",
         payload: intelHit,
-        user_id: user?.id || null,
+        user_id: userId,
       },
     ]);
 
@@ -605,7 +585,7 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
     const { data: profile } = await supabase
       .from("profiles")
       .select("subscription_tier")
-      .eq("id", user?.id || "")
+      .eq("id", userId)
       .single();
     const tier = (profile?.subscription_tier as SubscriptionTier) || "free";
     const hasAi = canAccessFeature(tier, "aiHeuristics");
@@ -643,7 +623,7 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
         risk_score: aiData?.risk_score || 0,
         threat_category: aiData?.threat_category || "Unknown",
         payload: finding,
-        user_id: user?.id || null,
+        user_id: userId,
       },
     ]);
 
@@ -707,7 +687,7 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
       target: validTarget,
       status: "failed",
       date,
-      user_id: user?.id || null,
+      user_id: userId,
     };
     const { error: failError } = await supabase
       .from("scans")
@@ -728,11 +708,9 @@ export async function launchScan(target: string): Promise<{ error?: string }> {
 // ── Intel Vault Management ─────────────────────────────────────────────
 
 export async function getIntelIndicators() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
   const { data, error } = await supabase
     .from("proprietary_intel")
     .select("*")
@@ -764,10 +742,8 @@ export async function removeIntelIndicator(id: string) {
     throw new Error(error.message || "Failed to remove indicator");
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  await logAuditEvent(user?.id || "system", "intel_removed", parsed.data.id);
+  const { userId } = await auth();
+  await logAuditEvent(userId || "system", "intel_removed", parsed.data.id);
 
   revalidatePath("/dashboard/intel");
   revalidatePath("/dashboard/settings");
@@ -811,10 +787,8 @@ export async function assignIncident(
     .eq("id", incidentId);
 
   if (error) return { error: error.message };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  await logAuditEvent(user?.id || "system", "incident_assigned", incidentId, {
+  const { userId } = await auth();
+  await logAuditEvent(userId || "system", "incident_assigned", incidentId, {
     assigned_to: assignToUserId,
   });
 
@@ -832,25 +806,25 @@ export async function assignIncident(
         .select("title")
         .eq("id", incidentId)
         .single();
-      const {
-        data: { user: assigneUser },
-      } = await serviceClient.auth.admin.getUserById(assignToUserId);
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
-      const { data: currentProfile } = await supabase
+      // Note: assignee email lookup via Supabase admin removed;
+      // use profiles table for contact info (Clerk handles user identity)
+      const { data: assigneeProfile } = await serviceClient
+        .from("profiles")
+        .select("email, display_name")
+        .eq("id", assignToUserId)
+        .single();
+      const { data: currentProfile } = await serviceClient
         .from("profiles")
         .select("display_name")
-        .eq("id", currentUser?.id || "")
+        .eq("id", userId || "")
         .single();
 
-      if (assigneUser?.email && incident) {
+      if (assigneeProfile?.email && incident) {
         await sendIncidentAssignmentEmail({
           incidentId,
           incidentTitle: incident.title,
-          assignerName:
-            currentProfile?.display_name || currentUser?.email || "A Manager",
-          recipientEmail: assigneUser.email,
+          assignerName: currentProfile?.display_name || "A Manager",
+          recipientEmail: assigneeProfile.email,
         });
       }
     }
@@ -907,13 +881,11 @@ export async function updateUserRole(userId: string, newRole: UserRole) {
     return { error: "Unauthorized" };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user?.id === userId) {
+  const { userId: currentUserId } = await auth();
+  if (currentUserId === userId) {
     return { error: "You cannot change your own role" };
   }
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from("profiles")
@@ -921,7 +893,7 @@ export async function updateUserRole(userId: string, newRole: UserRole) {
     .eq("id", userId);
 
   if (error) return { error: error.message };
-  await logAuditEvent(user?.id || "system", "user_role_changed", userId, {
+  await logAuditEvent(currentUserId || "system", "user_role_changed", userId, {
     new_role: newRole,
   });
 
@@ -935,13 +907,11 @@ export async function toggleUserStatus(userId: string, isActive: boolean) {
     return { error: "Unauthorized" };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user?.id === userId) {
+  const { userId: currentUserId } = await auth();
+  if (currentUserId === userId) {
     return { error: "You cannot deactivate yourself" };
   }
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from("profiles")
@@ -949,7 +919,7 @@ export async function toggleUserStatus(userId: string, isActive: boolean) {
     .eq("id", userId);
 
   if (error) return { error: error.message };
-  await logAuditEvent(user?.id || "system", "user_status_changed", userId, {
+  await logAuditEvent(currentUserId || "system", "user_status_changed", userId, {
     is_active: isActive,
   });
 
@@ -1033,15 +1003,13 @@ export async function submitSupportTicket(payload: {
   if (!parsed.success) return { error: "Invalid ticket payload" };
   const d = parsed.data;
 
+  const { userId } = await auth();
+  if (!userId) return { error: "Not authenticated" };
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Not authenticated" };
 
   const { error } = await supabase.from("support_tickets").insert([
     {
-      user_id: user.id,
+      user_id: userId,
       subject: d.subject,
       category: d.category,
       priority: d.priority,
@@ -1070,7 +1038,7 @@ export async function submitSupportTicket(payload: {
               fields: [
                 { name: "Subject", value: d.subject, inline: true },
                 { name: "Priority", value: d.priority, inline: true },
-                { name: "User", value: user.email || "Unknown", inline: false },
+                { name: "User", value: userId || "Unknown", inline: false },
                 {
                   name: "Message",
                   value: d.message.slice(0, 1024),
@@ -1125,10 +1093,13 @@ export async function triggerWeeklyDigest() {
 
   const emails: string[] = [];
   for (const sub of subscribers) {
-    const {
-      data: { user },
-    } = await serviceClient.auth.admin.getUserById(sub.id);
-    if (user?.email) emails.push(user.email);
+    // Fetch email from profiles table instead of Supabase auth.admin
+    const { data: subProfile } = await serviceClient
+      .from("profiles")
+      .select("email")
+      .eq("id", sub.id)
+      .single();
+    if (subProfile?.email) emails.push(subProfile.email);
   }
 
   if (emails.length > 0) {

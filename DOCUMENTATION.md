@@ -946,39 +946,39 @@ Requested names vs repository names:
 
 Observed from source and workflows.
 
-| Name                                | Purpose                                      | Where used                                            | Required/Optional                | Example                                |
-| ----------------------------------- | -------------------------------------------- | ----------------------------------------------------- | -------------------------------- | -------------------------------------- |
-| NEXT_PUBLIC_SUPABASE_URL            | Supabase base URL                            | broad (`server.js`, `app/api/*`, `lib/*`)             | Required                         | `https://xxxx.supabase.co`             |
-| NEXT_PUBLIC_SUPABASE_ANON_KEY       | Client-side Supabase auth                    | auth/session routes and client                        | Required                         | `sb_publishable_xxx`                   |
-| SUPABASE_SERVICE_ROLE_KEY           | privileged DB/service ops                    | most server routes and cron                           | Required                         | `sb_service_role_xxx`                  |
-| CRON_SECRET                         | authorizes scheduler routes                  | `/api/cron/*`, platform metrics, training export      | Required for cron flows          | `******`                               |
-| AGENT_SECRET                        | authorizes internal agent action routes + WS | `server.js`, `/api/actions/*`, l2 flows               | Required for autonomous actions  | `******`                               |
-| GEMINI_API_KEY                      | Gemini model requests                        | `lib/ollama-client.ts`, triage/reviewer flows         | Required for cloud AI            | `AIza...***`                           |
-| OLLAMA_BASE_URL                     | local Ollama endpoint                        | `lib/ollama-client.ts`, health route                  | Optional (fallback path)         | `http://localhost:11434`               |
-| OLLAMA_MODEL                        | local model name                             | `lib/ollama-client.ts`                                | Optional (defaulted)             | `llama3.1:8b`                          |
-| VIRUS_TOTAL_API_KEY                 | VT lookups                                   | `lib/static-analysis.ts`, scanner pipeline            | Optional for full scanning       | `******`                               |
-| URLHAUS_AUTH_KEY                    | URLHaus feed access                          | IOC reader/hunt pipeline                              | Optional                         | `******`                               |
-| WAZUH_WEBHOOK_SECRET                | authenticates Wazuh webhook posts            | `/api/connectors/wazuh` and deploy workflow           | Required for Wazuh webhook       | `******`                               |
-| WAZUH_MANAGER_IP                    | Wazuh manager host                           | `lib/wazuh-client.ts`, health/update routes           | Required for Wazuh API           | `167.172.85.62`                        |
-| WAZUH_API_PASSWORD                  | Wazuh API auth password                      | `lib/wazuh-client.ts`                                 | Required for Wazuh API           | `******`                               |
-| WAZUH_API_TOKEN                     | injected in deploy workflow                  | deploy-only env template                              | Optional in app runtime          | `******`                               |
-| CLOUDFLARE_API_TOKEN                | WAF block API                                | `/api/actions/block-ip`                               | Optional (no-op if missing)      | `******`                               |
-| CLOUDFLARE_ZONE_ID                  | target zone for WAF                          | `/api/actions/block-ip`                               | Optional (no-op if missing)      | `******`                               |
-| DISCORD_ESCALATION_WEBHOOK_URL      | Discord notification webhook                 | workflows + escalation notifications                  | Optional                         | `https://discord.com/api/webhooks/***` |
-| DISCORD_WEBHOOK_URL                 | scanner Discord notifications                | `app/api/v1/scan/route.ts`, `lib/supabase/actions.ts` | Optional                         | `https://discord.com/api/webhooks/***` |
-| AZURE_TENANT_ID                     | Graph auth                                   | `lib/microsoft/graphClient.ts`                        | Required for identity chain API  | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
-| AZURE_CLIENT_ID                     | Graph auth app ID                            | `lib/microsoft/graphClient.ts`                        | Required for identity chain API  | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
-| AZURE_CLIENT_SECRET                 | Graph auth secret                            | `lib/microsoft/graphClient.ts`                        | Required for identity chain API  | `******`                               |
-| NEXT_PUBLIC_APP_URL                 | workflow target URL                          | GitHub workflows                                      | Required in workflows            | `https://phishslayer.tech`             |
-| INTERNAL_API_URL                    | internal server-to-server calls              | cron routes                                           | Required for cron chaining       | `http://localhost:3000`                |
-| NEXT_PUBLIC_SITE_URL                | canonical site URL                           | deploy/build/runtime metadata                         | Optional                         | `https://phishslayer.tech`             |
-| RESEND_API_KEY                      | outbound email provider                      | email service                                         | Optional (build warned missing)  | `re_***`                               |
-| RESEND_FROM_EMAIL                   | sender identity                              | email service                                         | Optional                         | `soc@phishslayer.tech`                 |
-| DO_SSH_PRIVATE_KEY                  | remote infra operations                      | update routes/workflow scripts                        | Optional                         | `-----BEGIN...`                        |
-| DO_SSH_USER                         | remote infra user                            | update routes                                         | Optional                         | `root`                                 |
-| GEO_IP_API                          | geolocation enrichment                       | intel/recon flows                                     | Optional                         | `https://...`                          |
-| HITL_MODE                           | human-in-the-loop override                   | agent logic toggles                                   | Optional                         | `true`                                 |
-| NODE_ENV                            | runtime mode                                 | server and build behavior                             | Required by Node                 | `production`                           |
+| Name                           | Purpose                                      | Where used                                            | Required/Optional               | Example                                |
+| ------------------------------ | -------------------------------------------- | ----------------------------------------------------- | ------------------------------- | -------------------------------------- |
+| NEXT_PUBLIC_SUPABASE_URL       | Supabase base URL                            | broad (`server.js`, `app/api/*`, `lib/*`)             | Required                        | `https://xxxx.supabase.co`             |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY  | Client-side Supabase auth                    | auth/session routes and client                        | Required                        | `sb_publishable_xxx`                   |
+| SUPABASE_SERVICE_ROLE_KEY      | privileged DB/service ops                    | most server routes and cron                           | Required                        | `sb_service_role_xxx`                  |
+| CRON_SECRET                    | authorizes scheduler routes                  | `/api/cron/*`, platform metrics, training export      | Required for cron flows         | `******`                               |
+| AGENT_SECRET                   | authorizes internal agent action routes + WS | `server.js`, `/api/actions/*`, l2 flows               | Required for autonomous actions | `******`                               |
+| GEMINI_API_KEY                 | Gemini model requests                        | `lib/ollama-client.ts`, triage/reviewer flows         | Required for cloud AI           | `AIza...***`                           |
+| OLLAMA_BASE_URL                | local Ollama endpoint                        | `lib/ollama-client.ts`, health route                  | Optional (fallback path)        | `http://localhost:11434`               |
+| OLLAMA_MODEL                   | local model name                             | `lib/ollama-client.ts`                                | Optional (defaulted)            | `llama3.1:8b`                          |
+| VIRUS_TOTAL_API_KEY            | VT lookups                                   | `lib/static-analysis.ts`, scanner pipeline            | Optional for full scanning      | `******`                               |
+| URLHAUS_AUTH_KEY               | URLHaus feed access                          | IOC reader/hunt pipeline                              | Optional                        | `******`                               |
+| WAZUH_WEBHOOK_SECRET           | authenticates Wazuh webhook posts            | `/api/connectors/wazuh` and deploy workflow           | Required for Wazuh webhook      | `******`                               |
+| WAZUH_MANAGER_IP               | Wazuh manager host                           | `lib/wazuh-client.ts`, health/update routes           | Required for Wazuh API          | `167.172.85.62`                        |
+| WAZUH_API_PASSWORD             | Wazuh API auth password                      | `lib/wazuh-client.ts`                                 | Required for Wazuh API          | `******`                               |
+| WAZUH_API_TOKEN                | injected in deploy workflow                  | deploy-only env template                              | Optional in app runtime         | `******`                               |
+| CLOUDFLARE_API_TOKEN           | WAF block API                                | `/api/actions/block-ip`                               | Optional (no-op if missing)     | `******`                               |
+| CLOUDFLARE_ZONE_ID             | target zone for WAF                          | `/api/actions/block-ip`                               | Optional (no-op if missing)     | `******`                               |
+| DISCORD_ESCALATION_WEBHOOK_URL | Discord notification webhook                 | workflows + escalation notifications                  | Optional                        | `https://discord.com/api/webhooks/***` |
+| DISCORD_WEBHOOK_URL            | scanner Discord notifications                | `app/api/v1/scan/route.ts`, `lib/supabase/actions.ts` | Optional                        | `https://discord.com/api/webhooks/***` |
+| AZURE_TENANT_ID                | Graph auth                                   | `lib/microsoft/graphClient.ts`                        | Required for identity chain API | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
+| AZURE_CLIENT_ID                | Graph auth app ID                            | `lib/microsoft/graphClient.ts`                        | Required for identity chain API | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
+| AZURE_CLIENT_SECRET            | Graph auth secret                            | `lib/microsoft/graphClient.ts`                        | Required for identity chain API | `******`                               |
+| NEXT_PUBLIC_APP_URL            | workflow target URL                          | GitHub workflows                                      | Required in workflows           | `https://phishslayer.tech`             |
+| INTERNAL_API_URL               | internal server-to-server calls              | cron routes                                           | Required for cron chaining      | `http://localhost:3000`                |
+| NEXT_PUBLIC_SITE_URL           | canonical site URL                           | deploy/build/runtime metadata                         | Optional                        | `https://phishslayer.tech`             |
+| RESEND_API_KEY                 | outbound email provider                      | email service                                         | Optional (build warned missing) | `re_***`                               |
+| RESEND_FROM_EMAIL              | sender identity                              | email service                                         | Optional                        | `soc@phishslayer.tech`                 |
+| DO_SSH_PRIVATE_KEY             | remote infra operations                      | update routes/workflow scripts                        | Optional                        | `-----BEGIN...`                        |
+| DO_SSH_USER                    | remote infra user                            | update routes                                         | Optional                        | `root`                                 |
+| GEO_IP_API                     | geolocation enrichment                       | intel/recon flows                                     | Optional                        | `https://...`                          |
+| HITL_MODE                      | human-in-the-loop override                   | agent logic toggles                                   | Optional                        | `true`                                 |
+| NODE_ENV                       | runtime mode                                 | server and build behavior                             | Required by Node                | `production`                           |
 
 Variables observed but platform-dependent OS envs:
 
@@ -989,7 +989,7 @@ Variables observed but platform-dependent OS envs:
 #### Login / Auth flow
 
 1. Navigate to auth pages under `app/auth/*` (`/auth/login`, `/auth/signup`, `/auth/forgot-password`, `/auth/reset-password`).
-2. Session callback handled by `app/auth/callback/route.ts`.
+2. Session callback handled by Clerk.
 3. Middleware session updates run in `middleware.ts` via `updateSession`.
 
 #### Dashboard overview

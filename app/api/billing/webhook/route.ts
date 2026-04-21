@@ -25,7 +25,8 @@ function planFromProductId(productId: string | null | undefined): BillingPlan {
 
   if (productId === process.env.POLAR_SOC_PRO_MONTHLY_ID) return "pro_monthly";
   if (productId === process.env.POLAR_SOC_PRO_ANNUAL_ID) return "pro_annual";
-  if (productId === process.env.POLAR_CC_MONTHLY_ID) return "enterprise_monthly";
+  if (productId === process.env.POLAR_CC_MONTHLY_ID)
+    return "enterprise_monthly";
   if (productId === process.env.POLAR_CC_ANNUAL_ID) return "enterprise_annual";
   if (productId === process.env.POLAR_FREE_PRODUCT_ID) return "free";
 
@@ -59,7 +60,8 @@ function extractCustomerExternalId(data: any): string | null {
 }
 
 function extractCustomerEmail(data: any): string | null {
-  const email = data?.customer?.email || data?.customerEmail || data?.customer_email;
+  const email =
+    data?.customer?.email || data?.customerEmail || data?.customer_email;
   if (typeof email === "string" && email.length > 0) {
     return email;
   }
@@ -97,7 +99,8 @@ export async function POST(request: Request) {
     if (type === "subscription.created" || type === "subscription.updated") {
       const productId = extractProductId(data);
       const plan = planFromProductId(productId);
-      const userIdFromMetadata = extractUserId(data) || extractCustomerExternalId(data);
+      const userIdFromMetadata =
+        extractUserId(data) || extractCustomerExternalId(data);
       const customerEmail = extractCustomerEmail(data);
 
       let userId = userIdFromMetadata;
@@ -112,14 +115,18 @@ export async function POST(request: Request) {
 
       const updatePayload = {
         plan,
-        polar_customer_id: data.customerId || data.customer_id || data?.customer?.id || null,
+        polar_customer_id:
+          data.customerId || data.customer_id || data?.customer?.id || null,
         subscription_status: data.status || "active",
       };
 
       if (userId) {
         await client.from("users").update(updatePayload).eq("id", userId);
       } else if (customerEmail) {
-        await client.from("users").update(updatePayload).eq("email", customerEmail);
+        await client
+          .from("users")
+          .update(updatePayload)
+          .eq("email", customerEmail);
       }
     }
 
@@ -145,7 +152,10 @@ export async function POST(request: Request) {
       if (userId) {
         await client.from("users").update(updatePayload).eq("id", userId);
       } else if (customerEmail) {
-        await client.from("users").update(updatePayload).eq("email", customerEmail);
+        await client
+          .from("users")
+          .update(updatePayload)
+          .eq("email", customerEmail);
       }
     }
   } catch (error) {

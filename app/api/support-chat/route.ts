@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { groqComplete } from "@/lib/ai/groq";
 import { createClient } from "@/lib/supabase/server";
+import { auth } from '@clerk/nextjs/server';
 import { checkRateLimit, getClientIp } from "@/lib/security/rateLimit";
 import { sanitizePromptInput } from "@/lib/security/sanitize";
 
@@ -16,17 +17,15 @@ const bodySchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const { userId } = await auth();
+  if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  }
+
+  const supabase = await createClient();
 
     const clientIp = getClientIp(request);
-    const rate = checkRateLimit(`support-chat:${user.id}:${clientIp}`, {
+    const rate = checkRateLimit(`support-chat:${userId}:${clientIp}`, {
       windowMs: 60_000,
       max: 6,
     });
@@ -58,7 +57,7 @@ export async function POST(request: Request) {
     const systemPrompt =
       "You are Phish-Slayer AI Support, an expert cybersecurity SOC assistant. Help users navigate the platform, understand alerts, use features, and resolve issues. Be concise and technical.";
     const safeMessage = sanitizePromptInput(parsed.data.message, 2000);
-    const safeUserId = sanitizePromptInput(parsed.data.userId || user.id, 80);
+    const safeUserId = sanitizePromptInput(parsed.data.userId || userId, 80);
     const userPrompt = `Context:\n- User ID: ${safeUserId}\n\nUser message: ${safeMessage}`;
 
     let reply = "";

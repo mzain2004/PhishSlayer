@@ -58,6 +58,8 @@ jobs:
           OLLAMA_BASE_URL: http://localhost:11434
           OLLAMA_MODEL: llama3.1:8b
           NEXT_PUBLIC_SITE_URL: https://phishslayer.tech
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
 
       - name: Set deploy flag
         id: check
@@ -106,6 +108,7 @@ jobs:
             AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
             AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
             AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
 
   deploy-azure:
     name: Deploy to Azure VM
@@ -171,7 +174,7 @@ jobs:
           NEXT_PUBLIC_APP_URL=http://localhost:3000
           INTERNAL_API_URL=http://localhost:3000
           RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
-          CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
           ENVEOF
 

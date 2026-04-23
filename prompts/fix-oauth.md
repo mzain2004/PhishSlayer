@@ -1,11 +1,14 @@
-Task: Add CLERK_WEBHOOK_SECRET to GitHub Actions deploy workflow env block
+Task: Create Supabase migration for case management
 
-Read ONLY .github/workflows/deploy.yml
-Do not read any other file.
+Create file: supabase/migrations/20260424000001_cases.sql
 
-In the "Writing environment file" step inside deploy-azure job,
-add this line to the env block before ENVEOF:
-CLERK_WEBHOOK_SECRET=${{ secrets.CLERK_WEBHOOK_SECRET }}
+Tables needed:
+cases: id uuid primary key, org_id text, title text, severity text p1/p2/p3/p4, status text open/investigating/contained/closed, alert_type text, source_ip text, affected_asset text, mitre_tactic text, mitre_technique text, sla_deadline timestamptz, created_at timestamptz default now(), updated_at timestamptz, closed_at timestamptz
+case_timeline: id uuid primary key, case_id uuid references cases, action text, actor text, details jsonb, created_at timestamptz default now()
+case_evidence: id uuid primary key, case_id uuid references cases, evidence_type text, content jsonb, created_at timestamptz default now()
+ioc_store: id uuid primary key, case_id uuid references cases, ioc_type text, value text, enrichment jsonb, malicious bool, confidence_score int, first_seen timestamptz, last_seen timestamptz
 
-Do not change anything else.
-Commit: fix(ci): add CLERK_WEBHOOK_SECRET to deploy env and push.
+Add RLS: auth.jwt() ->> sub as user_id pattern same as existing policies
+
+Do not touch any other file.
+Commit: feat: case management schema and push.

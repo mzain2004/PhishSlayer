@@ -1,12 +1,9 @@
-Task: Create case management API routes
+Task: Create alert deduplication engine
 
-Create these 3 files only:
-app/api/cases/route.ts with GET list and POST create
-app/api/cases/[id]/route.ts with GET single and PATCH update
-app/api/cases/[id]/timeline/route.ts with GET and POST
-
-All routes need dynamic and runtime exports
-Auth: const userId from auth() from @clerk/nextjs/server
-Zod validation on all POST and PATCH payloads
+Create file lib/soc/deduplication.ts only
+Function: deduplicateAlerts taking RawAlert array returning DeduplicatedCase array
+Group by source_ip plus rule_id within 15 minute windows
+Output: id, alerts, count, first_seen, last_seen, representative_alert
+Also create lib/soc/types.ts with shared SOC types
 Do not touch any other file.
-Run npm run build, fix errors, commit: feat: case management API, push.
+Run npm run build, fix errors, commit: feat: alert deduplication engine, push.

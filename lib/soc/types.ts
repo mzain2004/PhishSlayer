@@ -10,6 +10,8 @@ export interface RawAlert {
   severity_level: number; // 1-15
   timestamp: string;
   raw_log: any; // jsonb
+  mitre_tactic?: string;
+  mitre_technique?: string;
   
   // Maintain compatibility with existing code
   title: string;
@@ -336,4 +338,25 @@ export interface ThreatIntelStats {
   last_sync_misp: Date | null;
   top_threat_types: string[];
   indicators_added_24h: number;
+}
+
+export type KillChainStage = "initial_access" | "execution" | "persistence" | "privilege_escalation" | "defense_evasion" | "credential_access" | "discovery" | "lateral_movement" | "collection" | "exfiltration" | "command_and_control";
+
+export interface AttackPathNode {
+  id: string;
+  stage: KillChainStage;
+  alert_id: string;
+  timestamp: Date;
+  description: string;
+  affected_asset: string;
+  evidence: any;
+}
+
+export interface AttackPath {
+  id: string;
+  nodes: AttackPathNode[];
+  root_cause_alert_id: string;
+  target_asset: string;
+  risk_score: number;
+  timeline_ms: number;
 }

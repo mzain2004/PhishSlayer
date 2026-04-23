@@ -1,9 +1,9 @@
-Task: Build complete Threat Intel Feeds system for PhishSlayer SOC platform
+Task: Build complete Log Ingestion Pipeline for PhishSlayer SOC platform
 
 Read ONLY these files:
 lib/soc/types.ts
-lib/soc/enrichment/index.ts
-lib/soc/sigma/generator.ts
+lib/soc/deduplication.ts
+app/api/cases/route.ts
 
 Do not read any other file.
 
@@ -11,168 +11,171 @@ Requirements:
 
 1. Update lib/soc/types.ts to add these types:
 
-ThreatIntelEntry with fields: id string, source enum otx or misp or internal,
-ioc_type enum ip or domain or hash or email or url, value string,
-threat_type string, confidence number 0-100, severity enum low or medium or high or critical,
-tags string array, mitre_techniques string array, first_seen Date, last_seen Date,
-expiry Date or null, active boolean, raw_data jsonb, case_id string or null
+RawLogEntry with fields: id string, source_type enum syslog or cef or leef or
+json or email or cloudtrail or azure_activity, source_ip string or null,
+raw_content string, parsed_fields jsonb, ingested_at Date,
+normalized NormalizedLog or null, org_id string
 
-OTXPulse with fields: id string, name string, description string,
-tags string array, indicators OTXIndicator array, created Date, modified Date
+NormalizedLog with fields: timestamp Date, source_ip string or null,
+destination_ip string or null, user string or null, hostname string or null,
+action string, outcome enum success or failure or unknown,
+severity number 1-15, category string, raw_event_id string or null,
+mitre_tactic string or null, mitre_technique string or null,
+extra_fields jsonb
 
-OTXIndicator with fields: type string, indicator string, description string or null
+LogIngestionStats with fields: total_received number, total_parsed number,
+total_failed number, sources_breakdown Record of string to number,
+avg_parse_time_ms number, last_ingested_at Date or null
 
-MISPEvent with fields: id string, info string, threat_level_id string,
-attributes MISPAttribute array, tags string array, date string
+CEFEvent with fields: version string, device_vendor string, device_product string,
+device_version string, signature_id string, name string, severity string,
+extensions Record of string to string
 
-MISPAttribute with fields: type string, value string, comment string or null,
-to_ids boolean, timestamp string
+2. Create lib/ingestion/normalizer.ts:
 
-ThreatIntelStats with fields: total_indicators number, active_indicators number,
-sources_breakdown Record of string to number, last_sync_otx Date or null,
-last_sync_misp Date or null, top_threat_types string array,
-indicators_added_24h number
+Function normalizeSyslog taking raw string returning NormalizedLog:
+Parse RFC 5424 syslog format: priority facility severity timestamp hostname app_name msg
+Extract PRI value and calculate facility as Math.floor(pri/8) and severity as pri mod 8
+Extract timestamp — handle both RFC 3164 and RFC 5424 formats
+Extract hostname, app_name, process_id, message
+Map syslog severity 0-7 to our 1-15 scale: multiply by 2 plus 1
+Return NormalizedLog with all extracted fields
 
-2. Create lib/soc/intel/otx.ts for AlienVault OTX integration:
+Function normalizeCEF taking raw string returning NormalizedLog:
+Parse CEF:0|vendor|product|version|sig_id|name|severity|extensions format
+Split on pipe character — first 7 fields are header
+Parse extensions as key=value pairs handling spaces in values
+Map CEF severity 0-10 to our 1-15 scale
+Extract src, dst, suser, duser, act fields from extensions
+Return NormalizedLog
 
-OTX_BASE_URL constant: https://otx.alienvault.com/api/v1
-OTX_API_KEY from process.env.OTX_API_KEY — if not set log warning and return empty array gracefully
+Function normalizeLEEF taking raw string returning NormalizedLog:
+Parse LEEF:2.0|vendor|product|version|eventid|attrs format
+Split on pipe for header, parse tab-separated attributes
+Extract src, dst, usrName, proto, devTime fields
+Return NormalizedLog
 
-Function fetchOTXPulses taking days_back number default 7 returning OTXPulse array:
-GET https://otx.alienvault.com/api/v1/pulses/subscribed?limit=50&modified_since={date}
-Header X-OTX-API-KEY from process.env.OTX_API_KEY
-date is ISO string of now minus days_back days
-Extract pulses array from response
-Return OTXPulse array
+Function normalizeJSON taking raw string returning NormalizedLog:
+Parse JSON safely with try catch
+Handle common JSON log formats from different sources
+Look for timestamp fields: timestamp, time, @timestamp, eventTime, TimeGenerated
+Look for IP fields: src, source, sourceIP, source_ip, remoteIP
+Look for user fields: user, username, userId, actor
+Return NormalizedLog with best-effort field mapping
 
-Function fetchOTXIndicatorsForIP taking ip string returning ThreatIntelEntry or null:
-GET https://otx.alienvault.com/api/v1/indicators/IPv4/{ip}/general
-If pulse_info.count greater than 0 return ThreatIntelEntry with source otx
-confidence based on pulse count: 1 pulse is 40, 2-5 pulses is 70, more than 5 is 90
-Return null if no pulses found
+Function normalizeCloudTrail taking raw string returning NormalizedLog:
+Parse AWS CloudTrail event JSON format
+Extract: eventTime, sourceIPAddress, userIdentity.userName or userIdentity.arn,
+eventName, errorCode, awsRegion, requestParameters
+Map errorCode present to outcome failure otherwise success
+Set category to cloudtrail
+Return NormalizedLog
 
-Function fetchOTXIndicatorsForDomain taking domain string returning ThreatIntelEntry or null:
-GET https://otx.alienvault.com/api/v1/indicators/domain/{domain}/general
-Same confidence logic as IP lookup
+Function normalizeAzureActivity taking raw string returning NormalizedLog:
+Parse Azure Activity Log JSON format
+Extract: eventTimestamp, callerIpAddress, caller, operationName.value,
+resultType, resourceType, resourceGroup
+Map resultType Failed to outcome failure otherwise success
+Set category to azure_activity
+Return NormalizedLog
 
-Function syncOTXFeed taking supabase client returning number count of new entries:
-Call fetchOTXPulses with days_back 1 for daily sync
-For each pulse for each indicator:
-Check if value already exists in threat_intel table
-If not exists: insert new ThreatIntelEntry with source otx
-If exists: update last_seen and raw_data
-Return count of new entries inserted
+Function autoDetectAndNormalize taking raw string returning NormalizedLog:
+Check if starts with CEF:0 — call normalizeCEF
+Check if starts with LEEF: — call normalizeLEEF
+Check if starts with less-than symbol and contains syslog PRI pattern — call normalizeSyslog
+Check if valid JSON — call normalizeJSON
+Otherwise call normalizeSyslog as fallback
+Return NormalizedLog
 
-3. Create lib/soc/intel/misp.ts for MISP integration:
+3. Create lib/ingestion/pipeline.ts with IngestionPipeline class:
 
-MISP_URL from process.env.MISP_URL — if not set return empty gracefully
-MISP_API_KEY from process.env.MISP_API_KEY — if not set return empty gracefully
+Constructor takes supabase client
 
-Function fetchMISPEvents taking limit number default 100 returning MISPEvent array:
-GET {MISP_URL}/events/index.json
-Header Authorization from process.env.MISP_API_KEY
-Header Accept application/json
-Extract events array
-Return MISPEvent array
+Method ingestLog taking raw_content string and source_type string and org_id string and source_ip string returning RawLogEntry:
+Call autoDetectAndNormalize from normalizer.ts
+Insert into raw_logs table with parsed_fields and normalized data
+Check deduplication: call deduplicateAlerts if normalized severity above 8
+If high severity: auto-create alert in alerts table
+Return RawLogEntry
 
-Function syncMISPFeed taking supabase client returning number:
-Call fetchMISPEvents
-For each event for each attribute where to_ids is true:
-Map MISP attribute type to our ioc_type:
-ip-src and ip-dst map to ip
-domain and hostname map to domain
-md5 and sha1 and sha256 map to hash
-email-src maps to email
-url maps to url
-Skip unknown types
-Check threat_intel table for existing entry
-Upsert with source misp and confidence 75 default
-Return count of new entries
+Method ingestBatch taking entries RawLogEntry array returning LogIngestionStats:
+Process all entries using Promise.allSettled for parallel ingestion
+Track success and failure counts
+Return LogIngestionStats
 
-4. Create lib/soc/intel/internal.ts for internal threat intel from cases:
+Method ingestEmail taking imap_config object returning number count:
+Use node-imap package to connect to IMAP server
+Config fields: host, port, user, password, tls boolean all from env:
+IMAP_HOST, IMAP_PORT, IMAP_USER, IMAP_PASSWORD
+Search UNSEEN emails in INBOX
+For each email: extract subject, from, body, attachments list
+Parse for phishing indicators: suspicious links, spoofed domains, malicious attachments
+Create RawLogEntry with source_type email
+Mark email as seen after processing
+Return count of processed emails
 
-Function buildInternalIntel taking supabase client returning number:
-Query ioc_store table where malicious is true and confidence_score greater than 70
-For each IOC: upsert into threat_intel table with source internal
-Set confidence from confidence_score, set case_id reference
-This creates internal intel from analyst-confirmed malicious IOCs
-Return count of entries synced
+Method ingestCloudTrail taking s3_bucket string and prefix string returning number:
+Note: actual S3 fetch requires AWS SDK — create stub implementation
+Log: CloudTrail ingestion from {s3_bucket}/{prefix} — AWS SDK integration pending
+Create placeholder RawLogEntry with source_type cloudtrail
+Return 0 as stub — full implementation requires AWS_ACCESS_KEY_ID in env
 
-Function checkInternalIntel taking value string and ioc_type string and supabase client:
-Query threat_intel table where value equals input and source is internal and active is true
-Return ThreatIntelEntry or null
+4. Create app/api/ingest/route.ts:
+POST endpoint accepting single log entry
+Body: raw_content string, source_type string, org_id string
+Auth: validate INGEST_API_KEY from request header x-api-key against process.env.INGEST_API_KEY
+Do NOT use Clerk auth here — this endpoint is called by external systems not browsers
+Zod validation on payload
+Call pipeline.ingestLog and return RawLogEntry
+Add dynamic and runtime exports
 
-5. Create lib/soc/intel/index.ts as main intel router:
+5. Create app/api/ingest/batch/route.ts:
+POST endpoint accepting array of log entries up to 1000 per request
+Header auth via INGEST_API_KEY same as above
+Zod validation: array max 1000 items
+Call pipeline.ingestBatch and return LogIngestionStats
+Add dynamic and runtime exports
 
-Export function syncAllFeeds taking supabase client returning ThreatIntelStats:
-Run otxSync, mispSync, internalSync in sequence
-Log results: OTX added {n}, MISP added {n}, Internal added {n}
-Update last_sync timestamps in a intel_sync_log table
-Return ThreatIntelStats
+6. Create app/api/ingest/email/route.ts:
+POST endpoint to trigger IMAP email ingestion manually
+Clerk auth required — this is triggered by analyst or cron
+Call pipeline.ingestEmail with env config
+Return count of processed emails
+Add dynamic and runtime exports
 
-Export function checkIOCAgainstIntel taking value string and ioc_type string and supabase client:
-Query threat_intel table where value equals input and active is true
-Return ThreatIntelEntry or null
-This is called by enrichment pipeline to cross-reference against known threats
+7. Create supabase/migrations/20260424000009_ingestion.sql:
 
-Export function getIntelStats taking supabase client returning ThreatIntelStats:
-Query threat_intel table for counts by source and ioc_type
-Return ThreatIntelStats object
-
-6. Update lib/soc/enrichment/index.ts:
-Import checkIOCAgainstIntel from lib/soc/intel/index
-In enrichIOC function: before calling external APIs check internal intel first
-If internal intel hit found with confidence above 80: return immediately with cached result
-This means known-bad IOCs resolve instantly without burning API quota
-
-7. Create supabase/migrations/20260424000007_intel.sql:
-
-ALTER TABLE public.threat_intel ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'internal';
-ALTER TABLE public.threat_intel ADD COLUMN IF NOT EXISTS ioc_type TEXT;
-ALTER TABLE public.threat_intel ADD COLUMN IF NOT EXISTS confidence INTEGER DEFAULT 50;
-ALTER TABLE public.threat_intel ADD COLUMN IF NOT EXISTS expiry TIMESTAMPTZ;
-ALTER TABLE public.threat_intel ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
-ALTER TABLE public.threat_intel ADD COLUMN IF NOT EXISTS case_id UUID;
-ALTER TABLE public.threat_intel ADD COLUMN IF NOT EXISTS mitre_techniques TEXT[];
-ALTER TABLE public.threat_intel ADD COLUMN IF NOT EXISTS raw_data JSONB;
-
-CREATE TABLE IF NOT EXISTS public.intel_sync_log (
+CREATE TABLE IF NOT EXISTS public.raw_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  source TEXT NOT NULL,
-  entries_added INTEGER DEFAULT 0,
-  entries_updated INTEGER DEFAULT 0,
-  sync_duration_ms INTEGER,
-  error TEXT,
-  synced_at TIMESTAMPTZ DEFAULT now()
+  org_id TEXT NOT NULL,
+  source_type TEXT NOT NULL,
+  source_ip TEXT,
+  raw_content TEXT NOT NULL,
+  parsed_fields JSONB DEFAULT '{}'::jsonb,
+  normalized JSONB DEFAULT '{}'::jsonb,
+  ingested_at TIMESTAMPTZ DEFAULT now(),
+  processed BOOLEAN DEFAULT false,
+  alert_created BOOLEAN DEFAULT false
 );
 
-ALTER TABLE public.intel_sync_log ENABLE ROW LEVEL SECURITY;
+CREATE INDEX IF NOT EXISTS idx_raw_logs_org_id ON public.raw_logs(org_id);
+CREATE INDEX IF NOT EXISTS idx_raw_logs_source_type ON public.raw_logs(source_type);
+CREATE INDEX IF NOT EXISTS idx_raw_logs_ingested_at ON public.raw_logs(ingested_at DESC);
+CREATE INDEX IF NOT EXISTS idx_raw_logs_processed ON public.raw_logs(processed);
+
+ALTER TABLE public.raw_logs ENABLE ROW LEVEL SECURITY;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'intel_sync_log' AND policyname = 'intel_sync_log_policy') THEN
-    CREATE POLICY "intel_sync_log_policy" ON public.intel_sync_log USING (auth.jwt() IS NOT NULL);
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'raw_logs'
+  AND policyname = 'raw_logs_policy') THEN
+    CREATE POLICY "raw_logs_policy" ON public.raw_logs
+    USING (auth.jwt() IS NOT NULL);
   END IF;
 END $$;
 
-CREATE INDEX IF NOT EXISTS idx_threat_intel_value ON public.threat_intel(value);
-CREATE INDEX IF NOT EXISTS idx_threat_intel_source ON public.threat_intel(source);
-CREATE INDEX IF NOT EXISTS idx_threat_intel_active ON public.threat_intel(active);
-
-8. Create app/api/intel/sync/route.ts:
-POST endpoint to manually trigger full feed sync
-Auth required, protect with admin check
-Call syncAllFeeds and return ThreatIntelStats
-Add dynamic and runtime exports
-
-9. Create app/api/intel/stats/route.ts:
-GET endpoint returning current intel stats
-Auth required
-Call getIntelStats and return result
-Add dynamic and runtime exports
-
-10. Update cron route to sync intel feeds daily at 01:00 UTC before hunts run:
-Add call to syncAllFeeds in cron handler before huntEngine.scheduleHunts
-This ensures fresh intel is available when hunts run at 02:00 UTC
+8. Update cron route to trigger email ingestion daily at 00:00 UTC:
+Add call to pipeline.ingestEmail before intel sync
+This ensures phishing emails are ingested first then intel syncs then hunts run
 
 Run npm run build, fix all errors.
-Commit: feat: complete threat intel feeds OTX MISP internal store, push.  
+Commit: feat: complete log ingestion pipeline syslog CEF LEEF JSON email cloudtrail, push.

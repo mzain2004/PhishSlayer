@@ -360,3 +360,50 @@ export interface AttackPath {
   risk_score: number;
   timeline_ms: number;
 }
+
+export interface NormalizedLog {
+  timestamp: Date;
+  source_ip: string | null;
+  destination_ip: string | null;
+  user: string | null;
+  hostname: string | null;
+  action: string;
+  outcome: "success" | "failure" | "unknown";
+  severity: number; // 1-15
+  category: string;
+  raw_event_id: string | null;
+  mitre_tactic: string | null;
+  mitre_technique: string | null;
+  extra_fields: any;
+}
+
+export interface RawLogEntry {
+  id: string;
+  source_type: "syslog" | "cef" | "leef" | "json" | "email" | "cloudtrail" | "azure_activity";
+  source_ip: string | null;
+  raw_content: string;
+  parsed_fields: any;
+  ingested_at: Date;
+  normalized: NormalizedLog | null;
+  org_id: string;
+}
+
+export interface LogIngestionStats {
+  total_received: number;
+  total_parsed: number;
+  total_failed: number;
+  sources_breakdown: Record<string, number>;
+  avg_parse_time_ms: number;
+  last_ingested_at: Date | null;
+}
+
+export interface CEFEvent {
+  version: string;
+  device_vendor: string;
+  device_product: string;
+  device_version: string;
+  signature_id: string;
+  name: string;
+  severity: string;
+  extensions: Record<string, string>;
+}

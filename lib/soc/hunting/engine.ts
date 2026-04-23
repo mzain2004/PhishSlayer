@@ -1,13 +1,16 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { HuntMission, HuntFinding, HuntHypothesis } from "../types";
+import { HuntMission, HuntFinding, HuntHypothesis, SigmaRule } from "../types";
 import { HYPOTHESES } from "./hypotheses";
 import { v4 as uuidv4 } from "uuid";
+import { SigmaGenerator } from "../sigma/generator";
 
 export class HuntEngine {
   private supabase: SupabaseClient;
+  private sigmaGenerator: SigmaGenerator;
 
   constructor(supabase: SupabaseClient) {
     this.supabase = supabase;
+    this.sigmaGenerator = new SigmaGenerator(supabase);
   }
 
   public async runHunt(hypothesis_id: string, org_id: string): Promise<HuntMission> {
@@ -32,8 +35,6 @@ export class HuntEngine {
 
     try {
       // 2. Execute Query
-      // Note: Real implementation would use the hypothesis.query string in a raw SQL call or filtered RPC.
-      // For this implementation, we simulate the results via Supabase query builder.
       const query = this.supabase.from("alerts").select("*").eq("org_id", org_id);
       
       // Special logic for specific hypotheses
@@ -46,10 +47,9 @@ export class HuntEngine {
         findings = data || [];
       } else {
         // Generic regex search simulation for others
-        const { data, count } = await query.limit(100); // Simulate scanning
+        const { data, count } = await query.limit(100); 
         findings = (data || []).filter(a => {
             const logStr = JSON.stringify(a.raw_log || "");
-            // This is a simplified simulation of the SQL regex
             return logStr.toLowerCase().includes("suspicious") || Math.random() > 0.95;
         });
         alertsScanned = count || (data?.length || 0);
@@ -77,6 +77,18 @@ export class HuntEngine {
             ...f,
             created_at: f.created_at.toISOString()
         })));
+
+        // ── Auto-generate Sigma rules for high/critical ──────────
+        for (const finding of huntFindings) {
+            if (finding.severity === "critical" || finding.severity === "high") {
+                try {
+                    await this.sigmaGenerator.generateAndDeploy(finding);
+                    console.info(`[sigma] Rule generated and deployed for finding: ${finding.title}`);
+                } catch (err) {
+                    console.error("[sigma] Auto-gen failed:", err);
+                }
+            }
+        }
       }
 
       // 4. Update Mission

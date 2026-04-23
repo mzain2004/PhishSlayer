@@ -1,9 +1,9 @@
-Task: Build complete Hunt Mission Scheduler for PhishSlayer SOC platform
+Task: Build complete Sigma Rule Auto-Generator for PhishSlayer SOC platform
 
 Read ONLY these files:
+lib/soc/hunting/engine.ts
+lib/soc/hunting/hypotheses.ts
 lib/soc/types.ts
-lib/soc/ueba.ts
-lib/soc/deduplication.ts
 
 Do not read any other file.
 
@@ -11,162 +11,139 @@ Requirements:
 
 1. Update lib/soc/types.ts to add these types:
 
-HuntHypothesis with fields: id string, name string, description string,
-mitre_tactic string, mitre_technique string, query string,
-severity enum low or medium or high or critical,
-last_run Date or null, last_findings number, active boolean
+SigmaRule with fields: id string, title string, description string,
+status enum experimental or test or stable, level enum low or medium or high or critical,
+logsource SigmaLogsource, detection SigmaDetection, falsepositives string array,
+tags string array of MITRE tags like attack.t1059, author string default PhishSlayer,
+created_at Date, hunt_finding_id string or null, tested boolean, deployed boolean,
+wazuh_rule_id string or null
 
-HuntMission with fields: id string, hypothesis_id string, hypothesis_name string,
-status enum scheduled or running or completed or failed,
-started_at Date or null, completed_at Date or null,
-findings HuntFinding array, alerts_scanned number,
-sigma_rule_generated boolean, org_id string
+SigmaLogsource with fields: category string, product string, service string or null
 
-HuntFinding with fields: id string, mission_id string, hypothesis_id string,
-title string, description string, severity string, evidence jsonb,
-affected_assets string array, mitre_tactic string, mitre_technique string,
-recommended_action string, created_at Date, case_id string or null
+SigmaDetection with fields: selection jsonb, condition string,
+timeframe string or null like 15m or 1h
 
-2. Create lib/soc/hunting/hypotheses.ts with all 10 core hypotheses:
+SigmaGenerationResult with fields: rule SigmaRule, yaml_content string,
+test_result SigmaTestResult or null, deployed boolean, wazuh_rule_id string or null
 
-Hypothesis 1 powershell_abuse:
-name: PowerShell Abuse Detection
-mitre_tactic: Execution, mitre_technique: T1059.001
-Query alerts table where raw_log contains powershell or encoded command or
-bypass or downloadstring or invoke-expression or IEX
-Severity critical
+SigmaTestResult with fields: matched_alerts number, false_positive_rate number,
+test_duration_ms number, sample_matches jsonb array, approved boolean
 
-Hypothesis 2 impossible_travel:
-name: Impossible Travel Detection
-mitre_tactic: Initial Access, mitre_technique: T1078
-Query alerts table for same user_id with different source_ip countries
-within 2 hour window — join with ueba_anomalies where anomaly_type is impossible_travel
-Severity critical
-
-Hypothesis 3 pass_the_hash:
-name: Pass-the-Hash Attack
-mitre_tactic: Lateral Movement, mitre_technique: T1550.002
-Query alerts where raw_log contains NTLM or pass-the-hash or pth or
-mimikatz or sekurlsa or lsass
-Severity critical
-
-Hypothesis 4 data_staging:
-name: Data Staging Detection
-mitre_tactic: Collection, mitre_technique: T1074
-Query alerts where raw_log contains temp or staging or compress or
-zip or rar or 7zip and file size indicators
-Severity high
-
-Hypothesis 5 lolbins:
-name: Living off the Land Binaries
-mitre_tactic: Defense Evasion, mitre_technique: T1218
-Query alerts where raw_log contains certutil or regsvr32 or mshta or
-wscript or cscript or rundll32 or msiexec with suspicious arguments
-Severity high
-
-Hypothesis 6 new_admin_accounts:
-name: New Admin Account Creation
-mitre_tactic: Persistence, mitre_technique: T1136
-Query alerts where raw_log contains useradd or net user or
-new account or administrator or admin and created
-Severity high
-
-Hypothesis 7 large_file_transfers:
-name: Abnormal Large File Transfer
-mitre_tactic: Exfiltration, mitre_technique: T1041
-Query alerts where raw_log contains bytes transferred or file size
-Extract numeric value and flag if greater than 100MB meaning 104857600 bytes
-Severity high
-
-Hypothesis 8 disabled_security_tools:
-name: Security Tool Tampering
-mitre_tactic: Defense Evasion, mitre_technique: T1562
-Query alerts where raw_log contains defender or antivirus or firewall or
-wazuh or sysmon and stopped or disabled or killed or terminated
-Severity critical
-
-Hypothesis 9 wmi_persistence:
-name: WMI Persistence Detection
-mitre_tactic: Persistence, mitre_technique: T1546.003
-Query alerts where raw_log contains wmic or WMI or
-win32_process or EventFilter or CommandLineEventConsumer
-Severity high
-
-Hypothesis 10 outside_hours_logins:
-name: Outside Business Hours Login
-mitre_tactic: Initial Access, mitre_technique: T1078
-Query alerts where alert_type contains login or auth or authentication
-Extract timestamp hour and flag if hour less than 7 or greater than 19
-Cross-reference with ueba_profiles baseline_login_hours
-Severity medium
-
-3. Create lib/soc/hunting/engine.ts with HuntEngine class:
+2. Create lib/soc/sigma/generator.ts with SigmaGenerator class:
 
 Constructor takes supabase client
 
-Method runHunt taking hypothesis_id string and org_id string returning HuntMission:
-Insert new hunt_missions row with status running and started_at now
-Load hypothesis from hypotheses map in hypotheses.ts
-Execute hypothesis query against Supabase alerts table
-For each result found: create HuntFinding and insert into hunt_findings table
-If findings count greater than 0: set sigma_rule_generated flag true — actual generation in P15
-Update hunt_missions row with status completed, completed_at, findings count
-Log to console: Hunt {hypothesis_name} completed — {count} findings
-Return completed HuntMission
+Method generateFromFinding taking finding HuntFinding returning SigmaGenerationResult:
 
-Method runAllHunts taking org_id string returning HuntMission array:
-Run all 10 hypotheses sequentially to avoid overwhelming Supabase
-Return array of all HuntMission results
+Step 1 build detection logic:
+Analyze finding.evidence jsonb to extract key indicators
+Extract process names, command patterns, file paths, registry keys, network indicators
+Build selection object mapping fieldnames to indicator values
+Example: if evidence contains powershell and encodedcommand
+Selection becomes: CommandLine contains powershell and contains encodedcommand
 
-Method scheduleHunts taking org_id string returning void:
-This method is called by cron-runner container daily at 02:00 UTC
-Use node-cron syntax: 0 2 * * *
-Call runAllHunts and log results
-If any mission has findings count greater than 0 create a case via Supabase insert
-Case title: Automated Hunt Finding: {hypothesis_name}
-Case severity: match hypothesis severity — critical to p1, high to p2, medium to p3
-Case alert_type: threat_hunt
-Case status: open
+Step 2 determine logsource:
+If finding.mitre_tactic contains Execution or Defense Evasion set category process_creation
+If finding.mitre_tactic contains Network or Exfiltration set category network_connection
+If finding.mitre_tactic contains Persistence set category registry_event
+Otherwise default to category process_creation with product windows
 
-Method getHuntHistory taking org_id string returning HuntMission array:
-Query hunt_missions table ordered by started_at desc limit 50
-Join with hunt_findings count per mission
-Return results
+Step 3 build complete SigmaRule object:
+Title: Auto-Generated: {finding.title}
+Description: {finding.description}
+Status: experimental always for auto-generated rules
+Level: map finding severity — critical to critical, high to high, medium to medium
+Tags: array with attack.{finding.mitre_technique.toLowerCase()} and
+attack.{finding.mitre_tactic.toLowerCase().replace space with underscore}
+Author: PhishSlayer AutoGen
+Falsepositives: array with legitimate administrative activity and authorized security tools
 
-4. Create supabase/migrations/20260424000005_hunting.sql:
+Step 4 convert to YAML string:
+Generate valid Sigma YAML format:
+title field, id field as uuid, status field, description field,
+logsource block with category and product,
+detection block with selection and condition: selection,
+falsepositives list, level field, tags list
+Use proper YAML indentation — 4 spaces for nested fields
+Wrap string values containing special characters in quotes
 
-Table hunt_missions: id uuid primary key, hypothesis_id text, hypothesis_name text,
-status text default scheduled, org_id text, started_at timestamptz,
-completed_at timestamptz, alerts_scanned integer default 0,
-findings_count integer default 0, sigma_rule_generated boolean default false,
-created_at timestamptz default now()
+Step 5 insert into sigma_rules table:
+Store rule object and yaml_content
+Set tested false and deployed false initially
+Link to hunt_finding_id
 
-Table hunt_findings: id uuid primary key, mission_id uuid references hunt_missions,
-hypothesis_id text, title text, description text, severity text,
-evidence jsonb, affected_assets text array, mitre_tactic text,
-mitre_technique text, recommended_action text,
-case_id uuid, created_at timestamptz default now()
+Return SigmaGenerationResult with rule and yaml_content
 
-Add index on hunt_missions org_id and started_at
-Add index on hunt_findings mission_id and severity
-Add RLS policies using auth.jwt() ->> sub pattern same as existing tables
+Method testRule taking rule SigmaRule returning SigmaTestResult:
 
-5. Create app/api/hunting/run/route.ts:
-POST endpoint to trigger a single hunt by hypothesis_id
-Auth: const userId from auth() from @clerk/nextjs/server
-Zod validation: hypothesis_id must be one of the 10 valid hypothesis IDs
-Call huntEngine.runHunt and return HuntMission result
-Add dynamic and runtime exports
+Query alerts table from last 7 days
+Apply detection selection conditions against raw_log jsonb field
+Use Supabase contains operator for jsonb matching
+Count matching alerts as matched_alerts
+Sample up to 5 matching alerts as sample_matches
 
-6. Create app/api/hunting/history/route.ts:
-GET endpoint returning hunt history for org
+Calculate false_positive_rate:
+Query suppression_rules and feedback_entries for same indicators
+If known FP indicators match more than 30 percent of results set approved false
+Otherwise set approved true if matched_alerts is less than 1000
+
+Update sigma_rules table: set tested true, test results in evidence jsonb
+Return SigmaTestResult
+
+Method deployToWazuh taking rule SigmaRule returning string wazuh_rule_id:
+
+Convert Sigma rule to Wazuh XML format:
+Build XML string with group name PhishSlayer_AutoGen
+Rule id: generate numeric ID starting from 200000 incremented per rule
+Level: map critical to 15, high to 12, medium to 8, low to 5
+Description from rule title
+Match on full_log field using regex patterns extracted from selection
+Add mitre tags using mitre block with id tags
+
+POST converted XML to Wazuh Manager API:
+URL: http://167.172.85.62:55000/rules — auth via WAZUH_API_USER and WAZUH_API_PASSWORD
+If Wazuh API unavailable: save rule locally in sigma_rules table with deployed false
+Log error but do not throw — deployment failure is non-critical
+
+Update sigma_rules table: set deployed true, wazuh_rule_id
+Return wazuh_rule_id string
+
+Method generateAndDeploy taking finding HuntFinding returning SigmaGenerationResult:
+Call generateFromFinding then testRule then if approved call deployToWazuh
+Return complete SigmaGenerationResult with all fields populated
+
+Method getPendingRules returning SigmaRule array:
+Query sigma_rules where tested false or deployed false
+Return array for manual review
+
+3. Update lib/soc/hunting/engine.ts:
+Import SigmaGenerator from lib/soc/sigma/generator
+After runHunt completes and findings exist:
+For each finding with severity critical or high:
+Call sigmaGenerator.generateAndDeploy with the finding
+Update hunt_missions sigma_rule_generated to true
+Log: Sigma rule generated and deployed for finding {finding.title}
+
+4. Update supabase sigma_rules table — add missing columns if table exists:
+Create supabase/migrations/20260424000006_sigma.sql:
+ALTER TABLE public.sigma_rules ADD COLUMN IF NOT EXISTS hunt_finding_id UUID;
+ALTER TABLE public.sigma_rules ADD COLUMN IF NOT EXISTS yaml_content TEXT;
+ALTER TABLE public.sigma_rules ADD COLUMN IF NOT EXISTS tested BOOLEAN DEFAULT false;
+ALTER TABLE public.sigma_rules ADD COLUMN IF NOT EXISTS deployed BOOLEAN DEFAULT false;
+ALTER TABLE public.sigma_rules ADD COLUMN IF NOT EXISTS wazuh_rule_id TEXT;
+ALTER TABLE public.sigma_rules ADD COLUMN IF NOT EXISTS test_results JSONB;
+ALTER TABLE public.sigma_rules ADD COLUMN IF NOT EXISTS author TEXT DEFAULT PhishSlayer;
+
+5. Create app/api/sigma/route.ts:
+GET endpoint returning all sigma rules with tested and deployed status
 Auth required, add dynamic and runtime exports
 
-7. Update app/api/cron/route.ts if it exists or create it:
-Add hunt scheduler trigger alongside existing cron jobs
-Call huntEngine.scheduleHunts with system org_id
-Protect with CRON_SECRET from env
+6. Create app/api/sigma/[id]/deploy/route.ts:
+POST endpoint to manually trigger deployment of a specific rule to Wazuh
+Auth required
+Call sigmaGenerator.deployToWazuh with rule fetched from sigma_rules table
+Return deployment result with wazuh_rule_id
 Add dynamic and runtime exports
 
 Run npm run build, fix all errors.
-Commit: feat: complete hunt mission scheduler with 10 hypotheses, push.
+Commit: feat: complete Sigma rule auto-generator with Wazuh deployment, push.

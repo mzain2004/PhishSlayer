@@ -230,3 +230,49 @@ export interface HuntFinding {
   created_at: Date;
   case_id: string | null;
 }
+
+export interface SigmaLogsource {
+  category: string;
+  product: string;
+  service: string | null;
+}
+
+export interface SigmaDetection {
+  selection: any;
+  condition: string;
+  timeframe: string | null; // e.g., 15m, 1h
+}
+
+export interface SigmaRule {
+  id: string;
+  title: string;
+  description: string;
+  status: "experimental" | "test" | "stable";
+  level: "low" | "medium" | "high" | "critical";
+  logsource: SigmaLogsource;
+  detection: SigmaDetection;
+  falsepositives: string[];
+  tags: string[];
+  author: string;
+  created_at: Date;
+  hunt_finding_id: string | null;
+  tested: boolean;
+  deployed: boolean;
+  wazuh_rule_id: string | null;
+}
+
+export interface SigmaTestResult {
+  matched_alerts: number;
+  false_positive_rate: number;
+  test_duration_ms: number;
+  sample_matches: any[];
+  approved: boolean;
+}
+
+export interface SigmaGenerationResult {
+  rule: SigmaRule;
+  yaml_content: string;
+  test_result: SigmaTestResult | null;
+  deployed: boolean;
+  wazuh_rule_id: string | null;
+}

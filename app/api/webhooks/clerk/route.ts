@@ -67,7 +67,7 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error('Error syncing user created:', error)
-      return new Response('Error: Failed to sync user created', { status: 500 })
+      return new Response('Error: Failed to sync user created', { status: 400 })
     }
   }
 
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error('Error syncing user deleted:', error)
-      return new Response('Error: Failed to sync user deleted', { status: 500 })
+      return new Response('Error: Failed to sync user deleted', { status: 400 })
     }
   }
 

@@ -188,3 +188,45 @@ export interface EntityRiskScore {
   last_calculated: Date;
   trend: "increasing" | "decreasing" | "stable";
 }
+
+export interface HuntHypothesis {
+  id: string;
+  name: string;
+  description: string;
+  mitre_tactic: string;
+  mitre_technique: string;
+  query: string;
+  severity: "low" | "medium" | "high" | "critical";
+  last_run: Date | null;
+  last_findings: number;
+  active: boolean;
+}
+
+export interface HuntMission {
+  id: string;
+  hypothesis_id: string;
+  hypothesis_name: string;
+  status: "scheduled" | "running" | "completed" | "failed";
+  started_at: Date | null;
+  completed_at: Date | null;
+  findings: HuntFinding[];
+  alerts_scanned: number;
+  sigma_rule_generated: boolean;
+  org_id: string;
+}
+
+export interface HuntFinding {
+  id: string;
+  mission_id: string;
+  hypothesis_id: string;
+  title: string;
+  description: string;
+  severity: string;
+  evidence: any;
+  affected_assets: string[];
+  mitre_tactic: string;
+  mitre_technique: string;
+  recommended_action: string;
+  created_at: Date;
+  case_id: string | null;
+}

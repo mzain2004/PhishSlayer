@@ -1,9 +1,11 @@
-Task: Create alert deduplication engine
+Task: Create playbook engine with phishing playbook
 
-Create file lib/soc/deduplication.ts only
-Function: deduplicateAlerts taking RawAlert array returning DeduplicatedCase array
-Group by source_ip plus rule_id within 15 minute windows
-Output: id, alerts, count, first_seen, last_seen, representative_alert
-Also create lib/soc/types.ts with shared SOC types
+Create these 3 files only:
+lib/soc/playbooks/types.ts with Playbook, PlaybookStep, PlaybookResult types
+lib/soc/playbooks/engine.ts with PlaybookEngine class
+lib/soc/playbooks/phishing.ts with full phishing response playbook
+
+Phishing steps: extractIOCs then enrichIOCs then blockSender then notifyUsers then createReport
+Each step logs to case timeline via Supabase using createClient from @/lib/supabase/server
 Do not touch any other file.
-Run npm run build, fix errors, commit: feat: alert deduplication engine, push.
+Run npm run build, fix errors, commit: feat: playbook engine, push.

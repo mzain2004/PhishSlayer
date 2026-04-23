@@ -1,9 +1,9 @@
-Task: Build complete Auto-Close Engine for PhishSlayer SOC platform
+Task: Build complete UEBA User Entity Behavior Analytics engine for PhishSlayer
 
 Read ONLY these files:
 lib/soc/types.ts
+lib/soc/autoclose.ts
 lib/soc/deduplication.ts
-supabase/migrations/20260424000002_dedup.sql
 
 Do not read any other file.
 
@@ -11,102 +11,117 @@ Requirements:
 
 1. Update lib/soc/types.ts to add these types:
 
-SuppressionRule with fields: id string, rule_type enum ip or cidr or rule_id or
-hostname or application, value string, reason string, created_by string,
-hit_count number, last_hit Date or null, active boolean
+UserBehaviorProfile with fields: user_id string, username string, org_id string,
+baseline_login_hours number array 0-23 representing normal login hours,
+baseline_locations string array of normal country codes,
+baseline_devices string array of normal device fingerprints,
+avg_daily_alerts number, risk_score number 0-100,
+last_updated Date, anomalies UEBAAnomaly array
 
-AutoCloseResult with fields: case_id string, action enum suppressed or auto_closed
-or escalated, reason string, suppression_rule_id string or null,
-confidence number 0-100, timestamp Date
+UEBAAnomaly with fields: id string, user_id string, anomaly_type enum
+impossible_travel or off_hours_login or new_device or excessive_failed_logins
+or privilege_escalation or mass_download or lateral_movement,
+severity enum low or medium or high or critical,
+description string, evidence jsonb, detected_at Date,
+case_id string or null, suppressed boolean
 
-FeedbackEntry with fields: id string, case_id string, original_action string,
-analyst_decision enum true_positive or false_positive or benign,
-analyst_id string, notes string or null, created_at Date,
-alert_type string, source_ip string, rule_id string
+EntityRiskScore with fields: entity_id string, entity_type enum user or host or ip,
+score number 0-100, factors RiskFactor array, last_calculated Date, trend enum
+increasing or decreasing or stable
 
-2. Create lib/soc/autoclose.ts with AutoCloseEngine class:
+RiskFactor with fields: name string, contribution number, description string
+
+2. Create lib/soc/ueba.ts with UEBAEngine class:
 
 Constructor takes supabase client
 
-Method evaluateCase taking case_id string and alert RawAlert returning AutoCloseResult:
+Method analyzeUserBehavior taking user_id string and alert RawAlert returning UEBAAnomaly array:
 
-Step 1 check IP whitelist:
-Query suppression_rules table where rule_type is ip and value equals alert source_ip and active is true
-If match found: update case status to closed, log to case_timeline with actor system,
-increment hit_count on rule, return AutoCloseResult with action suppressed
+Check 1 impossible_travel:
+Query last 5 alerts for this user_id from alerts table ordered by timestamp desc
+If current alert source_ip country differs from previous alert country
+AND time between alerts is less than 2 hours
+Create UEBAAnomaly with anomaly_type impossible_travel and severity critical
+Description: User logged in from {country1} and {country2} within {minutes} minutes
 
-Step 2 check CIDR ranges:
-Query suppression_rules where rule_type is cidr and active is true
-Check if alert source_ip falls within any CIDR using simple IP range comparison
-Known scanner CIDRs to always include: 45.33.32.0/24, 209.197.3.0/24, 71.6.135.0/24
-These are Shodan, Censys, and known research scanners
-If match: auto-close case with reason known_scanner
+Check 2 off_hours_login:
+Extract hour from alert timestamp
+Query user baseline_login_hours from ueba_profiles table
+If hour not in baseline_login_hours array and alert_type contains login or auth
+Create UEBAAnomaly with anomaly_type off_hours_login and severity medium
+If hour is between 0 and 5 set severity high
 
-Step 3 check rule_id suppression:
-Query suppression_rules where rule_type is rule_id and value equals alert rule_id
-Known Wazuh false positive rule IDs to always suppress: 5706, 5710, 5712, 5716, 554
-If match: auto-close with reason known_false_positive_rule
+Check 3 excessive_failed_logins:
+Query alerts table for same user_id and rule_id containing 5710 or 5712
+Count alerts in last 15 minutes
+If count greater than 10 create UEBAAnomaly with anomaly_type excessive_failed_logins
+severity high, description: {count} failed logins in 15 minutes
 
-Step 4 check application whitelist:
-Query suppression_rules where rule_type is application
-Check if alert raw_log contains any whitelisted application name
-If match: auto-close with reason whitelisted_application
+Check 4 privilege_escalation:
+Check if alert raw_log contains keywords: sudo, privilege, escalat, admin, root
+If found create UEBAAnomaly with anomaly_type privilege_escalation severity critical
 
-Step 5 check FP feedback loop:
-Query feedback_entries table where source_ip equals alert source_ip
-and rule_id equals alert rule_id and analyst_decision is false_positive
-Count matching entries
-If count is greater than or equal to 3: auto-close with reason learned_false_positive
-This is the feedback loop — analyst decisions train suppression automatically
+Return all detected anomalies array
 
-If no rule matches: return AutoCloseResult with action escalated meaning needs human review
+Method calculateEntityRiskScore taking entity_id string and entity_type string returning EntityRiskScore:
 
-Method recordFeedback taking FeedbackEntry returning void:
-Insert into feedback_entries table
-Check if this pushes any source_ip plus rule_id combination to 3 or more false_positive decisions
-If threshold reached: automatically insert new suppression_rule with rule_type ip
-Log to console: Auto-suppression rule created for {source_ip} based on analyst feedback
+Query last 30 days of alerts for this entity from alerts table
+Query ueba_anomalies table for this entity last 30 days
+Calculate score using these weights:
+Critical anomaly in last 24h adds 40 points
+High anomaly in last 24h adds 25 points
+Medium anomaly in last 24h adds 10 points
+Each unique anomaly_type in last 7 days adds 5 points
+More than 100 alerts in last 24h adds 15 points
+Cap final score at 100
 
-Method getSuppressionsStats returning object:
-Query suppression_rules count by rule_type
-Query feedback_entries count by analyst_decision
-Query cases closed in last 24 hours with actor system meaning auto-closed
-Return total_suppressions, rules_by_type, fp_rate, auto_close_rate last 24h
+Determine trend by comparing current score to score 7 days ago:
+If difference greater than 10 set trend increasing
+If difference less than -10 set trend decreasing
+Otherwise stable
 
-Method addSuppressionRule taking SuppressionRule returning void:
-Insert into suppression_rules table
-Validate no duplicate value plus rule_type combination
+Return EntityRiskScore with all factors explained
 
-3. Create supabase/migrations/20260424000003_autoclose.sql:
+Method updateUserProfile taking user_id string and alert RawAlert returning void:
+Upsert into ueba_profiles table
+Update baseline_login_hours by adding current hour if not present — max 24 entries
+Update baseline_locations by adding current country — max 10 entries
+Set last_updated to now
 
-Table feedback_entries: id uuid primary key, case_id uuid references cases,
-original_action text, analyst_decision text true_positive or false_positive or benign,
-analyst_id text, notes text, alert_type text, source_ip text, rule_id text,
-created_at timestamptz default now()
+Method getHighRiskEntities taking org_id string returning EntityRiskScore array:
+Query ueba_profiles where risk_score greater than 70
+Return top 20 sorted by risk_score descending
 
-Table auto_close_log: id uuid primary key, case_id uuid references cases,
-action text, reason text, suppression_rule_id uuid references suppression_rules,
-confidence integer, created_at timestamptz default now()
+3. Create supabase/migrations/20260424000004_ueba.sql:
 
-Add index on feedback_entries source_ip and rule_id for fast FP lookup
-Add index on suppression_rules value and rule_type for fast matching
+Table ueba_profiles: id uuid primary key, user_id text unique, username text,
+org_id text, baseline_login_hours integer array default array[]::integer[],
+baseline_locations text array default array[]::text[],
+baseline_devices text array default array[]::text[],
+avg_daily_alerts numeric default 0, risk_score integer default 0,
+last_updated timestamptz default now()
+
+Table ueba_anomalies: id uuid primary key, user_id text, entity_id text,
+entity_type text, anomaly_type text, severity text, description text,
+evidence jsonb, detected_at timestamptz default now(),
+case_id uuid, suppressed boolean default false
+
+Add index on ueba_anomalies entity_id and detected_at for fast lookups
+Add index on ueba_profiles risk_score for high risk queries
 Add RLS policies using auth.jwt() ->> sub pattern same as existing tables
 
-4. Create app/api/cases/[id]/feedback/route.ts:
-POST endpoint accepting analyst_decision and notes and case_id
+4. Create app/api/ueba/risk-scores/route.ts:
+GET endpoint returning high risk entities for org
 Auth: const userId from auth() from @clerk/nextjs/server
-Zod validation: analyst_decision must be true_positive or false_positive or benign
-Call autoCloseEngine.recordFeedback with validated payload
-Return updated case with new suppression rule if auto-created
+Call uebaEngine.getHighRiskEntities with org_id from query params
 Add dynamic and runtime exports
 
-5. Create app/api/autoclose/stats/route.ts:
-GET endpoint returning suppression statistics
-Auth required
-Call autoCloseEngine.getSuppressionsStats
-Return stats as JSON
+5. Create app/api/ueba/anomalies/route.ts:
+GET endpoint returning recent anomalies with optional user_id filter
+POST endpoint to suppress an anomaly by id
+Auth required on both
+Zod validation on POST payload
 Add dynamic and runtime exports
 
 Run npm run build, fix all errors.
-Apply migration 20260424000003_autoclose.sql in Supabase Dashboard SQL Editor manually.
-Commit: feat: complete auto-close engine with FP feedback loop, push.
+Commit: feat: complete UEBA engine with risk scoring and anomaly detection, push.

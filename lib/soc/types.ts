@@ -146,3 +146,45 @@ export interface FeedbackEntry {
   source_ip: string;
   rule_id: string;
 }
+
+export interface UserBehaviorProfile {
+  user_id: string;
+  username: string;
+  org_id: string;
+  baseline_login_hours: number[]; // 0-23
+  baseline_locations: string[]; // country codes
+  baseline_devices: string[];
+  avg_daily_alerts: number;
+  risk_score: number; // 0-100
+  last_updated: Date;
+  anomalies: UEBAAnomaly[];
+}
+
+export interface UEBAAnomaly {
+  id: string;
+  user_id: string;
+  entity_id: string;
+  entity_type: string;
+  anomaly_type: "impossible_travel" | "off_hours_login" | "new_device" | "excessive_failed_logins" | "privilege_escalation" | "mass_download" | "lateral_movement";
+  severity: "low" | "medium" | "high" | "critical";
+  description: string;
+  evidence: any;
+  detected_at: Date;
+  case_id: string | null;
+  suppressed: boolean;
+}
+
+export interface RiskFactor {
+  name: string;
+  contribution: number;
+  description: string;
+}
+
+export interface EntityRiskScore {
+  entity_id: string;
+  entity_type: "user" | "host" | "ip";
+  score: number; // 0-100
+  factors: RiskFactor[];
+  last_calculated: Date;
+  trend: "increasing" | "decreasing" | "stable";
+}

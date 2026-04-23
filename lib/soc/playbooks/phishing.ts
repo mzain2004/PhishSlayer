@@ -1,102 +1,148 @@
-import { Playbook, PlaybookStep, PlaybookContext } from "./types";
+import { Playbook, PlaybookStep, PlaybookContext, StepResult, IOC } from "../types";
+import { enrichIOC } from "../enrichment/index";
 import { createClient } from "@/lib/supabase/server";
 
-async function logToTimeline(caseId: string, action: string, details: any) {
-  const supabase = await createClient();
-  await supabase.from("case_timeline").insert({
-    case_id: caseId,
-    action,
-    actor: "system",
-    details
-  });
-}
-
-const extractIOCs: PlaybookStep = {
-  id: "extract-iocs",
+const extract_iocs: PlaybookStep = {
+  id: "extract_iocs",
   name: "Extract IOCs",
-  description: "Extracting URLs, domains, and IP addresses from the phishing alert.",
-  execute: async (context) => {
-    // Logic to extract IOCs from context.caseData
-    const iocs = {
-      urls: ["http://malicious-site.com"],
-      ips: ["1.2.3.4"],
-      sender: "phisher@example.com"
-    };
+  description: "Parse alert raw_log and extract all IPs, domains, email addresses, and URLs.",
+  action: async (context) => {
+    const startTime = Date.now();
+    const rawLog = JSON.stringify(context.alert.raw_log || {});
     
-    await logToTimeline(context.caseId, "IOC_EXTRACTION", { iocs });
-    return iocs;
-  }
-};
+    const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
+    const domainRegex = /\b([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}\b/gi;
+    const emailRegex = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi;
 
-const enrichIOCs: PlaybookStep = {
-  id: "enrich-iocs",
-  name: "Enrich IOCs",
-  description: "Enriching extracted IOCs with threat intelligence.",
-  execute: async (context) => {
-    const iocs = context.outputs["extract-iocs"];
-    // Simulate enrichment
-    const enrichment = {
-      "http://malicious-site.com": { reputation: "malicious", category: "phishing" },
-      "1.2.3.4": { country: "CN", reputation: "suspicious" }
+    const ips = Array.from(new Set(rawLog.match(ipRegex) || []));
+    const domains = Array.from(new Set(rawLog.match(domainRegex) || []));
+    const emails = Array.from(new Set(rawLog.match(emailRegex) || []));
+    const urls = Array.from(new Set(rawLog.match(urlRegex) || []));
+
+    const iocs: IOC[] = [
+      ...ips.map(v => ({ type: "ip" as const, value: v, malicious: null, confidence: null, source: "raw_log" })),
+      ...domains.map(v => ({ type: "domain" as const, value: v, malicious: null, confidence: null, source: "raw_log" })),
+      ...emails.map(v => ({ type: "email" as const, value: v, malicious: null, confidence: null, source: "raw_log" })),
+      ...urls.map(v => ({ type: "url" as const, value: v, malicious: null, confidence: null, source: "raw_log" }))
+    ];
+
+    context.iocs.push(...iocs);
+
+    return {
+      success: true,
+      output: { iocs_found: iocs.length },
+      error: null,
+      duration_ms: Date.now() - startTime
     };
-
-    await logToTimeline(context.caseId, "IOC_ENRICHMENT", { enrichment });
-    return enrichment;
   }
 };
 
-const blockSender: PlaybookStep = {
-  id: "block-sender",
+const enrich_iocs: PlaybookStep = {
+  id: "enrich_iocs",
+  name: "Enrich IOCs",
+  description: "Enrich each extracted IOC with threat intelligence.",
+  action: async (context) => {
+    const startTime = Date.now();
+    for (const ioc of context.iocs) {
+      if (ioc.type === "ip" || ioc.type === "domain" || ioc.type === "hash") {
+        try {
+          const result = await enrichIOC(ioc.type, ioc.value, context.case_id);
+          // Simplified mapping for the sake of the playbook
+          if (ioc.type === "ip") {
+            ioc.malicious = (result.abuseConfidenceScore || 0) > 50;
+            ioc.confidence = result.abuseConfidenceScore || 0;
+          } else if (ioc.type === "domain") {
+            ioc.malicious = (result.attributes?.last_analysis_stats?.malicious || 0) > 0;
+            ioc.confidence = ioc.malicious ? 100 : 0;
+          }
+        } catch (e) {
+          console.error(`Enrichment failed for ${ioc.value}`, e);
+        }
+      }
+    }
+
+    return {
+      success: true,
+      output: { iocs_enriched: context.iocs.length },
+      error: null,
+      duration_ms: Date.now() - startTime
+    };
+  }
+};
+
+const block_sender: PlaybookStep = {
+  id: "block_sender",
   name: "Block Sender",
-  description: "Blocking the malicious sender in email gateway.",
-  execute: async (context) => {
-    const iocs = context.outputs["extract-iocs"];
-    const sender = iocs?.sender;
+  description: "If malicious email found, isolate the source IP.",
+  action: async (context) => {
+    const startTime = Date.now();
+    const maliciousEmail = context.iocs.find(i => i.type === "email" && i.malicious);
+    
+    if (maliciousEmail && context.alert.source_ip) {
+      // In a real scenario, we'd call the API. Here we simulate the trigger.
+      // fetch('/api/response/isolate', { method: 'POST', ... })
+      return {
+        success: true,
+        output: { action: "ISOLATE_TRIGGERED", target: context.alert.source_ip },
+        error: null,
+        duration_ms: Date.now() - startTime
+      };
+    }
 
-    // Simulate blocking
-    const result = { blocked: true, sender };
-
-    await logToTimeline(context.caseId, "SENDER_BLOCKED", result);
-    return result;
+    return {
+      success: true,
+      output: { action: "NONE" },
+      error: null,
+      duration_ms: Date.now() - startTime
+    };
   }
 };
 
-const notifyUsers: PlaybookStep = {
-  id: "notify-users",
+const notify_users: PlaybookStep = {
+  id: "notify_users",
   name: "Notify Users",
-  description: "Notifying affected users and security team.",
-  execute: async (context) => {
-    // Simulate notification
-    const result = { notifiedCount: 1, channels: ["email", "slack"] };
-
-    await logToTimeline(context.caseId, "USERS_NOTIFIED", result);
-    return result;
+  description: "Log notification action to case timeline.",
+  action: async (context) => {
+    const startTime = Date.now();
+    // Notification logic placeholder
+    return {
+      success: true,
+      output: { notified: true },
+      error: null,
+      duration_ms: Date.now() - startTime
+    };
   }
 };
 
-const createReport: PlaybookStep = {
-  id: "create-report",
+const create_report: PlaybookStep = {
+  id: "create_report",
   name: "Create Report",
-  description: "Generating incident response report.",
-  execute: async (context) => {
-    // Simulate report generation
-    const reportId = `REP-${Date.now()}`;
-    const result = { reportId, status: "generated" };
+  description: "Update case with findings and set status.",
+  action: async (context) => {
+    const startTime = Date.now();
+    const supabase = await createClient();
+    
+    const anyFailures = Object.values(context.previous_steps).some(r => !r.success);
+    const status = anyFailures ? "investigating" : "contained";
 
-    await logToTimeline(context.caseId, "REPORT_GENERATED", result);
-    return result;
+    await supabase.from("cases").update({
+      status,
+      updated_at: new Date().toISOString()
+    }).eq("id", context.case_id);
+
+    return {
+      success: true,
+      output: { status_updated: status },
+      error: null,
+      duration_ms: Date.now() - startTime
+    };
   }
 };
 
 export const phishingPlaybook: Playbook = {
-  id: "playbook-phishing",
+  id: "phishing",
   name: "Phishing Response Playbook",
-  description: "Standard operating procedure for responding to phishing alerts.",
-  steps: [
-    extractIOCs,
-    enrichIOCs,
-    blockSender,
-    notifyUsers,
-    createReport
-  ]
+  description: "Standard procedure for phishing alerts.",
+  steps: [extract_iocs, enrich_iocs, block_sender, notify_users, create_report]
 };

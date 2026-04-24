@@ -469,3 +469,59 @@ export interface WhitelabelAPIKey {
   permissions: string[];
   active: boolean;
 }
+
+export interface TopAlertType {
+  alert_type: string;
+  count: number;
+  percentage: number;
+}
+
+export interface ComplianceControl {
+  control_id: string;
+  control_name: string;
+  description: string;
+  status: "implemented" | "partial" | "not_implemented";
+  evidence: string[];
+  phishslayer_features: string[];
+}
+
+export interface ComplianceMapping {
+  framework: "nist_csf" | "iso_27001" | "soc2";
+  controls: ComplianceControl[];
+  coverage_percentage: number;
+  last_assessed_at: Date;
+}
+
+export interface SOCDashboardMetrics {
+  org_id: string;
+  period_hours: number;
+  total_alerts: number;
+  open_alerts: number;
+  closed_alerts: number;
+  mttd_minutes: number;
+  mttr_minutes: number;
+  sla_breaches: number;
+  alert_volume_by_hour: number[];
+  top_alert_types: TopAlertType[];
+  top_source_ips: string[];
+  active_cases: number;
+  critical_cases: number;
+  hunt_missions_run: number;
+  sigma_rules_generated: number;
+  risk_score: number; // 0-100
+  trend_vs_previous_period: "improving" | "degrading" | "stable";
+}
+
+export interface ExecutiveReport {
+  id: string;
+  org_id: string;
+  period_start: Date;
+  period_end: Date;
+  generated_at: Date;
+  metrics: SOCDashboardMetrics;
+  compliance: ComplianceMapping[];
+  key_findings: string[];
+  recommendations: string[];
+  risk_trend: string;
+  pdf_url: string | null;
+}

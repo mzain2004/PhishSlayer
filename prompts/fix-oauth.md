@@ -1,33 +1,54 @@
-Task: Fix CSP headers and landing page redirect for PhishSlayer
+Task: Fix CORS and CSP issues blocking dashboard redirect after Clerk signup
 
-Read ONLY these file:
+Read ONLY this file:
 next.config.ts
-app/page.tsx
 
 Do not read any other file.
 
-Fix 1 — CSP headers in next.config.ts:
-Find the Content-Security-Policy header string.
-Add https://challenges.cloudflare.com to script-src-elem
-Add https://challenges.cloudflare.com to frame-src
-Add https://challenges.cloudflare.com to connect-src
-Add https://accounts.phishslayer.tech to connect-src if not present
-Add https://clerk.phishslayer.tech to connect-src if not present
+The current CSP is blocking Clerk's post-signup redirect to /dashboard.
+Errors seen:
+- accounts.phishslayer.tech blocked by CORS
+- script-src was not explicitly set so default-src used as fallback
+- Cloudflare Turnstile CAPTCHA TrustedHTML blocked
 
-If there is no frame-src directive add it:
-frame-src 'self' https://challenges.cloudflare.com;
+Replace the entire Content-Security-Policy header value with exactly this:
 
-Do not remove any existing CSP entries — only add missing ones.
+default-src 'self';
+script-src 'self' 'unsafe-inline' 'unsafe-eval'
+  https://clerk.phishslayer.tech
+  https://accounts.phishslayer.tech
+  https://challenges.cloudflare.com
+  https://static.cloudflareinsights.com
+  https://app.termly.io;
+script-src-elem 'self' 'unsafe-inline'
+  https://clerk.phishslayer.tech
+  https://accounts.phishslayer.tech
+  https://challenges.cloudflare.com
+  https://static.cloudflareinsights.com
+  https://app.termly.io;
+worker-src 'self' blob:;
+style-src 'self' 'unsafe-inline';
+img-src 'self' data: blob: https:;
+font-src 'self' data:;
+connect-src 'self'
+  https://clerk.phishslayer.tech
+  https://accounts.phishslayer.tech
+  https://challenges.cloudflare.com
+  https://*.clerk.accounts.dev
+  https://*.supabase.co
+  wss://*.supabase.co
+  https://api.clerk.com;
+frame-src 'self'
+  https://challenges.cloudflare.com
+  https://accounts.phishslayer.tech;
+frame-ancestors 'none';
 
-Fix 2 — Landing page in app/page.tsx:
-The page should NOT immediately redirect unauthenticated users to /sign-in.
-Replace current logic with this:
-- If user IS authenticated (userId exists): redirect to /dashboard
-- If user is NOT authenticated: render the landing page normally
-  Do NOT redirect to /sign-in — let middleware handle auth protection
-  The landing page should render a simple div with text Welcome to PhishSlayer
-  and a link to /sign-in and a link to /sign-up
-  This is temporary — proper landing page UI comes later
+Make sure the CSP is a single string with semicolons between directives.
+Make sure worker-src includes blob: — this is required for Cloudflare Turnstile.
+Make sure script-src includes 'unsafe-inline' — required for Clerk components.
+
+Do not touch any other configuration in next.config.ts.
+Do not modify any other file.
 
 Run npm run build, fix all errors.
-Commit: fix: CSP Cloudflare CAPTCHA headers and landing page redirect logic, push.
+Commit: fix: complete CSP overhaul for Clerk CORS and Cloudflare Turnstile, push.

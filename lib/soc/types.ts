@@ -543,3 +543,32 @@ export interface ConnectorSyncResult {
   errors: string[];
   synced_at: Date;
 }
+
+export interface AgentDecision {
+  action: "auto_close" | "escalate_l2" | "escalate_l3" | "run_playbook" | "notify_manager" | "no_action";
+  confidence: number; // 0-100
+  reasoning: string;
+  executed_at: Date;
+  alert_id: string;
+  case_id: string | null;
+}
+
+export interface PipelineStage {
+  name: string;
+  started_at: Date;
+  completed_at: Date | null;
+  success: boolean;
+  output: any;
+  error: string | null;
+}
+
+export interface PipelineRun {
+  id: string;
+  alert_id: string;
+  started_at: Date;
+  completed_at: Date | null;
+  stages: PipelineStage[];
+  final_decision: AgentDecision | null;
+  error: string | null;
+  org_id: string;
+}

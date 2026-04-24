@@ -4,6 +4,7 @@ import { autoDetectAndNormalize } from "./normalizer";
 import { v4 as uuidv4 } from "uuid";
 import Imap from "node-imap";
 import { simpleParser } from "mailparser";
+import { AutonomousOrchestrator } from "../soc/orchestrator";
 
 export class IngestionPipeline {
   private supabase: SupabaseClient;
@@ -61,11 +62,15 @@ export class IngestionPipeline {
         title: `Auto-Alert: ${normalized.action}`
       }).select("id").single();
 
-      if (!alertError) {
+      if (!alertError && alertData?.id) {
         await this.supabase.from("raw_logs").update({
           processed: true,
           alert_created: true
         }).eq("id", entry.id);
+
+        // 3. Trigger Autonomous Orchestrator (Async)
+        const orchestrator = new AutonomousOrchestrator(this.supabase);
+        void orchestrator.processAlert(alertData.id, entry.org_id);
       }
     }
 

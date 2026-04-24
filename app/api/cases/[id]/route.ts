@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { createClerkSupabaseClient } from "@/lib/supabase/clerk-client";
+import { resolveExternalSystems } from "@/lib/connectors/index";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -71,6 +72,11 @@ export async function PATCH(
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Resolve External Systems if case closed/contained
+    if (data.status === "closed" || data.status === "contained") {
+        void resolveExternalSystems(id, supabase);
     }
 
     return NextResponse.json(data);

@@ -525,3 +525,21 @@ export interface ExecutiveReport {
   risk_trend: string;
   pdf_url: string | null;
 }
+
+export interface ConnectorConfig {
+  id: string;
+  connector_type: "crowdstrike" | "sentinelone" | "elastic" | "splunk" | "servicenow" | "jira" | "pagerduty";
+  org_id: string;
+  config: any;
+  enabled: boolean;
+  last_sync_at: Date | null;
+  sync_interval_minutes: number;
+}
+
+export interface ConnectorSyncResult {
+  connector_type: string;
+  success: boolean;
+  records_synced: number;
+  errors: string[];
+  synced_at: Date;
+}

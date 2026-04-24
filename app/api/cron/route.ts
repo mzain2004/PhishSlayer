@@ -4,6 +4,7 @@ import { HuntEngine } from "@/lib/soc/hunting/engine";
 import { syncAllFeeds } from "@/lib/soc/intel/index";
 import { IngestionPipeline } from "@/lib/ingestion/pipeline";
 import { TenantManager } from "@/lib/tenant/manager";
+import { syncAllConnectors } from "@/lib/connectors/index";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -29,7 +30,11 @@ export async function POST(req: Request) {
     const emailCount = await pipeline.ingestEmail();
     console.info(`[cron] Ingested ${emailCount} emails`);
 
-    // 2. Sync Threat Intel daily at 01:00 UTC (triggered by cron)
+    // 2. Sync External Connectors at 00:30 UTC
+    const connectorResults = await syncAllConnectors(supabase);
+    console.info(`[cron] Sync complete for ${connectorResults.length} connectors`);
+
+    // 3. Sync Threat Intel daily at 01:00 UTC (triggered by cron)
     await syncAllFeeds(supabase);
 
     const huntEngine = new HuntEngine(supabase);

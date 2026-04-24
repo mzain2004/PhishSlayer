@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { createClerkSupabaseClient } from "@/lib/supabase/clerk-client";
+import { notifyExternalSystems } from "@/lib/connectors/index";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -61,6 +62,15 @@ export async function POST(req: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Notify External Systems
+    void notifyExternalSystems(
+        data.id, 
+        data.title, 
+        data.severity, 
+        `Auto-created case for ${data.alert_type} on asset ${data.affected_asset || 'unknown'}`, 
+        supabase
+    );
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {

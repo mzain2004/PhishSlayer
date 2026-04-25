@@ -260,14 +260,25 @@ async function collectWazuhHealth(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const cronAuthorized = isCronAuthorized(request);
-  if (!cronAuthorized) {
-    const roleAuthorized = await hasPrivilegedRole();
-    if (!roleAuthorized) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
-      );
+  const apiKey = process.env.WAZUH_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "WAZUH_API_KEY not configured" },
+      { status: 401 }
+    );
+  }
+
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== `Bearer ${apiKey}`) {
+    const cronAuthorized = isCronAuthorized(request);
+    if (!cronAuthorized) {
+      const roleAuthorized = await hasPrivilegedRole();
+      if (!roleAuthorized) {
+        return NextResponse.json(
+          { success: false, error: "Unauthorized" },
+          { status: 401 },
+        );
+      }
     }
   }
 

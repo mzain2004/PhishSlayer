@@ -1252,15 +1252,15 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get("authorization") || "";
 
     if (!expectedSecret) {
-      console.warn(
-        "[wazuh webhook] WAZUH_WEBHOOK_SECRET is missing; route is misconfigured.",
+      console.error(
+        "CRITICAL ERROR: WAZUH_WEBHOOK_SECRET is missing; route is misconfigured.",
       );
 
       return NextResponse.json(
         {
-          error: "Service unavailable: Wazuh webhook secret is not configured",
+          error: "Internal Server Error: Wazuh webhook secret is not configured",
         },
-        { status: 503 },
+        { status: 500 },
       );
     }
 

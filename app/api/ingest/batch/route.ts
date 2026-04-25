@@ -18,7 +18,8 @@ const schema = z.object({
 export async function POST(req: Request) {
   const apiKey = req.headers.get("x-api-key");
   if (!process.env.INGEST_API_KEY) {
-    return NextResponse.json({ error: "Ingestion not configured" }, { status: 503 });
+    console.error("CRITICAL ERROR: INGEST_API_KEY is not defined in environment variables.");
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
   if (apiKey !== process.env.INGEST_API_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

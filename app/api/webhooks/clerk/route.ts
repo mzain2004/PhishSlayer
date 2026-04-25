@@ -10,8 +10,9 @@ export async function POST(req: Request) {
   const CLERK_WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
 
   if (!CLERK_WEBHOOK_SECRET) {
+    console.error('CRITICAL ERROR: CLERK_WEBHOOK_SECRET is not defined in environment variables.')
     return new Response('Error: CLERK_WEBHOOK_SECRET is not defined', {
-      status: 400,
+      status: 500,
     })
   }
 

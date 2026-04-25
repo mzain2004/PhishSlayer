@@ -7,6 +7,7 @@ const required = [
   "VIRUS_TOTAL_API_KEY",
   "GROQ_API_KEY",
   "GROQ_MODEL",
+  "CLERK_WEBHOOK_SECRET",
 ];
 
 const optional = [

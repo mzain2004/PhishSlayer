@@ -70,7 +70,8 @@ function extractCustomerEmail(data: any): string | null {
 
 export async function POST(request: Request) {
   if (!process.env.POLAR_WEBHOOK_SECRET) {
-    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+    console.error("CRITICAL ERROR: POLAR_WEBHOOK_SECRET is not defined in environment variables.");
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 
   const client = adminClient();

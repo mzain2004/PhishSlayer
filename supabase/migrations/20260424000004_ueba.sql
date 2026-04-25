@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS public.ueba_profiles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id TEXT UNIQUE NOT NULL,
     username TEXT,
-    org_id TEXT NOT NULL,
+    organization_id TEXT NOT NULL,
     baseline_login_hours INTEGER[] DEFAULT ARRAY[]::INTEGER[],
     baseline_locations TEXT[] DEFAULT ARRAY[]::TEXT[],
     baseline_devices TEXT[] DEFAULT ARRAY[]::TEXT[],

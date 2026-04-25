@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS public.hunt_missions (
     hypothesis_id TEXT NOT NULL,
     hypothesis_name TEXT NOT NULL,
     status TEXT DEFAULT 'scheduled',
-    org_id TEXT NOT NULL,
+    organization_id TEXT NOT NULL,
     started_at TIMESTAMPTZ,
     completed_at TIMESTAMPTZ,
     alerts_scanned INTEGER DEFAULT 0,
@@ -55,6 +55,6 @@ CREATE POLICY "Service role full access" ON public.hunt_missions FOR ALL USING (
 CREATE POLICY "Service role full access" ON public.hunt_findings FOR ALL USING (auth.role() = 'service_role');
 
 -- ── Indices ──────────────────────────────────────────────────────
-CREATE INDEX IF NOT EXISTS idx_hunt_missions_org_date ON public.hunt_missions(org_id, started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_hunt_missions_organization_date ON public.hunt_missions(organization_id, started_at DESC);
 CREATE INDEX IF NOT EXISTS idx_hunt_findings_mission_id ON public.hunt_findings(mission_id);
 CREATE INDEX IF NOT EXISTS idx_hunt_findings_severity ON public.hunt_findings(severity);

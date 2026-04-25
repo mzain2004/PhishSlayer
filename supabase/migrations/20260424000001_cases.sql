@@ -5,7 +5,7 @@
 -- ── cases table ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.cases (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id TEXT,
+    organization_id TEXT,
     user_id TEXT DEFAULT (auth.jwt() ->> 'sub'),
     title TEXT NOT NULL,
     severity TEXT CHECK (severity IN ('p1', 'p2', 'p3', 'p4')),
@@ -126,7 +126,7 @@ CREATE POLICY "Service role full access" ON public.case_evidence FOR ALL USING (
 CREATE POLICY "Service role full access" ON public.ioc_store FOR ALL USING (auth.role() = 'service_role');
 
 -- ── Indices ──────────────────────────────────────────────────────
-CREATE INDEX IF NOT EXISTS idx_cases_org_id ON public.cases(org_id);
+CREATE INDEX IF NOT EXISTS idx_cases_organization_id ON public.cases(organization_id);
 CREATE INDEX IF NOT EXISTS idx_cases_user_id ON public.cases(user_id);
 CREATE INDEX IF NOT EXISTS idx_case_timeline_case_id ON public.case_timeline(case_id);
 CREATE INDEX IF NOT EXISTS idx_case_evidence_case_id ON public.case_evidence(case_id);

@@ -62,8 +62,7 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://phishslayer.tech
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
-          NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+
 
       - name: Set deploy flag
         id: check
@@ -184,14 +183,19 @@ jobs:
           NEXT_PUBLIC_SITE_URL=https://phishslayer.tech
           GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
           GROQ_MODEL=llama-3.3-70b-versatile
-          NEXT_PUBLIC_APP_URL=http://localhost:3000
+          NEXT_PUBLIC_APP_URL=https://phishslayer.tech
           INTERNAL_API_URL=http://localhost:3000
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL=https://phishslayer.tech/sign-in
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL=https://phishslayer.tech/sign-up
+          NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=https://phishslayer.tech/dashboard
+          NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=https://phishslayer.tech/dashboard
+          SYSTEM_ORG_ID=78ace94a-fa76-4459-990d-07b3a5a8b9a4
+          INGEST_API_KEY=ps_ingest_2026_phishslayer
+          PHISH_SLAYER_API_KEY=ps_main_2026_phishslayer
           RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SECRET=${{ secrets.CLERK_WEBHOOK_SECRET }}
-          NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-          NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
           ENVEOF
 
             echo "=== Pulling latest image from GHCR ==="

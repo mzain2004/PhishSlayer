@@ -110,16 +110,16 @@ jobs:
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
             AGENT_SECRET=${{ secrets.AGENT_SECRET }}
             CRON_SECRET=${{ secrets.CRON_SECRET }}
-            NEXT_PUBLIC_SITE_URL=https://phishslayer.tech
-            NEXT_PUBLIC_APP_URL=https://phishslayer.tech
-            AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
-            AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
-            AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_CLERK_SIGN_IN_URL=https://phishslayer.tech/sign-in
             NEXT_PUBLIC_CLERK_SIGN_UP_URL=https://phishslayer.tech/sign-up
             NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=https://phishslayer.tech/dashboard
             NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=https://phishslayer.tech/dashboard
+            NEXT_PUBLIC_APP_URL=https://phishslayer.tech
+            NEXT_PUBLIC_SITE_URL=https://phishslayer.tech
+            AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
+            AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
+            AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
 
   deploy-azure:
     name: Deploy to Azure VM

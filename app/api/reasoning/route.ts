@@ -47,11 +47,11 @@ export async function GET(request: Request) {
     );
   }
 
-  const { page, limit, agent_level, alert_id, organization_id: preferred_org_id } =
+  const { page, limit, agent_level, alert_id, organization_id: preferred_organization_id } =
     parsedQuery.data;
   const organization = await resolveOrganizationForUser({
     userId: user.id,
-    preferredOrganizationId: preferred_org_id,
+    preferredOrganizationId: preferred_organization_id,
     autoCreate: false,
   });
 

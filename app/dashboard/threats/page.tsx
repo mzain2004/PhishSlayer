@@ -113,7 +113,8 @@ export default function ThreatIntelligencePage() {
 
     // Fetch user subscription tier
     const sb = createClient();
-    sb.auth.getUser().then(({ data: { user } }) => {
+    sb.auth.getUser().then(({ data: { user }, error }) => {
+      if (error && error.code === 'refresh_token_not_found') return;
       if (user) {
         sb.from("profiles")
           .select("subscription_tier")
@@ -124,6 +125,9 @@ export default function ThreatIntelligencePage() {
               setUserTier(data.subscription_tier as SubscriptionTier);
           });
       }
+    }).catch(err => {
+      if (err?.code === 'refresh_token_not_found') return;
+      console.error("[Threats] getUser failed:", err);
     });
   }, []);
 

@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const period_days = parseInt(searchParams.get("period_days") || "30");
-  const organization_id = searchParams.get("organization_id") || searchParams.get("org_id") || "default";
+  const organization_id = searchParams.get("organization_id") || "default";
 
   try {
     const supabase = await createClient();

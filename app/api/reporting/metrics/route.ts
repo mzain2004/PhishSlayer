@@ -12,7 +12,7 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const period_hours = parseInt(searchParams.get("period_hours") || "24");
-  const organization_id = searchParams.get("organization_id") || searchParams.get("org_id") || "default"; // Simplified org resolution
+  const organization_id = searchParams.get("organization_id") || "default"; // Simplified org resolution
 
   try {
     const supabase = await createClient();

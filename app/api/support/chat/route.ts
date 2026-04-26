@@ -52,9 +52,17 @@ export async function POST(request: Request) {
     }
 
     const sessionClient = await createSessionClient();
-    const {
-      data: { user },
-    } = await sessionClient.auth.getUser();
+    let user;
+    try {
+      const { data, error: authError } = await sessionClient.auth.getUser();
+      if (authError && authError.code === 'refresh_token_not_found') {
+        // Silently ignore
+      } else {
+        user = data?.user;
+      }
+    } catch (err: any) {
+      if (err?.code !== 'refresh_token_not_found') throw err;
+    }
 
     if (!user) {
       return NextResponse.json(

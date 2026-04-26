@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
-  const organization_id = searchParams.get("organization_id") || searchParams.get("org_id") || "default";
+  const organization_id = searchParams.get("organization_id") || "default";
 
   try {
     const supabase = await createClient();

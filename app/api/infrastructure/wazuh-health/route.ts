@@ -263,8 +263,8 @@ export async function GET(request: NextRequest) {
   const apiKey = process.env.WAZUH_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { error: "WAZUH_API_KEY not configured" },
-      { status: 401 }
+      { error: "WAZUH_API_KEY not configured", status: "unconfigured" },
+      { status: 200 }
     );
   }
 

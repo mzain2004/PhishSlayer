@@ -90,8 +90,12 @@ function ScanManagerContent() {
     refreshScans();
     createClient()
       .auth.getUser()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error && error.code === 'refresh_token_not_found') return;
         if (data?.user) setCurrentUserId(data.user.id);
+      }).catch(err => {
+        if (err?.code === 'refresh_token_not_found') return;
+        console.error("[Scans] getUser failed:", err);
       });
   }, []);
 

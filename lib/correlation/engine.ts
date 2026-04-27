@@ -1,8 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import Groq from 'groq-sdk';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 export interface CorrelationRule {
   name: string;
   weight: number;
@@ -19,6 +17,7 @@ export interface CorrelationResult {
 
 export async function correlateNewAlert(alertId: string, orgId: string): Promise<CorrelationResult> {
   const supabase = await createClient();
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
   // 1. Fetch the new alert
   const { data: newAlert, error: fetchError } = await supabase
@@ -138,6 +137,7 @@ export async function correlateNewAlert(alertId: string, orgId: string): Promise
 
 export async function buildIncidentFromAlerts(alertIds: string[], orgId: string): Promise<string> {
   const supabase = await createClient();
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
   // Fetch alert details to generate title
   const { data: alerts } = await supabase.from('alerts').select('*').in('id', alertIds);

@@ -4,8 +4,6 @@ import { verifyCustodyChain } from './chainOfCustody';
 import { getEvidenceForCase } from './evidence';
 import { createClient } from '@/lib/supabase/server';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 export interface ForensicReport {
   caseId: string;
   generatedAt: Date;
@@ -25,6 +23,7 @@ export interface ForensicReport {
 
 export async function generateForensicReport(caseId: string, orgId: string): Promise<ForensicReport> {
   const supabase = await createClient();
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
   
   const [timeline, evidence, custody] = await Promise.all([
     buildAttackTimeline(caseId, orgId),

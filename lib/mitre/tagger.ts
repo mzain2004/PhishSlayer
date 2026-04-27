@@ -2,8 +2,6 @@ import Groq from 'groq-sdk';
 import { createClient } from '@/lib/supabase/server';
 import { getTechniqueById } from './techniques';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 export interface AlertContext {
   title: string;
   description: string;
@@ -24,10 +22,11 @@ export interface MitreTag {
 }
 
 export async function tagAlertWithMitre(context: AlertContext): Promise<MitreTag[]> {
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
   const rawSummary = JSON.stringify(context.rawPayload).substring(0, 500);
   
   const prompt = `You are a MITRE ATT&CK expert. Analyze this security alert and identify the most relevant MITRE ATT&CK techniques.
-    
+     
     Alert Title: ${context.title}
     Alert Description: ${context.description}
     Source: ${context.sourceType}

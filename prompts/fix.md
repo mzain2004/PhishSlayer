@@ -6,123 +6,176 @@ You are building features for PhishSlayer, an agentic SOC platform.
 Stack: Next.js 15, TypeScript, Supabase, Clerk, Groq, MongoDB Atlas.
 
 CRITICAL RULES:
-- Never stop for missing dependencies — install what is needed or mock
-- Never hallucinate libraries — if unsure, implement logic manually in TypeScript
-- If a subtask has an error, fix it and continue — never abandon the task
-- Complete everything. Run npm run build at the end, fix ALL errors.
+- If external APIs are rate-limited or unavailable, implement graceful fallback 
+  returning empty results with { error: 'API unavailable', data: [] }
+- Never stop mid-task. Skip broken subtask, log it, continue.
+- No hallucinated packages. Implement manually if needed.
+- npm run build at end. Zero TypeScript errors allowed.
 
-BUILD TASK 1 — User Behavior Analytics (UBA):
-1. Create lib/uba/baseline.ts
-   - Build behavioral baseline per user from alerts + events tables
-   - Track: login times, source IPs, endpoints accessed, alert frequency
-   - Store baseline in MongoDB collection: uba_baselines
-   - Schema: { userId, orgId, avgLoginHour, commonIPs[], commonEndpoints[], 
-               alertFrequency, lastUpdated }
+BUILD TASK 1 — Dark Web & Credential Leak Monitoring:
+1. Create lib/darkweb/leakScanner.ts
+   - HaveIBeenPwned API: GET /breachedaccount/{email}
+     Env: HIBP_API_KEY — use process.env.HIBP_API_KEY || ''
+   - DeHashed API: POST https://api.dehashed.com/search
+     Env: DEHASHED_API_KEY, DEHASHED_EMAIL
+   - LeakCheck free tier: GET https://leakcheck.io/api/public?check={email}
+   - Run all with Promise.allSettled, merge results
+   - Return: { email, breaches[], passwordExposed, sources[], severity }
 
-2. Create lib/uba/anomalyDetector.ts
-   - Compare current activity against baseline
-   - Anomaly rules:
-     a) Login outside normal hours (>2 std dev from baseline)
-     b) New IP not seen in last 30 days
-     c) Alert spike (>3x baseline frequency in 1 hour)
-     d) Impossible travel (2 IPs >500km apart within 1 hour, use geoip lib)
-     e) Privilege escalation pattern (role change + immediate API access)
-   - Score each anomaly 1-100
-   - Return: { anomalies[], riskScore, userId, triggeredRules[] }
+2. Create lib/darkweb/domainMonitor.ts
+   - Monitor org domain for paste sites via Google Custom Search API fallback
+   - Check if org emails appear in any breach
+   - Use PhishTank API to check if org domain is listed
 
-3. Create lib/uba/profileBuilder.ts
-   - Aggregate user risk profile across all anomalies
-   - Risk levels: LOW <30, MEDIUM 30-60, HIGH 60-80, CRITICAL >80
-   - Store in Supabase:
-
-4. Create Supabase migration 20260428300000_uba.sql:
-   CREATE TABLE user_risk_profiles (
+3. Create Supabase migration 20260428500000_darkweb.sql:
+   CREATE TABLE credential_leaks (
      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
      organization_id UUID REFERENCES organizations(id),
-     user_id TEXT NOT NULL,
-     risk_score INTEGER DEFAULT 0,
-     risk_level TEXT DEFAULT 'LOW',
-     anomalies JSONB DEFAULT '[]',
-     triggered_rules TEXT[],
-     last_anomaly_at TIMESTAMPTZ,
-     updated_at TIMESTAMPTZ DEFAULT NOW()
+     email TEXT,
+     domain TEXT,
+     breach_source TEXT,
+     breach_date DATE,
+     exposed_data TEXT[],
+     severity TEXT,
+     is_resolved BOOLEAN DEFAULT false,
+     discovered_at TIMESTAMPTZ DEFAULT NOW()
    );
-   CREATE TABLE uba_anomaly_events (
+   Enable RLS. Org-scoped policies.
+
+4. Create app/api/darkweb/scan/route.ts
+   - POST { emails: string[], domain: string, organizationId: string }
+   - Scan all emails → save leaks → return results
+
+5. Create app/api/darkweb/leaks/route.ts
+   - GET: return all unresolved leaks for org
+
+6. Create app/api/cron/darkweb-scan/route.ts
+   - Pull all user emails for each org, run scan, save new leaks
+
+BUILD TASK 2 — Hunt Hypothesis Builder:
+1. Create lib/hunting/hypothesisBuilder.ts
+   - Input: { orgId, recentAlerts[], mitreGaps[], threatIntelFeeds[] }
+   - Use Groq (llama-3.3-70b-versatile) to generate hunt hypotheses
+   - Each hypothesis: { title, hypothesis, huntQuery, mitreTechnique, 
+                        priority, dataSourcesNeeded[], searchPatterns[] }
+   - Generate 3-5 hypotheses per call
+
+2. Create lib/hunting/huntQuery.ts
+   - Execute hunt against alerts, events tables
+   - Support query types: IP-based, domain-based, user-based, behavior-based
+   - Return matching events with context
+
+3. Create Supabase migration 20260428600000_hunt_hypotheses.sql:
+   CREATE TABLE hunt_hypotheses (
      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
      organization_id UUID REFERENCES organizations(id),
-     user_id TEXT NOT NULL,
-     anomaly_type TEXT,
-     details JSONB,
-     risk_score INTEGER,
-     created_at TIMESTAMPTZ DEFAULT NOW()
-   );
-   Enable RLS on both. Org-scoped select policies.
-
-5. Create app/api/uba/analyze/route.ts
-   - POST { userId, organizationId, currentActivity }
-   - Run anomalyDetector → update profileBuilder → save anomaly event
-   - Return risk profile
-
-6. Create app/api/uba/profiles/route.ts
-   - GET: return all user_risk_profiles for org, ordered by risk_score DESC
-
-7. Create app/api/cron/uba-baseline-update/route.ts
-   - Rebuild baselines for all active users in all orgs
-   - Run daily
-
-BUILD TASK 2 — Custom Sigma/YARA Rule Builder:
-1. Create lib/detection/sigmaParser.ts
-   - Parse Sigma rule YAML format into structured object
-   - Fields: title, status, description, logsource, detection, condition, level
-   - Validate rule structure
-   - Convert Sigma detection to SQL WHERE clause for alerts table query
-
-2. Create lib/detection/sigmaEngine.ts
-   - Load all active rules for an org
-   - Run rules against incoming alert data
-   - Return: { matchedRules[], alertId, triggeredAt }
-
-3. Create lib/detection/yaraScanner.ts
-   - Store YARA rules as text in DB
-   - For file/content scanning: use simple string/regex pattern matching as fallback
-    (real YARA binary not available in Docker — implement text pattern matching)
-   - Match against alert evidence JSONB field
-
-4. Create Supabase migration 20260428400000_detection_rules.sql:
-   CREATE TABLE detection_rules (
-     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-     organization_id UUID REFERENCES organizations(id),
-     name TEXT NOT NULL,
-     type TEXT NOT NULL CHECK (type IN ('sigma', 'yara', 'custom')),
-     rule_content TEXT NOT NULL,
-     parsed_rule JSONB,
-     is_active BOOLEAN DEFAULT true,
-     severity TEXT DEFAULT 'medium',
+     title TEXT NOT NULL,
+     hypothesis TEXT,
      mitre_technique TEXT,
-     hit_count INTEGER DEFAULT 0,
-     last_hit_at TIMESTAMPTZ,
+     priority TEXT DEFAULT 'medium',
+     status TEXT DEFAULT 'pending' CHECK (status IN ('pending','active','completed','dismissed')),
+     data_sources TEXT[],
+     search_patterns JSONB,
+     findings_count INTEGER DEFAULT 0,
      created_by TEXT,
+     ai_generated BOOLEAN DEFAULT false,
      created_at TIMESTAMPTZ DEFAULT NOW()
    );
-   Enable RLS. Org-scoped policies for select/insert/update.
+   Enable RLS. Org-scoped policies.
 
-5. Create app/api/detection-rules/route.ts
-   - GET: list rules for org
-   - POST: create new rule (auto-parse sigma YAML on save)
+4. Create app/api/hunting/hypotheses/route.ts
+   - GET: list hypotheses for org
+   - POST: create manually or trigger AI generation
 
-6. Create app/api/detection-rules/[id]/route.ts
-   - GET, PUT, DELETE
+5. Create app/api/hunting/generate/route.ts
+   - POST { organizationId }
+   - Pull recent alert patterns + MITRE coverage gaps
+   - Call Groq to generate hypotheses → save → return
 
-7. Create app/api/detection-rules/[id]/test/route.ts
-   - POST { sampleAlert }
-   - Run rule against sample, return match result
+6. Create app/api/hunting/hypotheses/[id]/execute/route.ts
+   - POST: run huntQuery for this hypothesis
+   - Update findings_count
 
-8. Create app/api/detection-rules/validate/route.ts
-   - POST { ruleContent, type }
-   - Validate syntax, return errors or parsed structure
+BUILD TASK 3 — Vulnerability Scanner Connector:
+1. Create lib/vuln/nvdScanner.ts
+   - NVD API v2: search CVEs by keyword/product
+   - Env: NVD_API_KEY (already in .env.production)
+   - Search CVEs relevant to org's asset inventory
+   - Return: { cveId, severity, cvssScore, affectedProducts[], patchAvailable }
 
-9. Create app/api/cron/run-detection-rules/route.ts
-   - Run all active Sigma rules against last 1hr of alerts
-   - Create new alert if rule matches
+2. Create lib/vuln/assetVulnMatcher.ts
+   - Pull assets from asset inventory
+   - Match CVEs to asset product/version
+   - Priority queue: CRITICAL first, then HIGH
+   - Return: { asset, matchedCVEs[], totalRisk }
 
-Run npm run build. Fix all errors. List every file created.
+3. Create Supabase migration 20260428700000_vulnerabilities.sql:
+   CREATE TABLE vulnerabilities (
+     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+     organization_id UUID REFERENCES organizations(id),
+     asset_id UUID,
+     cve_id TEXT,
+     cvss_score NUMERIC,
+     severity TEXT,
+     description TEXT,
+     affected_product TEXT,
+     patch_available BOOLEAN DEFAULT false,
+     status TEXT DEFAULT 'open' CHECK (status IN ('open','in_progress','resolved','accepted')),
+     discovered_at TIMESTAMPTZ DEFAULT NOW(),
+     resolved_at TIMESTAMPTZ
+   );
+   CREATE INDEX idx_vuln_org ON vulnerabilities(organization_id);
+   CREATE INDEX idx_vuln_severity ON vulnerabilities(severity);
+   Enable RLS. Org-scoped policies.
+
+4. Create app/api/vulnerabilities/route.ts
+   - GET: list vulnerabilities for org (filter by severity, status)
+   - POST: manually add vulnerability
+
+5. Create app/api/vulnerabilities/scan/route.ts
+   - POST { organizationId }
+   - Run assetVulnMatcher → save new CVEs → return summary
+
+6. Create app/api/cron/vuln-scan/route.ts
+   - Run daily scan for all orgs
+
+BUILD TASK 4 — Threat Intelligence Platform (TIP):
+1. Create lib/tip/feedManager.ts
+   - Manage multiple threat intel feeds:
+     a) OTX AlienVault pulses (Env: OTX_API_KEY)
+        GET https://otx.alienvault.com/api/v1/pulses/subscribed
+     b) MISP feeds (open free feeds — use circl.lu free MISP)
+        GET https://www.circl.lu/doc/misp/feed-osint/ (public JSON)
+     c) Abuse.ch URLhaus: GET https://urlhaus-api.abuse.ch/v1/urls/recent/
+     d) Abuse.ch MalwareBazaar: POST https://mb-api.abuse.ch/api/v1/ action=get_recent
+   - Normalize all feeds into: { iocType, value, tags[], confidence, source, expiresAt }
+
+2. Create lib/tip/iocStore.ts
+   - Deduplicate IOCs across feeds
+   - Store in MongoDB collection: threat_iocs
+   - Schema: { type, value, tags, confidence, sources[], firstSeen, lastSeen, hitCount }
+   - Lookup function: isKnownBad(value) → returns IOC or null
+
+3. Create lib/tip/correlationFeed.ts
+   - Cross-reference incoming alerts against TIP IOC store
+   - Auto-tag alerts with matching IOCs
+   - Boost alert severity if IOC confidence > 80
+
+4. Create app/api/tip/feeds/route.ts
+   - GET: list configured feeds + last sync time
+   - POST: add custom feed
+
+5. Create app/api/tip/iocs/route.ts
+   - GET: query IOC store (filter by type, tag, confidence)
+   - POST: manually add IOC
+
+6. Create app/api/tip/iocs/lookup/route.ts
+   - POST { value: string }
+   - Check IOC store + run live enrichment
+   - Return full threat context
+
+7. Create app/api/cron/sync-tip-feeds/route.ts
+   - Fetch all feeds, normalize, deduplicate, store
+   - Run every 6 hours
+
+Run npm run build. Fix every TypeScript error. List all files created.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth, useOrganization } from "@clerk/nextjs";
 import { createClient } from "@/lib/supabase/client";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import StatusBadge from "@/components/dashboard/StatusBadge";
@@ -68,6 +69,9 @@ function relativeTime(iso: string): string {
 }
 
 export default function EscalationsDashboardPage() {
+  const { userId } = useAuth();
+  const { organization, isLoaded: orgLoaded } = useOrganization();
+  const orgId = organization?.id || null;
   const [rows, setRows] = useState<EscalationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -77,16 +81,28 @@ export default function EscalationsDashboardPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const fetchEscalations = useCallback(async () => {
+    if (!userId || !orgId) {
+      setRows([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setErrorText(null);
     try {
       const supabase = createClient();
-      const { data, error } = await supabase
+      let query = supabase
         .from("escalations")
         .select(
           "id, title, description, severity, status, affected_user_id, affected_ip, recommended_action, created_at, l2_function_called",
         )
         .order("created_at", { ascending: false });
+
+      if (orgId) {
+        query = query.eq("organization_id", orgId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         throw new Error(error.message);
@@ -101,8 +117,9 @@ export default function EscalationsDashboardPage() {
   }, []);
 
   useEffect(() => {
+    if (!orgLoaded) return;
     void fetchEscalations();
-  }, [fetchEscalations]);
+  }, [fetchEscalations, orgLoaded]);
 
   const filteredRows = useMemo(() => {
     return rows.filter((row) => {
@@ -237,10 +254,28 @@ export default function EscalationsDashboardPage() {
         </div>
       </DashboardCard>
 
-      {loading ? (
+      {!orgLoaded ? (
         <DashboardCard className="text-white/70">
-          Loading escalations...
+          Loading organization...
         </DashboardCard>
+      ) : !orgId ? (
+        <DashboardCard className="text-white/70">
+          Select an organization to view escalations.
+        </DashboardCard>
+      ) : loading ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <DashboardCard
+              key={`escalation-skeleton-${index}`}
+              className="flex flex-col gap-3 p-5 animate-pulse"
+            >
+              <div className="h-4 w-2/3 rounded bg-white/10" />
+              <div className="h-3 w-full rounded bg-white/10" />
+              <div className="h-3 w-4/5 rounded bg-white/10" />
+              <div className="h-3 w-1/2 rounded bg-white/10" />
+            </DashboardCard>
+          ))}
+        </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredRows.map((row) => {

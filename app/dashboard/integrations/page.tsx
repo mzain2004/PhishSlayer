@@ -1,258 +1,135 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Copy,
-  KeyRound,
-  Link2,
-  Loader2,
-  Plug,
-  ShieldAlert,
-} from "lucide-react";
-import { toast } from "sonner";
+import { AlertTriangle, Loader2, Plug, ShieldCheck } from "lucide-react";
+import { useOrganization } from "@clerk/nextjs";
 import DashboardCard from "@/components/dashboard/DashboardCard";
-import PhishButton from "@/components/ui/PhishButton";
-import { createClient } from "@/lib/supabase/client";
+import StatusBadge from "@/components/dashboard/StatusBadge";
+import { registry } from "@/lib/connectors/registry";
 
-type OrganizationInfo = {
+type ConnectorConfig = {
   id: string;
-  name: string;
-  role: "owner" | "admin" | "analyst";
-};
-
-type IntegrationRecord = {
-  id: string;
-  name: string;
-  manager_ip: string | null;
+  vendor: string;
+  connector_type: string;
+  display_name: string | null;
   is_active: boolean;
-  last_seen_at: string | null;
+  last_synced_at: string | null;
   created_at: string;
-  status: "Active" | "Inactive";
+  config: Record<string, string>;
 };
 
-type IntegrationsResponse = {
-  success: boolean;
-  organization?: OrganizationInfo;
-  webhook_url?: string;
-  integrations?: IntegrationRecord[];
+type ApiError = {
   error?: string;
 };
 
-const STEP_TITLES = [
-  "Step 1: Name Your Integration",
-  "Step 2: Generate API Key",
-  "Step 3: Configure Wazuh Manager",
+const VENDOR_LABELS: Record<string, string> = {
+  crowdstrike: "CrowdStrike",
+  sentinelone: "SentinelOne",
+  microsoft: "Microsoft Defender",
+  carbonblack: "Carbon Black",
+  splunk: "Splunk",
+  elastic: "Elastic",
+  paloalto: "Palo Alto",
+  fortinet: "Fortinet",
+  pfsense: "pfSense",
+  wazuh: "Wazuh",
+};
+
+const VENDOR_TYPES: Record<string, string> = {
+  crowdstrike: "EDR",
+  sentinelone: "EDR",
+  microsoft: "EDR/SIEM",
+  carbonblack: "EDR",
+  splunk: "SIEM",
+  elastic: "SIEM",
+  paloalto: "Firewall",
+  fortinet: "Firewall",
+  pfsense: "Firewall",
+  wazuh: "Wazuh",
+};
+
+const SUPPORTED_VENDORS = [
+  "crowdstrike",
+  "sentinelone",
+  "microsoft",
+  "carbonblack",
+  "splunk",
+  "elastic",
+  "paloalto",
+  "fortinet",
+  "pfsense",
 ];
 
-function formatLastSeen(lastSeen: string | null) {
-  if (!lastSeen) {
-    return "Never";
-  }
-
-  const parsed = new Date(lastSeen);
-  if (Number.isNaN(parsed.getTime())) {
-    return "Unknown";
-  }
-
+function formatTimestamp(value: string | null) {
+  if (!value) return "Never";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Unknown";
   return parsed.toLocaleString();
 }
 
 export default function IntegrationsPage() {
+  const { organization, isLoaded } = useOrganization();
+  const orgId = organization?.id || null;
   const [loading, setLoading] = useState(true);
-  const [wizardStep, setWizardStep] = useState(1);
-  const [organization, setOrganization] = useState<OrganizationInfo | null>(null);
-  const [integrations, setIntegrations] = useState<IntegrationRecord[]>([]);
-  const [name, setName] = useState("");
-  const [managerIp, setManagerIp] = useState("");
-  const [generatedKey, setGeneratedKey] = useState<string | null>(null);
-  const [generatedIntegrationId, setGeneratedIntegrationId] = useState<
-    string | null
-  >(null);
-  const [webhookUrl, setWebhookUrl] = useState<string>("");
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const [connectors, setConnectors] = useState<ConnectorConfig[]>([]);
 
-  const loadIntegrations = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/integrations/wazuh", {
-        method: "GET",
-        cache: "no-store",
-      });
-      const data = (await response.json()) as IntegrationsResponse;
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to load integrations");
-      }
-
-      const supabase = createClient();
-      const resolvedOrg = data.organization || null;
-      let resolvedOrgName =
-        typeof resolvedOrg?.name === "string"
-          ? resolvedOrg.name.trim()
-          : "";
-
-      if (resolvedOrg?.id && !resolvedOrgName) {
-        const { data: organizationRow, error: organizationError } =
-          await supabase
-            .from("organizations")
-            .select("name")
-            .eq("id", resolvedOrg.id)
-            .maybeSingle();
-
-        if (organizationError) {
-          throw new Error(organizationError.message);
-        }
-
-        resolvedOrgName =
-          typeof organizationRow?.name === "string"
-            ? organizationRow.name.trim()
-            : "";
-      }
-
-      const normalizedOrg = resolvedOrg
-        ? {
-            ...resolvedOrg,
-            name: resolvedOrgName || resolvedOrg.id,
-          }
-        : null;
-
-      setOrganization(normalizedOrg);
-
-      const resolvedWebhookUrl = data.webhook_url || "";
-      setWebhookUrl(resolvedWebhookUrl);
-
-      if (!normalizedOrg?.id) {
-        setIntegrations([]);
-        return;
-      }
-
-      const { data: connectorRows, error: connectorsError } = await supabase
-        .from("connectors")
-        .select(
-          "id, connector_name, manager_ip, is_active, last_seen_at, created_at",
-        )
-        .eq("organization_id", normalizedOrg.id)
-        .eq("connector_type", "wazuh")
-        .order("created_at", { ascending: false });
-
-      if (connectorsError) {
-        throw new Error(connectorsError.message);
-      }
-
-      const connectors: IntegrationRecord[] = (connectorRows || []).map(
-        (connector) => {
-          const isActive = Boolean(connector.is_active);
-          const status: IntegrationRecord["status"] = isActive
-            ? "Active"
-            : "Inactive";
-
-          return {
-            id: connector.id,
-            name: connector.connector_name,
-            manager_ip: connector.manager_ip,
-            is_active: isActive,
-            last_seen_at: connector.last_seen_at,
-            created_at: connector.created_at,
-            status,
-          };
-        },
-      );
-
-      setIntegrations(connectors);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Could not load Wazuh integrations";
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
+  const connectorCatalog = useMemo(() => {
+    const entries = [...SUPPORTED_VENDORS, "wazuh"];
+    return entries.map((vendor) => ({
+      vendor,
+      label: VENDOR_LABELS[vendor] || vendor,
+      type: VENDOR_TYPES[vendor] || "Connector",
+    }));
   }, []);
 
-  useEffect(() => {
-    void loadIntegrations();
-  }, [loadIntegrations]);
+  const liveConnectors = useMemo(() => {
+    if (!orgId) return [];
+    return registry.listByOrg(orgId);
+  }, [orgId]);
 
-  const ossecSnippet = useMemo(() => {
-    const integrationName = name.trim().length > 0 ? name.trim() : "HQ Network";
-
-    return `<integration>
-  <name>custom-webhook</name>
-  <hook_url>${webhookUrl}</hook_url>
-  <level>7</level>
-  <alert_format>json</alert_format>
-  <api_key>${generatedKey || "REPLACE_WITH_GENERATED_KEY"}</api_key>
-  <!-- Organization: ${organization?.id || "REPLACE_WITH_ORG_UUID"} | Manager Name: ${integrationName} -->
-</integration>`;
-  }, [generatedKey, name, organization?.id, webhookUrl]);
-
-  async function copyToClipboard(value: string, successMessage: string) {
-    try {
-      await navigator.clipboard.writeText(value);
-      toast.success(successMessage);
-    } catch {
-      toast.error("Clipboard copy failed");
-    }
-  }
-
-  async function handleGenerateKey() {
-    if (!name.trim()) {
-      toast.error("Please provide an integration name first.");
+  const loadConnectors = useCallback(async () => {
+    if (!orgId) {
+      setConnectors([]);
+      setLoading(false);
       return;
     }
 
-    setIsGenerating(true);
+    setLoading(true);
+    setErrorText(null);
     try {
-      const response = await fetch("/api/integrations/wazuh/generate-key", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          manager_ip: managerIp.trim() || null,
-          organization_id: organization?.id || undefined,
-        }),
+      const response = await fetch("/api/connectors", {
+        method: "GET",
+        cache: "no-store",
       });
+      const payload = (await response.json()) as ConnectorConfig[] | ApiError;
 
-      const payload = (await response.json()) as {
-        success: boolean;
-        error?: string;
-        api_key?: string;
-        connector_id?: string;
-        webhook_url?: string;
-      };
-
-      if (!response.ok || !payload.success) {
-        throw new Error(payload.error || "Failed to generate integration key");
+      if (!response.ok) {
+        throw new Error(
+          (payload as ApiError)?.error || "Failed to load connectors",
+        );
       }
 
-      setGeneratedKey(payload.api_key || null);
-      setGeneratedIntegrationId(payload.connector_id || null);
-      setWebhookUrl(payload.webhook_url || webhookUrl);
-      setWizardStep(2);
-
-      toast.success("Wazuh API key generated. Save it now.");
-      await loadIntegrations();
+      setConnectors(Array.isArray(payload) ? payload : []);
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to generate Wazuh API key";
-      toast.error(message);
+      setErrorText(
+        error instanceof Error ? error.message : "Unable to load connectors",
+      );
     } finally {
-      setIsGenerating(false);
+      setLoading(false);
     }
-  }
+  }, [orgId]);
 
-  function resetWizard() {
-    setWizardStep(1);
-    setName("");
-    setManagerIp("");
-    setGeneratedKey(null);
-    setGeneratedIntegrationId(null);
-  }
+  useEffect(() => {
+    if (!isLoaded) return;
+    void loadConnectors();
+  }, [isLoaded, loadConnectors]);
+
+  const configuredSummary = useMemo(() => {
+    const active = connectors.filter((connector) => connector.is_active).length;
+    const inactive = connectors.length - active;
+    return { total: connectors.length, active, inactive };
+  }, [connectors]);
 
   return (
     <div className="w-full max-w-6xl space-y-6">
@@ -262,189 +139,70 @@ export default function IntegrationsPage() {
           Integrations
         </h1>
         <p className="mt-2 text-sm text-slate-300">
-          Configure organization-scoped Wazuh webhook integrations with one-time API
-          keys.
+          Monitor connector configuration, live status, and catalog coverage for
+          your organization.
         </p>
       </div>
 
       <DashboardCard className="border-[#7c6af7]/30 bg-[#0a0a0f]">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-white">
-            Wazuh Onboarding Wizard
+            Connector Registry
           </h2>
-          <span className="rounded-full border border-[#7c6af7]/40 bg-[#7c6af7]/10 px-3 py-1 text-xs text-[#c5bdfd]">
-            {STEP_TITLES[wizardStep - 1]}
+          <span className="text-xs text-slate-400">
+            Organization: {organization?.name || "Not selected"}
           </span>
         </div>
 
-        <div className="mb-4 grid grid-cols-1 gap-2 md:grid-cols-3">
-          {[1, 2, 3].map((step) => {
-            const isActive = step === wizardStep;
-            const isComplete = step < wizardStep;
-
-            return (
-              <div
-                key={step}
-                className={`rounded-lg border px-3 py-2 text-xs ${
-                  isActive
-                    ? "border-[#7c6af7] bg-[#7c6af7]/15 text-white"
-                    : isComplete
-                      ? "border-[#7c6af7]/30 bg-[#7c6af7]/5 text-[#c5bdfd]"
-                      : "border-white/10 bg-white/[0.02] text-slate-400"
-                }`}
-              >
-                {STEP_TITLES[step - 1]}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {connectorCatalog.map((entry) => (
+            <div
+              key={entry.vendor}
+              className="rounded-lg border border-white/10 bg-white/[0.02] p-3"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-white">
+                  {entry.label}
+                </p>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400">
+                  {entry.type}
+                </span>
               </div>
-            );
-          })}
+              <p className="mt-2 text-xs text-slate-400">
+                Vendor ID: {entry.vendor}
+              </p>
+            </div>
+          ))}
         </div>
 
-        {wizardStep === 1 ? (
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm text-slate-200">
-                Integration Name
-              </label>
-              <input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="HQ Network"
-                className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-white outline-none ring-[#7c6af7] focus:ring-2"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm text-slate-200">
-                Wazuh Manager IP (optional)
-              </label>
-              <input
-                value={managerIp}
-                onChange={(event) => setManagerIp(event.target.value)}
-                placeholder="192.168.10.25"
-                className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-white outline-none ring-[#7c6af7] focus:ring-2"
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              <PhishButton
-                onClick={handleGenerateKey}
-                disabled={isGenerating}
-                className="rounded-lg bg-[#7c6af7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8b7af8]"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <KeyRound className="h-4 w-4" />
-                    Generate API Key
-                  </>
-                )}
-              </PhishButton>
-            </div>
+        <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-white">Live Sessions</p>
+            <StatusBadge
+              status={liveConnectors.length > 0 ? "healthy" : "pending"}
+              label={`${liveConnectors.length} active`}
+            />
           </div>
-        ) : null}
-
-        {wizardStep === 2 ? (
-          <div className="space-y-4">
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
-              <div className="mb-1 flex items-center gap-2 font-semibold">
-                <ShieldAlert className="h-4 w-4" />
-                Save this key, it will not be shown again.
-              </div>
-              The plaintext key is displayed once for secure handoff into your
-              Wazuh manager config.
-            </div>
-
-            <div className="rounded-lg border border-white/15 bg-black/30 p-3">
-              <p className="mb-2 text-xs text-slate-400">Generated API Key</p>
-              <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                <code className="block flex-1 overflow-x-auto rounded-md bg-black/50 px-3 py-2 text-xs text-[#c5bdfd]">
-                  {generatedKey || "No key generated"}
-                </code>
-                <PhishButton
-                  onClick={() =>
-                    generatedKey
-                      ? copyToClipboard(generatedKey, "API key copied")
-                      : toast.error("No key available to copy")
-                  }
-                  className="rounded-lg border border-[#7c6af7]/40 bg-[#7c6af7]/20 px-3 py-2 text-xs text-[#d8d2fe]"
+          {liveConnectors.length === 0 ? (
+            <p className="mt-2 text-xs text-slate-400">
+              No live connectors registered in memory yet.
+            </p>
+          ) : (
+            <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
+              {liveConnectors.map((connector) => (
+                <div
+                  key={connector.id}
+                  className="rounded-md border border-white/10 bg-black/30 px-3 py-2"
                 >
-                  <Copy className="h-3.5 w-3.5" />
-                  Copy Key
-                </PhishButton>
-              </div>
+                  <p className="text-sm text-white">{connector.name}</p>
+                  <p className="text-xs text-slate-400">
+                    {connector.vendor} · {connector.type}
+                  </p>
+                </div>
+              ))}
             </div>
-
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              <PhishButton
-                onClick={() => setWizardStep(3)}
-                className="rounded-lg bg-[#7c6af7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8b7af8]"
-              >
-                Continue to Config Snippet
-              </PhishButton>
-              <PhishButton
-                onClick={resetWizard}
-                className="rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm text-slate-200"
-              >
-                Start Over
-              </PhishButton>
-            </div>
-          </div>
-        ) : null}
-
-        {wizardStep === 3 ? (
-          <div className="space-y-4">
-            <div className="rounded-lg border border-white/15 bg-black/30 p-3">
-              <p className="mb-2 text-xs text-slate-400">Webhook URL</p>
-              <code className="block overflow-x-auto rounded-md bg-black/50 px-3 py-2 text-xs text-[#c5bdfd]">
-                {webhookUrl}
-              </code>
-            </div>
-
-            <div className="rounded-lg border border-white/15 bg-black/30 p-3">
-              <p className="mb-2 text-xs text-slate-400">ossec.conf snippet</p>
-              <pre className="overflow-x-auto rounded-md bg-black/50 p-3 text-xs text-[#c5bdfd]">
-                {ossecSnippet}
-              </pre>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <PhishButton
-                  onClick={() =>
-                    copyToClipboard(ossecSnippet, "ossec.conf snippet copied")
-                  }
-                  className="rounded-lg border border-[#7c6af7]/40 bg-[#7c6af7]/20 px-3 py-2 text-xs text-[#d8d2fe]"
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                  Copy Snippet
-                </PhishButton>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3 text-xs text-slate-300">
-              <p>
-                Integration ID:{" "}
-                <span className="text-[#d8d2fe]">
-                  {generatedIntegrationId || "n/a"}
-                </span>
-              </p>
-              <p>
-                Organization ID:{" "}
-                <span className="text-[#d8d2fe]">{organization?.id || "n/a"}</span>
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              <PhishButton
-                onClick={resetWizard}
-                className="rounded-lg bg-[#7c6af7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8b7af8]"
-              >
-                Add Another Integration
-              </PhishButton>
-            </div>
-          </div>
-        ) : null}
+          )}
+        </div>
       </DashboardCard>
 
       <DashboardCard className="border-white/10 bg-[#0a0a0f]">
@@ -452,57 +210,75 @@ export default function IntegrationsPage() {
           <h2 className="text-lg font-semibold text-white">
             Configured Integrations
           </h2>
-          <span className="text-xs text-slate-400">
-            Organization: {organization?.name || "n/a"}
-          </span>
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
+            {configuredSummary.active} active · {configuredSummary.inactive}{" "}
+            idle
+          </div>
         </div>
 
-        {loading ? (
+        {!isLoaded ? (
           <div className="flex items-center gap-2 text-sm text-slate-300">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Loading integrations...
+            Loading organization...
           </div>
-        ) : integrations.length === 0 ? (
+        ) : !orgId ? (
           <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm text-slate-300">
-            No Wazuh integrations configured yet.
+            Select an organization in Clerk to view configured connectors.
+          </div>
+        ) : loading ? (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={`connector-skeleton-${index}`}
+                className="rounded-lg border border-white/10 bg-white/[0.02] p-4 animate-pulse"
+              >
+                <div className="h-4 w-1/2 rounded bg-white/10" />
+                <div className="mt-3 h-3 w-1/3 rounded bg-white/10" />
+                <div className="mt-2 h-3 w-2/3 rounded bg-white/10" />
+              </div>
+            ))}
+          </div>
+        ) : connectors.length === 0 ? (
+          <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm text-slate-300">
+            No connectors configured yet. Add one via the API to populate this
+            view.
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {integrations.map((integration) => (
+            {connectors.map((connector) => (
               <div
-                key={integration.id}
+                key={connector.id}
                 className="rounded-lg border border-white/10 bg-white/[0.02] p-4"
               >
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-white">
-                    {integration.name}
+                    {connector.display_name ||
+                      VENDOR_LABELS[connector.vendor] ||
+                      connector.vendor}
                   </h3>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs ${
-                      integration.is_active
-                        ? "bg-emerald-500/15 text-emerald-300"
-                        : "bg-slate-500/20 text-slate-300"
-                    }`}
-                  >
-                    {integration.status}
-                  </span>
+                  <StatusBadge
+                    status={connector.is_active ? "healthy" : "pending"}
+                    label={connector.is_active ? "active" : "idle"}
+                  />
                 </div>
 
                 <div className="space-y-1 text-xs text-slate-300">
                   <p>
-                    <span className="text-slate-400">Manager:</span>{" "}
-                    {integration.manager_ip || integration.name}
+                    <span className="text-slate-400">Type:</span>{" "}
+                    {connector.connector_type.toUpperCase()}
                   </p>
                   <p>
-                    <span className="text-slate-400">Last seen:</span>{" "}
-                    {formatLastSeen(integration.last_seen_at)}
+                    <span className="text-slate-400">Vendor:</span>{" "}
+                    {VENDOR_LABELS[connector.vendor] || connector.vendor}
                   </p>
                   <p>
-                    <span className="text-slate-400">Webhook:</span>{" "}
-                    <span className="inline-flex items-center gap-1 text-[#c5bdfd]">
-                      <Link2 className="h-3 w-3" />
-                      {webhookUrl || "Not available"}
-                    </span>
+                    <span className="text-slate-400">Last Sync:</span>{" "}
+                    {formatTimestamp(connector.last_synced_at)}
+                  </p>
+                  <p>
+                    <span className="text-slate-400">Secrets:</span>{" "}
+                    {Object.keys(connector.config || {}).length} masked field(s)
                   </p>
                 </div>
               </div>
@@ -510,6 +286,15 @@ export default function IntegrationsPage() {
           </div>
         )}
       </DashboardCard>
+
+      {errorText ? (
+        <DashboardCard className="border-red-400/40 bg-red-500/10 p-4 text-sm text-red-200">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            {errorText}
+          </div>
+        </DashboardCard>
+      ) : null}
     </div>
   );
 }

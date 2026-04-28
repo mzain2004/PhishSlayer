@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth, useOrganization } from "@clerk/nextjs";
 import { createClient } from "@/lib/supabase/client";
 import { List, RowComponentProps } from "react-window";
 
@@ -49,6 +50,9 @@ function relativeTime(iso: string): string {
 }
 
 export default function ThreatHuntsPage() {
+  const { userId } = useAuth();
+  const { organization, isLoaded: orgLoaded } = useOrganization();
+  const orgId = organization?.id || null;
   const [rows, setRows] = useState<HuntFindingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -59,18 +63,30 @@ export default function ThreatHuntsPage() {
   const [debouncedSearchText, setDebouncedSearchText] = useState("");
 
   const fetchFindings = useCallback(async () => {
+    if (!userId || !orgId) {
+      setRows([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setErrorText(null);
 
     try {
       const supabase = createClient();
-      const { data, error } = await supabase
+      let query = supabase
         .from("hunt_findings")
         .select(
           "id, hunt_type, title, description, severity, confidence, escalated, escalation_id, created_at",
         )
         .order("created_at", { ascending: false })
         .limit(200);
+
+      if (orgId) {
+        query = query.eq("organization_id", orgId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         throw new Error(error.message);
@@ -85,7 +101,10 @@ export default function ThreatHuntsPage() {
   }, []);
 
   useEffect(() => {
+    if (!orgLoaded) return;
     void fetchFindings();
+
+    if (!orgId) return;
 
     const supabase = createClient();
     const channel = supabase
@@ -102,7 +121,7 @@ export default function ThreatHuntsPage() {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [fetchFindings]);
+  }, [fetchFindings, orgId, orgLoaded]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -259,9 +278,24 @@ export default function ThreatHuntsPage() {
         </div>
       </div>
 
-      {loading ? (
+      {!orgLoaded ? (
         <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl text-white/70">
-          Loading hunt findings...
+          Loading organization...
+        </div>
+      ) : !orgId ? (
+        <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl text-white/70">
+          Select an organization to view hunt findings.
+        </div>
+      ) : loading ? (
+        <div className="rounded-2xl border border-[rgba(48,54,61,0.9)] bg-[rgba(23,28,35,0.85)] p-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={`hunt-skeleton-${index}`}
+                className="h-[220px] rounded-2xl border border-[rgba(48,54,61,0.9)] bg-black/20 animate-pulse"
+              />
+            ))}
+          </div>
         </div>
       ) : filteredRows.length === 0 ? (
         <div className="p-6 bg-[rgba(23,28,35,0.85)] backdrop-blur-3xl border border-[rgba(48,54,61,0.9)] rounded-2xl text-white/70">

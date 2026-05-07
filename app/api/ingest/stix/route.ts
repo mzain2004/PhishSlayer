@@ -5,6 +5,14 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
+  const ingestKey =
+    request.headers.get("x-api-key") ??
+    request.headers.get("authorization")?.replace("Bearer ", "");
+
+  if (!ingestKey || ingestKey !== process.env.INGEST_API_KEY) {
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+  }
+
   const orgId = request.headers.get("x-org-id");
   if (!orgId) {
     return NextResponse.json({ error: "Missing organization context" }, { status: 400 });

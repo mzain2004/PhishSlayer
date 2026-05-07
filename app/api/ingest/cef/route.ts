@@ -6,12 +6,19 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
+  const ingestKey =
+    request.headers.get("x-api-key") ??
+    request.headers.get("authorization")?.replace("Bearer ", "");
+
+  if (!ingestKey || ingestKey !== process.env.INGEST_API_KEY) {
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+  }
+
   const orgId = request.headers.get("x-org-id");
   const connectorId = request.headers.get("x-connector-id") || '00000000-0000-0000-0000-000000000000';
-  const apiKey = request.headers.get("x-api-key");
 
-  if (!orgId || !apiKey) {
-    return NextResponse.json({ error: "Missing authentication" }, { status: 401 });
+  if (!orgId) {
+    return NextResponse.json({ error: "Missing routing params" }, { status: 400 });
   }
 
   try {

@@ -182,10 +182,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to generate Sigma rule",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );
@@ -258,7 +255,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: `Failed to fetch Sigma rules: ${error.message}`,
+          error: "INTERNAL_SERVER_ERROR",
         },
         { status: 500 },
       );
@@ -275,8 +272,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to list Sigma rules",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );

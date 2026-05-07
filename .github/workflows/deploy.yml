@@ -206,8 +206,8 @@ jobs:
           NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=https://phishslayer.tech/dashboard
           NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=https://phishslayer.tech/dashboard
           SYSTEM_ORG_ID=78ace94a-fa76-4459-990d-07b3a5a8b9a4
-          INGEST_API_KEY=ps_ingest_2026_phishslayer
-          PHISH_SLAYER_API_KEY=ps_main_2026_phishslayer
+          INGEST_API_KEY=${{ secrets.INGEST_API_KEY }}
+          PHISH_SLAYER_API_KEY=${{ secrets.PHISH_SLAYER_API_KEY }}
           RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}

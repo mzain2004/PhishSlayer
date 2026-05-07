@@ -48,8 +48,7 @@ export async function POST(request: Request) {
     console.error("[Checkout] Error:", error);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to create checkout",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );

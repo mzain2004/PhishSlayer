@@ -1,259 +1,455 @@
-PHASE 7 — AZURE VM DEPLOY + DOCKER + WAZUH WEBHOOK
-====================================================
-You are a senior DevOps engineer. Read files before editing. Verify before assuming.
-If a file does not exist, create it. If a command fails, fix and retry once.
-After each task print: ✅ TASK N — [result]. Never skip a task. Never assume success.
-If stuck or uncertain: STOP. Print: ⛔ BLOCKED ON TASK N — [exact reason]. Do not proceed past a blocker.
-
-## CURRENT STATE (do not re-do these)
-- Next.js 15 app: D:\Phish Slayer\ (port 3000)
-- FastAPI: D:\Phish Slayer\phishslayer-api\ (port 8001)
-- Groq + AgentOps + Clerk JWT + MongoDB StateStore: all wired
-- Azure VM: 40.123.224.93, Ubuntu 24.04, SSH access assumed
-- DigitalOcean VM: Wazuh Manager (separate box — do NOT touch its config)
-- Docker files exist: Dockerfile (Next.js), docker\Dockerfile.api (FastAPI)
-- docker-compose.yml exists at root
-
-## GROUND RULES — NEVER VIOLATE
-- NEVER modify middleware.ts or server.js
-- NEVER overwrite .env.local or .env.production — append only
-- NEVER expose stack traces — all errors JSONResponse
-- NEVER commit broken code — npm run build MUST pass before any git push
-- block_ip ALWAYS requires human approval
-- Groq client ALWAYS lazy init (inside functions, never module-scope)
-- If any shell command is ambiguous on Windows PowerShell, use PowerShell syntax
+## Context (carry forward)
+- Project: PhishSlayer — Next.js 15, Supabase, Clerk, Groq, Docker on Azure
+- Repo: D:\Phish Slayer (mzain2004/Phish-Slayer on GitHub)
+- Audit found 32 issues — 6 CRITICAL, 10 HIGH must be fixed before next deploy
+- MCP connectors available: Supabase, GitHub, Clerk — USE THEM for all DB and repo operations
+- NEVER modify server.js beyond what is explicitly instructed
+- NEVER overwrite .env files — append only
+- ALWAYS run npm run build before declaring any feature complete
+- Docker port is always 3000:3000, env file is always .env.production
 
 ---
 
-## TASK 0 — Read existing Docker files first
-Read these files before touching anything:
-  D:\Phish Slayer\Dockerfile
-  D:\Phish Slayer\docker\Dockerfile.api
-  D:\Phish Slayer\docker-compose.yml
-
-Print exact content of each. Do not edit yet.
-Identify any issues. List them.
-✅ TASK 0 — [files read, issues listed]
+## YOUR ROLE
+You are a senior security engineer fixing critical vulnerabilities in a production Next.js 15 
+security platform. Fix ONLY what is listed. Do not refactor, rename, or improve anything else.
+After EACH fix output: ✅ [C1/C2/etc] [filename:line] — Fixed: [one line description]
 
 ---
 
-## TASK 1 — Fix Dockerfile (Next.js)
-Fix D:\Phish Slayer\Dockerfile based on issues found in TASK 0.
-Requirements:
-  - Multi-stage build: deps → builder → runner
-  - NODE_OPTIONS=--max-old-space-size=3072 in builder stage
-  - Copy .env.production in builder stage (NOT .env.local)
-  - Expose port 3000
-  - ARG for: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, NEXT_PUBLIC_APP_URL
-  - Never hardcode secrets — use ARG/ENV only
-  - runner stage: node:20-alpine, non-root user
+## PHASE 1 — CRITICAL FIXES (do in exact order)
 
-Run local validation (do not build yet):
-  Select-String -Path "D:\Phish Slayer\Dockerfile" -Pattern "FROM"
-  (should show 3 FROM lines for multi-stage)
-✅ TASK 1 — [Dockerfile fixed, FROM count confirmed]
+### C6 FIRST — Fix .dockerignore (prevents secrets entering build context)
+
+Read `.dockerignore`. Find the line `!.env.production` and delete it.
+The file should EXCLUDE all .env files. .env.production must NEVER be copied into Docker build.
+Correct .dockerignore should contain:
+.env
+.env.local
+.env.production
+.env*.local
+Save the file.
+✅ Confirm: `!.env.production` line is gone.
 
 ---
 
-## TASK 2 — Fix Dockerfile.api (FastAPI)
-Fix D:\Phish Slayer\docker\Dockerfile.api based on issues found in TASK 0.
-Requirements:
-  - Base: python:3.12-slim
-  - Install from phishslayer-api\requirements.txt
-  - Copy phishslayer-api\ contents
-  - ENV for: PYTHONUNBUFFERED=1, PYTHONDONTWRITEBYTECODE=1
-  - ARG for: GROQ_API_KEY, AGENTOPS_API_KEY, MONGODB_URI, CLERK_SECRET_KEY
-  - CMD: uvicorn main:app --host 0.0.0.0 --port 8000
-  - Expose port 8000 (prod) — NOT 8001
-  - Non-root user
+### C1 — Fix deploy.yml hardcoded API keys
 
-Run validation:
-  Select-String -Path "D:\Phish Slayer\docker\Dockerfile.api" -Pattern "EXPOSE"
-  (should show port 8000)
-✅ TASK 2 — [Dockerfile.api fixed, EXPOSE 8000 confirmed]
+Read `.github/workflows/deploy.yml`.
+Find lines ~209-210 containing:
+  `INGEST_API_KEY=ps_ingest_2026_phishslayer`
+  `PHISH_SLAYER_API_KEY=ps_main_2026_phishslayer`
 
----
+Replace BOTH hardcoded values with GitHub Secrets references:
+  `INGEST_API_KEY=${{ secrets.INGEST_API_KEY }}`
+  `PHISH_SLAYER_API_KEY=${{ secrets.PHISH_SLAYER_API_KEY }}`
 
-## TASK 3 — Fix docker-compose.yml
-Fix D:\Phish Slayer\docker-compose.yml.
-Requirements:
-  services:
-    nextjs:
-      build: . (uses root Dockerfile)
-      ports: "3000:3000"
-      env_file: .env.production
-      depends_on: [api]
-      restart: unless-stopped
-    
-    api:
-      build:
-        context: .
-        dockerfile: docker/Dockerfile.api
-      ports: "8000:8000"
-      env_file: .env.production
-      restart: unless-stopped
-
-  No hardcoded secrets in compose file.
-  No volumes mounting .env.local (security risk).
-
-✅ TASK 3 — [docker-compose.yml fixed]
+Then use the GitHub MCP connector to add these secrets to the repo:
+  - Secret name: `INGEST_API_KEY` → value: `ps_ingest_2026_phishslayer`
+  - Secret name: `PHISH_SLAYER_API_KEY` → value: `ps_main_2026_phishslayer`
+  
+Also scan deploy.yml for ANY other hardcoded values that look like keys/tokens/passwords.
+Move every one to GitHub Secrets using the same pattern.
+✅ Confirm: zero hardcoded secret values remain in deploy.yml.
 
 ---
 
-## TASK 4 — Create Azure deploy script
-Create D:\Phish Slayer\scripts\deploy_azure.sh
+### C2 — Remove AGENT_SECRET from server.js stdout
 
-This script runs ON the Azure VM (40.123.224.93) via SSH.
-It must:
-  1. cd /opt/phishslayer (create if not exists)
-  2. git pull origin main (assumes repo already cloned)
-  3. Check .env.production exists — if not: print ERROR and exit 1
-  4. docker compose down --remove-orphans
-  5. docker compose build --no-cache
-  6. docker compose up -d
-  7. Sleep 10 seconds
-  8. Health check: curl -f http://localhost:3000 || exit 1
-  9. Health check: curl -f http://localhost:8000/api/v1/health || exit 1
-  10. Print: DEPLOY SUCCESS — $(date)
-
-Script header:
-  #!/bin/bash
-  set -euo pipefail  (exit on any error)
-
-✅ TASK 4 — [deploy script created]
+Read `server.js`. Find line ~76 where it logs the AGENT_SECRET value.
+Delete ONLY that console.log/console.warn line. Touch nothing else in server.js.
+✅ Confirm: AGENT_SECRET value is never printed to stdout.
 
 ---
 
-## TASK 5 — Create Wazuh webhook integration
-Create D:\Phish Slayer\phishslayer-api\routes\wazuh_webhook.py
+### C5 — Fix ingest webhook auth (no-op → real verification)
 
-This is the route that receives alerts FROM Wazuh Manager (DigitalOcean VM).
-Wazuh will POST alerts to: POST /api/v1/wazuh/alert
+Read `app/api/ingest/webhook/route.ts`.
+Find line ~17 with the comment admitting the API key is never verified.
 
-Requirements:
-  - Route: POST /api/v1/wazuh/alert
-  - Auth: verify X-PhishSlayer-Key header against WAZUH_WEBHOOK_SECRET from env
-    If missing or wrong → return JSONResponse 401, log attempt, never crash
-  - Parse incoming Wazuh alert JSON:
-      {
-        "id": "...",
-        "rule": {"description": "...", "level": 0-15},
-        "agent": {"ip": "..."},
-        "timestamp": "..."
-      }
-  - Map rule.level to severity:
-      level >= 12 → "critical"
-      level >= 8  → "high"
-      level >= 4  → "medium"
-      else        → "low"
-  - Only process if level >= 4 (ignore noise below medium)
-  - Call L1TriageAgent directly (import from agents.l1_triage)
-  - Pass org_id = "wazuh-default" (placeholder until multi-tenant wired)
-  - Return JSONResponse with l1 verdict + alert_id
-  - Wrap entire handler in try/except → JSONResponse 500 on failure
+Replace the no-op with real verification:
+```typescript
+// At the TOP of the POST handler, before any processing:
+const ingestKey = request.headers.get('x-api-key') ?? 
+                  request.headers.get('authorization')?.replace('Bearer ', '')
 
-Add to main.py:
-  from routes.wazuh_webhook import router as wazuh_router
-  app.include_router(wazuh_router)
+if (!ingestKey || ingestKey !== process.env.INGEST_API_KEY) {
+  return NextResponse.json(
+    { error: 'UNAUTHORIZED' },
+    { status: 401 }
+  )
+}
+```
 
-✅ TASK 5 — [wazuh_webhook.py created and wired]
+Verify `INGEST_API_KEY` is in `.env.production`. If missing, append:
+INGEST_API_KEY=ps_ingest_2026_phishslayer
+✅ Confirm: unauthenticated requests to /api/ingest/webhook return 401.
 
 ---
 
-## TASK 6 — Create Wazuh shell script (for DigitalOcean VM)
-Create D:\Phish Slayer\docs\wazuh_custom_webhook.sh
+### C4 — Add Clerk auth to all 15 unauthenticated routes
 
-This script goes on the DigitalOcean VM (Wazuh Manager).
-It sends alerts to PhishSlayer Azure VM.
-This is documentation only — do NOT run it locally.
+Run this scan first:
+```bash
+grep -rn "export async function" app/api/ --include="*.ts" -l | xargs grep -L "auth()"
+```
 
-Script must:
-  #!/bin/bash
-  # PhishSlayer Wazuh Custom Webhook
-  # Deploy to: /var/ossec/active-response/bin/phishslayer_webhook.sh on Wazuh VM
-  # chmod +x and set in ossec.conf
+For EVERY file returned, add Clerk authentication at the top of each handler:
+```typescript
+import { auth } from '@clerk/nextjs/server'
 
-  PHISHSLAYER_URL="https://phishslayer.yourdomain.com/api/v1/wazuh/alert"
-  SECRET="your-webhook-secret-here"  # replace with actual WAZUH_WEBHOOK_SECRET
+export async function GET(request: Request) {
+  const { userId, orgId } = await auth()
+  if (!userId || !orgId) {
+    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
+  }
+  // existing code continues...
+}
+```
 
-  curl -s -X POST "$PHISHSLAYER_URL" \
-    -H "Content-Type: application/json" \
-    -H "X-PhishSlayer-Key: $SECRET" \
-    -d "{
-      \"id\": \"$1\",
-      \"rule\": {\"description\": \"$2\", \"level\": $3},
-      \"agent\": {\"ip\": \"$4\"},
-      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
-    }"
+Apply this pattern to ALL of these known unprotected routes:
+- app/api/sandbox/url/route.ts
+- app/api/sandbox/email/route.ts  
+- app/api/soc/l1/route.ts
+- app/api/soc/pipeline/route.ts
+- app/api/vulnerabilities/route.ts
+- ALL other routes returned by the grep scan above
 
-Add comment block at top explaining ossec.conf integration.
-✅ TASK 6 — [wazuh_webhook.sh created in docs\]
+EXCEPTION: Do NOT add Clerk auth to:
+- app/api/webhooks/wazuh/route.ts (uses HMAC)
+- app/api/webhooks/polar/route.ts (uses Polar signature)
+- app/api/ingest/webhook/route.ts (uses API key — just fixed in C5)
 
----
+After adding auth, also add org-scoping to every DB query in those files:
+- Every `supabase.from('table').select()` must have `.eq('org_id', orgId)`
+- Every INSERT must include `org_id: orgId` in the data object
 
-## TASK 7 — Local Docker build test (Windows)
-Run on local machine to verify Docker files are correct before Azure deploy:
-
-  cd "D:\Phish Slayer"
-  docker build -t phishslayer-nextjs:test .
-
-If docker not installed locally: SKIP this task, print:
-  ⚠️ TASK 7 SKIPPED — Docker not available locally. Azure VM will be first build.
-
-If docker available and build fails: fix Dockerfile issues, retry once.
-Do NOT attempt to run the container (no .env.production locally).
-✅ TASK 7 — [build result]
+✅ Confirm: zero routes (except webhooks) accessible without valid Clerk session.
 
 ---
 
-## TASK 8 — npm run build verification
-  cd "D:\Phish Slayer"
-  npm run build
+### C3 — Add auth to dashboard WebSocket
 
-Fix ALL TypeScript/build errors before marking done.
-If build fails: read the exact error, fix the file, run build again.
-Do NOT mark PASS if there are any errors.
-✅ TASK 8 — [PASS/FAIL]
+Read `app/api/dashboard/ws/route.ts`.
+The WebSocket currently accepts ALL connections with zero auth.
+
+Add token validation at connection time:
+```typescript
+import { auth } from '@clerk/nextjs/server'
+
+export async function GET(request: Request) {
+  // Validate before upgrading to WebSocket
+  const { userId, orgId } = await auth()
+  if (!userId || !orgId) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+  
+  // Scope all WebSocket messages to this orgId only
+  // Store orgId in connection context
+  // Filter all broadcast events: only send events where event.orgId === orgId
+  
+  // existing WebSocket upgrade code...
+}
+```
+
+Ensure WebSocket messages are filtered by orgId — no cross-tenant data can leak.
+✅ Confirm: WebSocket returns 401 without valid Clerk session.
 
 ---
 
-## TASK 9 — Git commit
-Only after TASK 8 passes:
+## PHASE 2 — HIGH FIXES
 
-  cd "D:\Phish Slayer"
-  git add -A
-  git commit -m "Phase 7: Docker + Wazuh webhook integration"
-  git push origin main
+### H1 — Fix all error.message leaks (80+ occurrences)
 
-If git push fails: print exact error. Do NOT force push.
-✅ TASK 9 — [committed and pushed / BLOCKED reason]
+Run scan:
+```bash
+grep -rn "error\.message\|err\.message\|\.stack" app/api/ --include="*.ts"
+```
+
+For EVERY occurrence where error.message appears in a Response or NextResponse:
+
+Replace:
+```typescript
+// WRONG — leaks internal details
+return NextResponse.json({ error: error.message }, { status: 500 })
+return NextResponse.json({ message: err.message }, { status: 500 })
+```
+
+With:
+```typescript
+// CORRECT — sanitized
+console.error('[ROUTE_NAME]', error) // keep server-side logging
+return NextResponse.json({ error: 'INTERNAL_SERVER_ERROR' }, { status: 500 })
+```
+
+Known critical locations — fix these first:
+- `app/api/cron/l2-respond/route.ts` line ~664
+- `app/api/cron/l2-respond/route.ts` line ~726
+
+Then fix ALL remaining occurrences from the grep output.
+✅ Confirm: zero error.message values in any API response body.
 
 ---
 
-## FINAL REPORT
-Print exactly:
+### H2 — Add POLAR_WEBHOOK_SECRET to .env.production
 
-  PHASE 7 SUMMARY
-  ================
-  TASK 0 (Docker files read):          [DONE/FAIL]
-  TASK 1 (Dockerfile fixed):           [DONE/FAIL]
-  TASK 2 (Dockerfile.api fixed):       [DONE/FAIL]
-  TASK 3 (docker-compose fixed):       [DONE/FAIL]
-  TASK 4 (deploy script created):      [DONE/FAIL]
-  TASK 5 (Wazuh webhook route):        [DONE/FAIL]
-  TASK 6 (Wazuh shell script):         [DONE/FAIL]
-  TASK 7 (Docker build test):          [PASS/FAIL/SKIPPED]
-  TASK 8 (npm run build):              [PASS/FAIL]
-  TASK 9 (git push):                   [DONE/FAIL]
-  BLOCKERS FOR HUMAN: ...
-  NEXT STEP: Azure VM setup (manual SSH required)
+Read `.env.production`. Check if `POLAR_WEBHOOK_SECRET` exists.
+If MISSING, append this line:
+POLAR_WEBHOOK_SECRET=REPLACE_WITH_ACTUAL_VALUE_FROM_POLAR_DASHBOARD
 
-## ANTI-HALLUCINATION RULES
-- NEVER invent file contents you did not read — always read first
-- NEVER assume a command succeeded — check output
-- NEVER skip a task silently — print result for every task
-- NEVER proceed past a ⛔ BLOCKER — stop and wait
-- If a file path does not exist: create it, do not error silently
-- If uncertain about Azure VM state: mark as BLOCKED, do not guess
-- PowerShell on Windows: use Invoke-RestMethod not curl, use Select-String not grep
-- Do NOT run commands that SSH into Azure VM — that is a manual step for human
+Then read `app/api/webhooks/polar/route.ts`.
+Verify the webhook validates the Polar signature using this secret.
+If signature validation is missing, add:
+```typescript
+import { validateEvent } from '@polar-sh/nextjs'
+
+export async function POST(request: Request) {
+  const body = await request.text()
+  const signature = request.headers.get('x-polar-signature') ?? ''
+  
+  try {
+    const event = validateEvent(
+      body,
+      signature,
+      process.env.POLAR_WEBHOOK_SECRET!
+    )
+    // process event...
+  } catch (error) {
+    return NextResponse.json({ error: 'INVALID_SIGNATURE' }, { status: 403 })
+  }
+}
+```
+✅ Confirm: Polar webhook validates signature before processing.
+
+---
+
+### H3 — Fix Wazuh webhook HMAC validation
+
+Read `app/api/webhooks/wazuh/route.ts`.
+Verify HMAC validation is present and actually executed (not commented out).
+
+If missing or commented out, add:
+```typescript
+import { createHmac, timingSafeEqual } from 'crypto'
+
+function validateWazuhSignature(body: string, signature: string): boolean {
+  const expected = createHmac('sha256', process.env.WAZUH_WEBHOOK_SECRET!)
+    .update(body)
+    .digest('hex')
+  const expectedBuf = Buffer.from(`sha256=${expected}`)
+  const signatureBuf = Buffer.from(signature)
+  if (expectedBuf.length !== signatureBuf.length) return false
+  return timingSafeEqual(expectedBuf, signatureBuf)
+}
+
+export async function POST(request: Request) {
+  const body = await request.text()
+  const signature = request.headers.get('x-hub-signature-256') ?? ''
+  
+  if (!validateWazuhSignature(body, signature)) {
+    return NextResponse.json({ error: 'INVALID_SIGNATURE' }, { status: 401 })
+  }
+  // existing processing...
+}
+```
+
+Append to `.env.production` if missing:
+WAZUH_WEBHOOK_SECRET=REPLACE_WITH_ACTUAL_WAZUH_WEBHOOK_SECRET
+✅ Confirm: unsigned Wazuh webhooks rejected with 401.
+
+---
+
+## PHASE 3 — DATABASE FIXES (use Supabase MCP connector)
+
+### DB1 — Apply critical security migration
+
+Use the Supabase MCP connector to:
+
+1. First READ the migration file:
+   `supabase/migrations/20260427000001_critical_security_fixes.sql`
+   
+2. Check if it has been applied:
+   Query via Supabase MCP: 
+   `SELECT * FROM supabase_migrations.schema_migrations WHERE version = '20260427000001'`
+
+3. If NOT applied — execute the full migration via Supabase MCP.
+
+4. After applying, verify via Supabase MCP that RLS is enabled on all tables:
+```sql
+SELECT tablename, rowsecurity 
+FROM pg_tables 
+WHERE schemaname = 'public' 
+AND tablename IN ('organizations','alerts','agent_reasoning','soc_metrics',
+                  'static_analysis','ioc_store','intelligence_documents',
+                  'document_chunks','capabilities','agent_evolution',
+                  'consequence_predictions','decepticon_findings');
+```
+Any table showing `rowsecurity = false` = CRITICAL. Enable RLS:
+```sql
+ALTER TABLE [tablename] ENABLE ROW LEVEL SECURITY;
+```
+
+### DB2 — Verify RLS policies exist
+
+Via Supabase MCP, check policies:
+```sql
+SELECT tablename, policyname, cmd, qual 
+FROM pg_policies 
+WHERE schemaname = 'public'
+ORDER BY tablename;
+```
+
+For ANY table missing SELECT/INSERT/UPDATE policies, create them:
+```sql
+-- Template for org-scoped policy
+CREATE POLICY "org_isolation_select" ON [tablename]
+  FOR SELECT USING (org_id = (
+    SELECT org_id FROM organizations 
+    WHERE clerk_org_id = auth.jwt() ->> 'org_id'
+  ));
+
+CREATE POLICY "org_isolation_insert" ON [tablename]
+  FOR INSERT WITH CHECK (org_id = (
+    SELECT org_id FROM organizations 
+    WHERE clerk_org_id = auth.jwt() ->> 'org_id'
+  ));
+```
+
+### DB3 — Add decepticon_findings table
+
+Via Supabase MCP, create the table if it doesn't exist:
+```sql
+CREATE TABLE IF NOT EXISTS decepticon_findings (
+    id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    attack_name       text NOT NULL,
+    agent_level       text CHECK (agent_level IN ('l1','l2','l3')),
+    attack_vector     text NOT NULL,
+    payload_summary   text,
+    defense_passed    boolean NOT NULL,
+    resistance_score  float4,
+    details           jsonb,
+    run_date          timestamptz DEFAULT now()
+);
+-- No RLS — red team table, internal only, no org_id
+-- No public access policy
+REVOKE ALL ON decepticon_findings FROM anon, authenticated;
+GRANT ALL ON decepticon_findings TO service_role;
+```
+
+### DB4 — Add missing indexes
+
+Via Supabase MCP, add indexes for common query patterns:
+```sql
+-- Alerts queried by org + status constantly
+CREATE INDEX IF NOT EXISTS idx_alerts_org_status 
+  ON alerts(org_id, status);
+CREATE INDEX IF NOT EXISTS idx_alerts_org_severity 
+  ON alerts(org_id, severity);
+CREATE INDEX IF NOT EXISTS idx_alerts_created 
+  ON alerts(created_at DESC);
+
+-- Agent reasoning queried by alert_id
+CREATE INDEX IF NOT EXISTS idx_agent_reasoning_alert 
+  ON agent_reasoning(alert_id);
+CREATE INDEX IF NOT EXISTS idx_agent_reasoning_org 
+  ON agent_reasoning(org_id);
+
+-- IOC store queried by value  
+CREATE INDEX IF NOT EXISTS idx_ioc_store_value 
+  ON ioc_store(org_id, ioc_type, value);
+
+-- Capabilities queried by org + active
+CREATE INDEX IF NOT EXISTS idx_capabilities_org_active 
+  ON capabilities(org_id, active);
+```
+
+---
+
+## PHASE 4 — FORCE-DYNAMIC AUDIT
+
+Run:
+```bash
+grep -rn "export async function" app/api/ --include="*.ts" -l | xargs grep -L "force-dynamic"
+```
+
+For EVERY file returned, add at the TOP of the file (before imports if possible, else after):
+```typescript
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+```
+
+✅ Confirm: every API route has both exports.
+
+---
+
+## PHASE 5 — VALIDATION
+
+After ALL fixes are applied:
+
+1. Run build:
+```bash
+npm run build
+```
+Fix any TypeScript errors introduced. Do NOT ignore them.
+
+2. Run security re-scan:
+```bash
+# Confirm no error.message in responses
+grep -rn "error\.message" app/api/ | grep -v "console\|logger\|\/\/"
+
+# Confirm no hardcoded secrets
+grep -rn "ps_ingest\|ps_main_2026\|AKIAR" --include="*.ts" --include="*.yml" .
+
+# Confirm all routes have auth
+grep -rn "export async function" app/api/ --include="*.ts" -l | xargs grep -L "auth()" | grep -v "webhooks"
+```
+
+3. ALL three scans must return ZERO results.
+
+4. Via Supabase MCP — verify RLS one final time:
+```sql
+SELECT tablename, rowsecurity FROM pg_tables 
+WHERE schemaname = 'public' AND rowsecurity = false;
+```
+Must return zero rows.
+
+---
+
+## FINAL REPORT FORMAT
+
+After completing all phases, output:
+PhishSlayer Security Fix Report
+Date: [today]
+Fixes Applied
+✅ C6 - .dockerignore: !.env.production removed
+✅ C1 - deploy.yml: API keys moved to GitHub Secrets
+✅ C2 - server.js:76: AGENT_SECRET log removed
+✅ C5 - ingest/webhook: real API key verification added
+✅ C4 - [N] routes: Clerk auth added to all [list them]
+✅ C3 - dashboard/ws: WebSocket auth + org scoping added
+✅ H1 - [N] error.message leaks fixed
+✅ H2 - POLAR_WEBHOOK_SECRET: added + signature validation
+✅ H3 - Wazuh webhook: HMAC validation added
+✅ DB1 - Critical migration: applied
+✅ DB2 - RLS policies: verified/added on all tables
+✅ DB3 - decepticon_findings table: created
+✅ DB4 - Indexes: added
+Build Status
+npm run build: [PASS/FAIL + any errors]
+Remaining Issues
+[List anything that needs manual action — e.g. actual secret values to set in Polar dashboard]
+Manual Actions Required
+
+Set POLAR_WEBHOOK_SECRET in .env.production with actual value from polar.sh dashboard
+Set WAZUH_WEBHOOK_SECRET in .env.production with actual value from Wazuh config
+Redeploy Docker container: docker compose down && docker compose up -d --build
+
+
+---
+
+## STOP CONDITIONS — stop and ask before doing these:
+- Deleting any table or column in Supabase
+- Modifying middleware.ts beyond adding auth patterns
+- Changing any Clerk organization settings
+- Rotating or changing any API key values (only move them, never change them)
+- Any change to server.js beyond removing the one console.log line

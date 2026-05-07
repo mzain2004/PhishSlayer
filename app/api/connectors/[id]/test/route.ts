@@ -28,6 +28,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const success = await connector.testConnection();
     return NextResponse.json({ success });
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   }
 }

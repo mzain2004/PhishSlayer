@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     .order('created_at', { ascending: false })
     .range(page * limit, (page + 1) * limit - 1);
 
-  if (error) return apiError(API_CODES.INTERNAL_ERROR, error.message, 500);
+  if (error) return apiError(API_CODES.INTERNAL_ERROR, "Internal server error", 500);
 
   return apiPaginated(data || [], count || 0, page, limit);
 }

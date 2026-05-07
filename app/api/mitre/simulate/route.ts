@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { scoreAdversarySimulation } from "@/lib/mitre/simulation-scorer";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
@@ -22,6 +23,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(score);
   } catch (error: any) {
     console.error("[MITRE Simulate API] Error:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   }
 }

@@ -14,6 +14,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, message: 'Hypothesis generation triggered successfully' });
   } catch (error: any) {
     console.error('Generation error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   }
 }

@@ -22,7 +22,7 @@ export async function GET() {
     .select('id, name, key_prefix, scopes, last_used_at, expires_at, is_active, created_at')
     .eq('org_id', orgId);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
 
   return NextResponse.json(data);
 }
@@ -47,6 +47,6 @@ export async function POST(req: NextRequest) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: 'Validation failed', details: err.issues }, { status: 400 });
     }
-    return NextResponse.json({ error: err.message }, { status: 400 });
+    return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 400 });
   }
 }

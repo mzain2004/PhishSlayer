@@ -29,6 +29,6 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ valid: true, parsed });
     } catch (error: any) {
-        return NextResponse.json({ valid: false, error: `Invalid YAML: ${error.message}` });
+        return NextResponse.json({ valid: false, error: "INTERNAL_SERVER_ERROR" });
     }
 }

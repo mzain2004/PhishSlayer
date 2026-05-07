@@ -85,10 +85,7 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch subscription",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );

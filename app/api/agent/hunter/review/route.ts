@@ -223,7 +223,7 @@ export async function GET(request: NextRequest) {
         cycle_id: cycleId,
         organization_id: organizationId,
         escalations_last_hour: escalationsLastHour,
-        error: error instanceof Error ? error.message : "unknown_gemini_error",
+        error: "INTERNAL_SERVER_ERROR",
       },
       created_at: new Date().toISOString(),
     });

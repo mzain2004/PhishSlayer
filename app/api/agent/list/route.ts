@@ -23,6 +23,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ agents });
   } catch (error: any) {
     console.error("[API] Error listing agents:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   }
 }

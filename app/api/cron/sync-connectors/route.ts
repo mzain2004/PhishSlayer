@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     .select('*')
     .eq('is_active', true);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
 
   const results = [];
 
@@ -51,8 +51,8 @@ export async function GET(req: NextRequest) {
 
       results.push({ id: configRecord.id, status: 'success', events: events.length });
     } catch (err: any) {
-      console.error(`Cron sync failed for ${configRecord.id}:`, err.message);
-      results.push({ id: configRecord.id, status: 'failed', error: err.message });
+      console.error(`Cron sync failed for ${configRecord.id}:`, err);
+      results.push({ id: configRecord.id, status: 'failed', error: 'INTERNAL_SERVER_ERROR' });
     }
   }
 

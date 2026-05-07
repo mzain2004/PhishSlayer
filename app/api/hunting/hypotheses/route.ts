@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
       .eq('organization_id', orgId)
       .order('created_at', { ascending: false });
 
-    if (error) return apiError(API_CODES.INTERNAL_ERROR, error.message, 500);
+    if (error) return apiError(API_CODES.INTERNAL_ERROR, "Internal server error", 500);
     return apiSuccess(data);
   } catch (error) {
     return apiError(API_CODES.INTERNAL_ERROR, 'Internal Server Error', 500);

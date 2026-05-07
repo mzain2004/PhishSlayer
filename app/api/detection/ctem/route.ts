@@ -142,8 +142,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to create exposure",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );
@@ -218,7 +217,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: `Failed to fetch exposures: ${error.message}`,
+          error: "INTERNAL_SERVER_ERROR",
         },
         { status: 500 },
       );
@@ -267,8 +266,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to list exposures",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );

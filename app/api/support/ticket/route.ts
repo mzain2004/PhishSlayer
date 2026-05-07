@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
-import { createServerClient } from "@supabase/ssr";
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -20,57 +19,24 @@ function createServiceRoleClient() {
   );
 }
 
-async function createSessionClient() {
-  const cookieStore = await cookies();
-
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        },
-      },
-    },
-  );
-}
-
 export async function POST(request: Request) {
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId) {
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+  }
+
   try {
     const parsed = TicketSchema.safeParse(await request.json());
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
-    const sessionClient = await createSessionClient();
-    let user;
-    try {
-      const { data, error: authError } = await sessionClient.auth.getUser();
-      if (authError && authError.code === 'refresh_token_not_found') {
-        // Silently ignore
-      } else {
-        user = data?.user;
-      }
-    } catch (err: any) {
-      if (err?.code !== 'refresh_token_not_found') throw err;
-    }
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const serviceClient = createServiceRoleClient();
     const { error } = await serviceClient.from("audit_logs").insert({
-      user_id: user.id,
+      user_id: userId,
       action: "support_ticket",
       resource_type: "support",
-      organization_id: null,
+      organization_id: orgId,
       payload: {
         subject: parsed.data.subject,
         description_length: parsed.data.description.length,
@@ -78,15 +44,18 @@ export async function POST(request: Request) {
     });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("[support-ticket]", error);
+      return NextResponse.json(
+        { error: "INTERNAL_SERVER_ERROR" },
+        { status: 500 },
+      );
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("[support-ticket]", error);
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Internal server error",
-      },
+      { error: "INTERNAL_SERVER_ERROR" },
       { status: 500 },
     );
   }

@@ -28,10 +28,10 @@ export async function GET(req: NextRequest) {
             .gte('recorded_at', new Date(Date.now() - days * 86400000).toISOString())
             .order('recorded_at', { ascending: true });
 
-        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
         return NextResponse.json(data);
 
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
     }
 }

@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { IngestionPipeline } from "@/lib/ingestion/pipeline";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a, "utf8");
+  const bb = Buffer.from(b, "utf8");
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
 
 function getAdminClient() {
   return createClient(
@@ -15,8 +23,9 @@ function getAdminClient() {
 
 export async function POST(request: NextRequest) {
   // Wazuh sends webhook payloads here
-  const providedSecret = request.headers.get("x-wazuh-webhook-secret");
-  if (!providedSecret || providedSecret !== process.env.WAZUH_WEBHOOK_SECRET) {
+  const providedSecret = request.headers.get("x-wazuh-webhook-secret") ?? "";
+  const expected = process.env.WAZUH_WEBHOOK_SECRET ?? "";
+  if (!expected || !safeEqual(providedSecret, expected)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

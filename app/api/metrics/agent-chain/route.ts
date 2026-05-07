@@ -249,10 +249,11 @@ export async function GET() {
     .limit(400);
 
   if (error) {
+    console.error("[metrics:agent-chain]", error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message,
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );

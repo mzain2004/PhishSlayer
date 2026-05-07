@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { techniques } from "@/lib/mitre/attack-data";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
   const { userId } = await auth();

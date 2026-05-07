@@ -660,9 +660,8 @@ async function finalizeEscalation(
     .eq("id", escalationId);
 
   if (error) {
-    throw new Error(
-      `Failed to finalize escalation ${escalationId}: ${error.message}`,
-    );
+    console.error("[cron:l2-respond] finalizeEscalation", escalationId, error);
+    throw new Error(`Failed to finalize escalation ${escalationId}`);
   }
 }
 
@@ -720,10 +719,11 @@ async function runL2Responder(request: NextRequest, options: L2RunOptions) {
   const { data, error } = await query;
 
   if (error) {
+    console.error("[cron:l2-respond] query escalations", error);
     return NextResponse.json(
       {
         success: false,
-        error: `Failed to query escalations: ${error.message}`,
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );

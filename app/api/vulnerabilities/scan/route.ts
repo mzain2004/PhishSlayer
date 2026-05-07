@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { matchAssetsToVulns } from "@/lib/vuln/assetVulnMatcher";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
@@ -6,21 +7,19 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const ScanSchema = z.object({
-  organizationId: z.string().uuid(),
-});
-
 export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { organizationId } = ScanSchema.parse(body);
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId) {
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+  }
 
-    const matches = await matchAssetsToVulns(organizationId);
+  try {
+    const matches = await matchAssetsToVulns(orgId);
     const supabase = await createClient();
 
     const entries = matches.flatMap((m) =>
       m.matchedCVEs.map((c: any) => ({
-        organization_id: organizationId,
+        organization_id: orgId,
         asset_id: m.assetId,
         cve_id: c.cveId,
         cvss_score: c.cvssScore,

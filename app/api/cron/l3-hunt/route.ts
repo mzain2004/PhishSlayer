@@ -152,7 +152,7 @@ async function logStageFailure(
     {
       stage,
       cycle_id: cycleId,
-      error: error instanceof Error ? error.message : "unknown_error",
+      error: "INTERNAL_SERVER_ERROR",
       ...extra,
     },
     organizationId,
@@ -359,7 +359,7 @@ async function triggerStaticAnalysisForFileAlerts(
               ? alert.id
               : null,
           storage_status: "failed",
-          error: error instanceof Error ? error.message : "unknown_error",
+          error: "INTERNAL_SERVER_ERROR",
         },
         organizationId,
       );
@@ -426,10 +426,10 @@ async function invokeStep<T>(
 
     return { ok: true as const, data: parsed.data };
   } catch (error) {
+    console.error('[l3-hunt:callL3Step]', path, error);
     return {
       ok: false as const,
-      error:
-        error instanceof Error ? error.message : `Unknown error in ${path}`,
+      error: "INTERNAL_ERROR",
       payload,
     };
   }
@@ -722,9 +722,8 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
       organizationId,
     );
   } catch (error) {
-    stageErrors.push(
-      `static_analysis: ${error instanceof Error ? error.message : "unknown_error"}`,
-    );
+    console.error('[l3-hunt] static_analysis stage error', error);
+    stageErrors.push("static_analysis: INTERNAL_ERROR");
     await logStageFailure(
       adminClient,
       cycleId,
@@ -827,9 +826,8 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
       execution_time_ms: executionTimeMs,
     });
   } catch (error) {
-    stageErrors.push(
-      `findings_persisted: ${error instanceof Error ? error.message : "unknown_error"}`,
-    );
+    console.error('[l3-hunt] findings_persisted stage error', error);
+    stageErrors.push("findings_persisted: INTERNAL_ERROR");
     await logStageFailure(
       adminClient,
       cycleId,

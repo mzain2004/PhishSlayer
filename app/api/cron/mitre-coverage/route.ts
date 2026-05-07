@@ -42,6 +42,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, processed });
   } catch (error: any) {
     console.error("[CRON MITRE Coverage] Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   }
 }

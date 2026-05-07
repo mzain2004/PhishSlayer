@@ -26,7 +26,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     .eq("id", id)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   return NextResponse.json(data);
 }
 
@@ -48,7 +48,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       .select()
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -66,6 +66,6 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     .delete()
     .eq("id", id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   return NextResponse.json({ success: true });
 }

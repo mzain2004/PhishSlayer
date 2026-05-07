@@ -102,6 +102,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ error: 'Missing alertId or caseId' }, { status: 400 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   }
 }

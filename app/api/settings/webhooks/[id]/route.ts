@@ -21,7 +21,7 @@ export async function DELETE(
     .eq('id', id)
     .eq('org_id', orgId);
 
-  if (error) return apiError(API_CODES.INTERNAL_ERROR, error.message, 500);
+  if (error) return apiError(API_CODES.INTERNAL_ERROR, "Internal server error", 500);
 
   return apiSuccess({ success: true });
 }

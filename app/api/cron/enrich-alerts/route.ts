@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     .gt('created_at', oneDayAgo)
     .limit(50);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
 
   let successCount = 0;
   for (const alert of alerts) {

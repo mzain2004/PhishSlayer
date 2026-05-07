@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { calculateCoverage } from "@/lib/mitre/coverage-engine";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
   const { userId } = await auth();

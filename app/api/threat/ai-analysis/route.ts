@@ -122,7 +122,7 @@ export async function POST(request: Request) {
       }).eq('id', userId).eq('organization_id', orgId);
     } catch (error) {
       console.warn("AI heuristic analysis fallback used", {
-        error: error instanceof Error ? error.message : "unknown",
+        error: "INTERNAL_SERVER_ERROR",
       });
 
       const heuristicScore = Math.max(

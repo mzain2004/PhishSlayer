@@ -17,6 +17,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ cveI
     if (!data) return NextResponse.json({ error: 'CVE not found' }, { status: 404 });
     return NextResponse.json(data);
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   }
 }

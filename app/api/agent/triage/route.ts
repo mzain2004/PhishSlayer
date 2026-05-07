@@ -199,12 +199,12 @@ function deriveSeverityFromRecord(record: QueueRecord): Severity {
 }
 
 function buildFallbackDecision(record: QueueRecord, error: unknown): Decision {
-  const reason = error instanceof Error ? error.message : "unknown Groq error";
+  console.error('[agent:triage] fallback decision', error);
   return {
     decision: "ESCALATE",
     severity: deriveSeverityFromRecord(record),
     confidence: 0,
-    reasoning: `Groq unavailable or invalid response (${reason}). Escalating for manual review.`,
+    reasoning: "Groq unavailable or invalid response. Escalating for manual review.",
     mitre_context: "No MITRE context available due to model failure.",
     false_positive_indicators: [],
     threat_indicators: [
@@ -269,7 +269,7 @@ async function writeAuditLogSafe(
   if (error) {
     console.error("[L1 triage] Failed to write audit log", {
       action,
-      details: error.message,
+      details: undefined,
     });
   }
 }
@@ -377,7 +377,7 @@ async function fetchUnreviewedScans(
   if (result.error || !result.data) {
     return {
       data: null,
-      error: result.error ? { message: result.error.message } : null,
+      error: result.error ? { message: "INTERNAL_SERVER_ERROR" } : null,
     };
   }
 
@@ -439,7 +439,7 @@ async function fetchPendingWazuhAlerts(
   if (result.error || !result.data) {
     return {
       data: null,
-      error: result.error ? { message: result.error.message } : null,
+      error: result.error ? { message: "INTERNAL_SERVER_ERROR" } : null,
     };
   }
 
@@ -504,7 +504,7 @@ async function runGeminiTriage(record: QueueRecord): Promise<Decision> {
     console.warn("[L1 triage] Groq failed, using graceful fallback", {
       source: record.source,
       record_id: record.id,
-      error: error instanceof Error ? error.message : "unknown",
+      error: "INTERNAL_SERVER_ERROR",
     });
     return buildFallbackDecision(record, error);
   }

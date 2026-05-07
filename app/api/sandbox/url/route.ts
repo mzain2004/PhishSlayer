@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@clerk/nextjs/server";
 import { createClient } from "@/lib/supabase/server";
 import { detonateUrls } from "@/lib/sandbox/detonator";
 
@@ -8,19 +9,23 @@ export const runtime = "nodejs";
 
 const UrlScanSchema = z.object({
   urls: z.array(z.string().url()),
-  organizationId: z.string().uuid(),
 });
 
 export async function POST(req: NextRequest) {
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId) {
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
-    const { urls, organizationId } = UrlScanSchema.parse(body);
+    const { urls } = UrlScanSchema.parse(body);
 
     const scanResults = await detonateUrls(urls.join("\n"));
     const supabase = await createClient();
 
     const dbEntries = Object.entries(scanResults).map(([url, result]) => ({
-      organization_id: organizationId,
+      organization_id: orgId,
       url,
       verdict: result.verdict,
       score: Math.round(result.score),

@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, message: 'CTI feeds ingested and confidence decayed' });
     } catch (error: any) {
         console.error('CTI CRON Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
     }
 }
 

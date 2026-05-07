@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, message: 'OSINT brand scan completed' });
   } catch (error: any) {
     console.error('OSINT CRON Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   }
 }
 

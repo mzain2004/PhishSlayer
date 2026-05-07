@@ -73,7 +73,7 @@ export async function GET() {
 
     if (error) {
       return NextResponse.json(
-        { error: `Failed to query alerts: ${error.message}` },
+        { error: "INTERNAL_SERVER_ERROR" },
         { status: 500 },
       );
     }
@@ -137,8 +137,7 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to build telemetry",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );

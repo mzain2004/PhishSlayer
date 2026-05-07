@@ -13,6 +13,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const supabase = await createClient();
   const { data, error } = await supabase.from("osint_reports").select("*").eq("investigation_id", id).eq('organization_id', orgId).single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   return NextResponse.json(data);
 }

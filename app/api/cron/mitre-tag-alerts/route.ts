@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     .gt('created_at', fortyEightHoursAgo)
     .limit(30);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
 
   // Group by org to batch tag
   const orgMap: Record<string, string[]> = {};
@@ -38,7 +38,8 @@ export async function GET(req: NextRequest) {
       await calculateOrgCoverage(orgId);
       results.push({ orgId, tagged: ids.length });
     } catch (err: any) {
-      results.push({ orgId, error: err.message });
+      console.error('[mitre-tag-alerts]', orgId, err);
+      results.push({ orgId, error: 'INTERNAL_SERVER_ERROR' });
     }
   }
 

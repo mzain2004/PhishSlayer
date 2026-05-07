@@ -50,7 +50,7 @@ export async function GET(req: Request) {
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (error) return apiError(API_CODES.INTERNAL_ERROR, error.message, 500);
+  if (error) return apiError(API_CODES.INTERNAL_ERROR, "Internal server error", 500);
   
   return apiPaginated(data || [], count || 0, page, limit);
 }
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
       .select()
       .single();
 
-    if (error) return apiError(API_CODES.INTERNAL_ERROR, error.message, 500);
+    if (error) return apiError(API_CODES.INTERNAL_ERROR, "Internal server error", 500);
 
     // Initial timeline entry
     await supabase.from('case_timeline').insert({
@@ -94,6 +94,6 @@ export async function POST(req: Request) {
     if (error instanceof z.ZodError) {
       return apiError(API_CODES.VALIDATION_ERROR, "Validation failed", 400, error.issues);
     }
-    return apiError(API_CODES.INTERNAL_ERROR, error.message, 500);
+    return apiError(API_CODES.INTERNAL_ERROR, "Internal server error", 500);
   }
 }

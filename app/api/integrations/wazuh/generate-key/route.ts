@@ -118,10 +118,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to generate Wazuh key",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );

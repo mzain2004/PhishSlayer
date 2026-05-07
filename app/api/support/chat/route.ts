@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
-import { createServerClient } from "@supabase/ssr";
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { groqComplete } from "@/lib/ai/groq";
 import { sanitizePromptInput } from "@/lib/security/sanitize";
@@ -21,28 +20,12 @@ function createServiceRoleClient() {
   );
 }
 
-async function createSessionClient() {
-  const cookieStore = await cookies();
-
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        },
-      },
-    },
-  );
-}
-
 export async function POST(request: Request) {
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId) {
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+  }
+
   try {
     const parsed = BodySchema.safeParse(await request.json());
     if (!parsed.success) {
@@ -52,32 +35,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const sessionClient = await createSessionClient();
-    let user;
-    try {
-      const { data, error: authError } = await sessionClient.auth.getUser();
-      if (authError && authError.code === 'refresh_token_not_found') {
-        // Silently ignore
-      } else {
-        user = data?.user;
-      }
-    } catch (err: any) {
-      if (err?.code !== 'refresh_token_not_found') throw err;
-    }
-
-    if (!user) {
-      return NextResponse.json(
-        { message: "Please sign in first" },
-        { status: 401 },
-      );
-    }
-
     const serviceClient = createServiceRoleClient();
-    await serviceClient
-      .from("profiles")
-      .select("id")
-      .eq("id", user.id)
-      .maybeSingle();
 
     const userMessage = parsed.data.message;
     const safeMessage = sanitizePromptInput(userMessage, 2000);
@@ -86,18 +44,18 @@ export async function POST(request: Request) {
     const { data: profile } = await serviceClient
       .from('profiles')
       .select('api_calls_today, api_calls_reset_at')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
     let calls = profile?.api_calls_today || 0;
     let resetAt = profile?.api_calls_reset_at ? new Date(profile.api_calls_reset_at) : new Date(0);
     const now = new Date();
-    
+
     if (now >= resetAt) {
       calls = 0;
       resetAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
     }
-    
+
     if (calls >= 50) {
       return NextResponse.json({ message: "Daily AI limit reached" }, { status: 429 });
     }
@@ -114,12 +72,12 @@ export async function POST(request: Request) {
       await serviceClient.from('profiles').update({
         api_calls_today: calls + 1,
         api_calls_reset_at: resetAt.toISOString()
-      }).eq('id', user.id);
+      }).eq('id', userId);
 
       reply = responseText.trim() || "I couldn't process that. Try again.";
     } catch (error) {
       console.warn("Support chat fallback used", {
-        error: error instanceof Error ? error.message : "unknown",
+        error: "INTERNAL_SERVER_ERROR",
       });
       reply = "Support is temporarily unavailable. Try again shortly.";
     }

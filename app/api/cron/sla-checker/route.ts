@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     .not('status', 'in', '("resolved","closed")')
     .lt('sla_due_at', now);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
 
   let breachCount = 0;
   for (const c of cases) {

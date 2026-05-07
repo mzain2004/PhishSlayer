@@ -6,16 +6,21 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const connectorId = request.nextUrl.searchParams.get("connector");
-  const orgId = request.headers.get("x-org-id");
-  const apiKey = request.headers.get("x-api-key");
+  const ingestKey =
+    request.headers.get("x-api-key") ??
+    request.headers.get("authorization")?.replace("Bearer ", "");
 
-  if (!connectorId || !orgId || !apiKey) {
-    return NextResponse.json({ error: "Missing authentication or routing params" }, { status: 400 });
+  if (!ingestKey || ingestKey !== process.env.INGEST_API_KEY) {
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   }
 
-  // Typically, we would verify apiKey vs database here...
-  
+  const connectorId = request.nextUrl.searchParams.get("connector");
+  const orgId = request.headers.get("x-org-id");
+
+  if (!connectorId || !orgId) {
+    return NextResponse.json({ error: "Missing routing params" }, { status: 400 });
+  }
+
   try {
     const rawBody = await request.text();
     

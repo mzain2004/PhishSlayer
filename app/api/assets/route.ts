@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
     .range((page - 1) * limit, page * limit - 1)
     .order('last_seen', { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
 
   return NextResponse.json({ data, count, page, limit });
 }
@@ -61,9 +61,9 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
     return NextResponse.json(data);
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+    return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 400 });
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@clerk/nextjs/server";
 import { parseEmailHeaders } from "@/lib/email/headerParser";
 import { analyzeHeadersWithGroq } from "@/lib/email/groqAnalyzer";
 import { detonateUrls, aggregateVerdicts } from "@/lib/sandbox/detonator";
@@ -10,13 +11,17 @@ export const runtime = "nodejs";
 
 const EmailSandboxSchema = z.object({
   rawEmail: z.string(),
-  organizationId: z.string().uuid(),
 });
 
 export async function POST(req: NextRequest) {
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId) {
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
-    const { rawEmail, organizationId } = EmailSandboxSchema.parse(body);
+    const { rawEmail } = EmailSandboxSchema.parse(body);
 
     // 1. Header Analysis
     const headerParsed = await parseEmailHeaders(rawEmail);
@@ -29,7 +34,7 @@ export async function POST(req: NextRequest) {
     // 3. Save Header Analysis
     const supabase = await createClient();
     await supabase.from("email_analyses").insert({
-      organization_id: organizationId,
+      organization_id: orgId,
       raw_headers: rawEmail.substring(0, rawEmail.indexOf("\n\n")), // Crude header extract
       parsed_data: headerParsed,
       groq_analysis: headerGroq,
@@ -39,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     // 4. Save URL Scans
     const urlEntries = Object.entries(urlResults).map(([url, result]) => ({
-      organization_id: organizationId,
+      organization_id: orgId,
       url,
       verdict: result.verdict,
       score: Math.round(result.score),

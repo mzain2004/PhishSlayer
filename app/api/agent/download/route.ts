@@ -40,6 +40,6 @@ export async function GET() {
     });
   } catch (error: any) {
     console.error("[API] Error serving agent file:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
   }
 }

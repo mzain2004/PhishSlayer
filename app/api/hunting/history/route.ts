@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       .in('status', ['COMPLETED', 'NO_FINDINGS'])
       .order('executed_at', { ascending: false });
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

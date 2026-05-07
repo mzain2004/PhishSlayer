@@ -35,7 +35,7 @@ export async function GET(req: Request) {
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (error) return apiError(API_CODES.INTERNAL_ERROR, error.message, 500);
+  if (error) return apiError(API_CODES.INTERNAL_ERROR, "Internal server error", 500);
 
   // Add computed field: triage_age_seconds: seconds since created_at if not acknowledged
   const now = new Date();

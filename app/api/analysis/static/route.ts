@@ -436,10 +436,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Static analysis pipeline failed unexpectedly",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );
@@ -522,7 +519,7 @@ export async function GET(request: Request) {
         {
           success: false,
           error: "Failed to fetch static analysis records",
-          details: error.message,
+          details: undefined,
         },
         { status: 500 },
       );
@@ -539,8 +536,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to process request",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );

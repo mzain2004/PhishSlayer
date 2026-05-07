@@ -231,7 +231,7 @@ async function writeAuditLogSafe(
     if (error) {
       console.error("[wazuh webhook] Failed to write audit log", {
         action,
-        details: error.message,
+        details: undefined,
       });
     }
   } catch (error) {
@@ -436,17 +436,14 @@ async function callStageJson(
       error instanceof Error &&
       (error.name === "AbortError" || /aborted|timeout/i.test(error.message));
 
+    console.error('[wazuh:stage]', error);
     return {
       ok: false,
       status: 0,
       data: null,
       duration_ms: Date.now() - startedAt,
       timed_out: timedOut,
-      error: timedOut
-        ? "STAGE_TIMEOUT"
-        : error instanceof Error
-          ? error.message
-          : "UNKNOWN_STAGE_ERROR",
+      error: timedOut ? "STAGE_TIMEOUT" : "STAGE_ERROR",
     };
   } finally {
     clearTimeout(timeoutId);

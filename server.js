@@ -5,6 +5,7 @@ const { createServer } = require("http");
 const { parse } = require("url");
 const next = require("next");
 const { WebSocketServer } = require("ws");
+const { verifyToken } = require("@clerk/backend");
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
@@ -15,6 +16,60 @@ const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
+
+// ── Auth helpers for dashboard WebSocket (C3) ────────────────────────
+function parseCookies(header) {
+  const out = {};
+  if (!header) return out;
+  for (const part of header.split(";")) {
+    const idx = part.indexOf("=");
+    if (idx === -1) continue;
+    const k = part.slice(0, idx).trim();
+    const v = part.slice(idx + 1).trim();
+    if (k) out[k] = decodeURIComponent(v);
+  }
+  return out;
+}
+
+// Verify the Clerk session cookie on a raw upgrade request and return the
+// internal Supabase organizations.id UUID for the active Clerk org.
+async function authenticateDashboardRequest(req) {
+  try {
+    const cookies = parseCookies(req.headers.cookie);
+    const sessionToken = cookies.__session;
+    if (!sessionToken) return null;
+
+    const payload = await verifyToken(sessionToken, {
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    const userId = payload?.sub;
+    const clerkOrgId = payload?.org_id || payload?.o?.id;
+    if (!userId || !clerkOrgId) return null;
+
+    const { data, error } = await supabaseAdmin
+      .from("organizations")
+      .select("id")
+      .eq("clerk_org_id", clerkOrgId)
+      .maybeSingle();
+    if (error || !data) return null;
+
+    return { userId, organizationId: data.id };
+  } catch {
+    return null;
+  }
+}
+
+// Look up the internal organization UUID for an agent's owning user
+async function resolveAgentOrganizationId(userId) {
+  if (!userId) return null;
+  const { data, error } = await supabaseAdmin
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data.organization_id;
+}
 
 // Store connected agents
 const connectedAgents = new Map();
@@ -72,9 +127,7 @@ app.prepare().then(() => {
     // Validate AGENT_SECRET
     const secret = req.headers["x-agent-secret"];
     if (secret !== process.env.AGENT_SECRET) {
-      console.warn(
-        `[WSServer] Rejected connection: invalid secret. Received: "${secret}", Expected: "${process.env.AGENT_SECRET}"`,
-      );
+      console.warn(`[WSServer] Rejected connection: invalid secret`);
       ws.close(1008, "Unauthorized");
       return;
     }
@@ -92,11 +145,19 @@ app.prepare().then(() => {
     connectedAgents.set(agentId, {
       ws,
       userId,
+      organizationId: null,
       hostname,
       platform,
       lastSeen: new Date().toISOString(),
       threatCount: 0,
       status: "online",
+    });
+
+    // Resolve agent's organization for tenant-scoped broadcasts (C3)
+    resolveAgentOrganizationId(userId).then((organizationId) => {
+      const a = connectedAgents.get(agentId);
+      if (a) a.organizationId = organizationId;
+      broadcastAgentUpdate(organizationId);
     });
 
     // DB Sync (Persistent Heartbeat)
@@ -115,11 +176,9 @@ app.prepare().then(() => {
           console.error("[WSServer] DB Sync Error (Connect):", error.message);
       });
 
-    // Broadcast agent list update to dashboard clients
     console.log(
       `[WSServer] Agent registered: ${agentId}, waiting for messages...`,
     );
-    broadcastAgentUpdate();
 
     ws.on("message", (data) => {
       console.log(
@@ -137,9 +196,11 @@ app.prepare().then(() => {
     ws.on("close", () => {
       console.log(`[WSServer] Agent disconnected: ${agentId}`);
       const agent = connectedAgents.get(agentId);
+      let agentOrgId = null;
       if (agent) {
         agent.status = "offline";
         agent.lastSeen = new Date().toISOString();
+        agentOrgId = agent.organizationId;
 
         // DB Offline Sync
         supabaseAdmin
@@ -157,7 +218,7 @@ app.prepare().then(() => {
               );
           });
       }
-      broadcastAgentUpdate();
+      broadcastAgentUpdate(agentOrgId);
     });
 
     ws.on("error", (err) => {
@@ -200,22 +261,23 @@ app.prepare().then(() => {
         if (msg.event?.suspicious) {
           agent.threatCount++;
         }
-        // Forward to dashboard clients
-        broadcastTelemetry(agentId, msg);
+        // Forward to dashboard clients (org-scoped)
+        broadcastTelemetry(agentId, agent.organizationId, msg);
         break;
       case "command_result":
-        // Forward result to dashboard
-        broadcastCommandResult(agentId, msg);
+        // Forward result to dashboard (org-scoped)
+        broadcastCommandResult(agentId, agent.organizationId, msg);
         break;
       case "agent_register":
         console.log(`[WSServer] Agent registered: ${msg.hostname}`);
-        broadcastAgentUpdate();
+        broadcastAgentUpdate(agent.organizationId);
         break;
     }
   }
 
   // Dashboard WebSocket clients (browser connections)
-  const dashboardClients = new Set();
+  // Map<ws, { organizationId, userId }> — tagged at upgrade time for tenant isolation (C3)
+  const dashboardClients = new Map();
 
   // Separate WSS for dashboard on /api/dashboard/ws
   const dashboardWss = new WebSocketServer({
@@ -226,14 +288,22 @@ app.prepare().then(() => {
   const existingUpgradeListeners = server.listeners("upgrade").slice(0);
   server.removeAllListeners("upgrade");
 
-  server.on("upgrade", (req, socket, head) => {
+  server.on("upgrade", async (req, socket, head) => {
     const pathname = parse(req.url).pathname;
     if (pathname === "/api/agent/ws") {
       wss.handleUpgrade(req, socket, head, (ws) => {
         wss.emit("connection", ws, req);
       });
     } else if (pathname === "/api/dashboard/ws") {
+      // C3: authenticate via Clerk session cookie before upgrading
+      const auth = await authenticateDashboardRequest(req);
+      if (!auth) {
+        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+        socket.destroy();
+        return;
+      }
       dashboardWss.handleUpgrade(req, socket, head, (ws) => {
+        ws._auth = auth;
         dashboardWss.emit("connection", ws, req);
       });
     } else {
@@ -257,16 +327,17 @@ app.prepare().then(() => {
       }
     }
 
-    // Validate Supabase session via cookie or token header
-    // For now: accept all connections from localhost
-    dashboardClients.add(ws);
-    console.log("[WSServer] Dashboard client connected");
+    const { organizationId, userId } = ws._auth;
+    dashboardClients.set(ws, { organizationId, userId });
+    console.log(
+      `[WSServer] Dashboard client connected: org=${organizationId}`,
+    );
 
-    // Send current agent list immediately
+    // Send current org-scoped agent list immediately
     ws.send(
       JSON.stringify({
         type: "agent_list",
-        agents: getAgentList(),
+        agents: getAgentList(organizationId),
       }),
     );
 
@@ -277,13 +348,13 @@ app.prepare().then(() => {
     // Handle commands from dashboard
     ws.on("message", (data) => {
       console.log(
-        "[WSServer] Received from agent:",
+        "[WSServer] Received from dashboard:",
         data.toString().substring(0, 100),
       );
       try {
         const msg = JSON.parse(data.toString());
         if (msg.type === "send_command") {
-          sendCommandToAgent(msg.agentId, msg.command);
+          sendCommandToAgent(msg.agentId, msg.command, organizationId);
         }
       } catch (err) {
         console.error("[WSServer] Dashboard parse error:", err);
@@ -291,7 +362,7 @@ app.prepare().then(() => {
     });
   });
 
-  function sendCommandToAgent(target, command) {
+  function sendCommandToAgent(target, command, requesterOrgId) {
     let agent;
     for (const [id, a] of connectedAgents.entries()) {
       if (a.hostname === target || id === target) {
@@ -304,6 +375,17 @@ app.prepare().then(() => {
       console.warn(`[WSServer] Agent ${target} not available`);
       return;
     }
+    // C3: only allow commands when the requesting client owns the agent's org
+    if (
+      requesterOrgId !== undefined &&
+      requesterOrgId !== null &&
+      agent.organizationId !== requesterOrgId
+    ) {
+      console.warn(
+        `[WSServer] Cross-tenant command blocked: target=${target} requesterOrg=${requesterOrgId} agentOrg=${agent.organizationId}`,
+      );
+      return;
+    }
     const cmd = {
       ...command,
       commandId: require("crypto").randomUUID(),
@@ -313,47 +395,56 @@ app.prepare().then(() => {
     console.log(`[WSServer] Command sent to ${target}:`, cmd.command);
   }
 
-  function getAgentList() {
-    return Array.from(connectedAgents.entries()).map(([id, agent]) => ({
-      agentId: id,
-      hostname: agent.hostname,
-      platform: agent.platform,
-      status: agent.status,
-      lastSeen: agent.lastSeen,
-      threatCount: agent.threatCount,
-    }));
+  function getAgentList(orgFilter) {
+    return Array.from(connectedAgents.entries())
+      .filter(([_, agent]) =>
+        orgFilter === undefined ? true : agent.organizationId === orgFilter,
+      )
+      .map(([id, agent]) => ({
+        agentId: id,
+        hostname: agent.hostname,
+        platform: agent.platform,
+        status: agent.status,
+        lastSeen: agent.lastSeen,
+        threatCount: agent.threatCount,
+      }));
   }
 
-  function broadcastAgentUpdate() {
+  // C3: send only to dashboard clients in the matching organization
+  function sendToOrg(orgId, payload) {
+    if (!orgId) return;
+    dashboardClients.forEach((meta, client) => {
+      if (client.readyState === 1 && meta.organizationId === orgId) {
+        client.send(payload);
+      }
+    });
+  }
+
+  function broadcastAgentUpdate(orgId) {
+    if (!orgId) return;
     const msg = JSON.stringify({
       type: "agent_list",
-      agents: getAgentList(),
+      agents: getAgentList(orgId),
     });
-    dashboardClients.forEach((client) => {
-      if (client.readyState === 1) client.send(msg);
-    });
+    sendToOrg(orgId, msg);
   }
 
-  function broadcastTelemetry(agentId, msg) {
+  function broadcastTelemetry(agentId, orgId, msg) {
     const payload = JSON.stringify({
       type: "telemetry",
       agentId,
       ...msg,
     });
-    dashboardClients.forEach((client) => {
-      if (client.readyState === 1) client.send(payload);
-    });
+    sendToOrg(orgId, payload);
   }
 
-  function broadcastCommandResult(agentId, msg) {
+  function broadcastCommandResult(agentId, orgId, msg) {
     const payload = JSON.stringify({
       type: "command_result",
       agentId,
       ...msg,
     });
-    dashboardClients.forEach((client) => {
-      if (client.readyState === 1) client.send(payload);
-    });
+    sendToOrg(orgId, payload);
   }
 
   // Expose agent control globally for API routes

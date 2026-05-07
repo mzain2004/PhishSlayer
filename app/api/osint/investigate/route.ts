@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       created_by: userId
     }).select().single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
 
     // Run background task
     void runInvestigation(supabase, { type: targetType as OsintTargetType, value: targetValue, orgId: organizationId }, inv.id);

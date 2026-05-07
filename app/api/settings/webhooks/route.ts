@@ -24,7 +24,7 @@ export async function GET() {
     .eq('org_id', orgId)
     .order('created_at', { ascending: false });
 
-  if (error) return apiError(API_CODES.INTERNAL_ERROR, error.message, 500);
+  if (error) return apiError(API_CODES.INTERNAL_ERROR, "Internal server error", 500);
 
   return apiSuccess(data);
 }
@@ -51,13 +51,13 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
 
-    if (error) return apiError(API_CODES.INTERNAL_ERROR, error.message, 500);
+    if (error) return apiError(API_CODES.INTERNAL_ERROR, "Internal server error", 500);
 
     return apiSuccess(data);
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return apiError(API_CODES.VALIDATION_ERROR, "Validation failed", 400, error.issues);
     }
-    return apiError(API_CODES.INTERNAL_ERROR, error.message, 500);
+    return apiError(API_CODES.INTERNAL_ERROR, "Internal server error", 500);
   }
 }

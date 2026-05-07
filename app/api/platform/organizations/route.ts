@@ -181,10 +181,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to create organization",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );
@@ -282,10 +279,7 @@ export async function GET() {
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to list organizations",
+        error: "INTERNAL_SERVER_ERROR",
       },
       { status: 500 },
     );

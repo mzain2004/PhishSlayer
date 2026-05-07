@@ -19,7 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         .eq('org_id', orgId)
         .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
     if (!campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
 
     return NextResponse.json(campaign);

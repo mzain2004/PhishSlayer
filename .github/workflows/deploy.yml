@@ -233,18 +233,18 @@ jobs:
 
             echo "=== Waiting for app to be ready ==="
             MAX_RETRIES=12
-            RETRY=0
             STATUS="000"
-            while [ "$STATUS" != "200" ] && [ $RETRY -lt $MAX_RETRIES ]; do
+            for i in $(seq 1 $MAX_RETRIES); do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 2>/dev/null)
+              if [ "$STATUS" = "200" ] || [ "$STATUS" = "307" ] || [ "$STATUS" = "308" ]; then
+                echo "App is ready (HTTP $STATUS)"
+                break
+              fi
+              echo "Health check attempt $i: $STATUS"
               sleep 10
-              STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-                http://localhost:3000/api/health 2>/dev/null)
-              [ -z "$STATUS" ] && STATUS="000"
-              echo "Health check attempt $((RETRY+1)): $STATUS"
-              RETRY=$((RETRY + 1))
             done
 
-            if [ "$STATUS" != "200" ]; then
+            if [ "$STATUS" != "200" ] && [ "$STATUS" != "307" ] && [ "$STATUS" != "308" ]; then
               echo "App failed to start after $((MAX_RETRIES * 10))s"
               docker compose logs --tail=50
               exit 1

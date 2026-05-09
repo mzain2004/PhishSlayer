@@ -66,7 +66,6 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
 
-
       - name: Set deploy flag
         id: check
         run: echo "should_deploy=true" >> $GITHUB_OUTPUT
@@ -232,6 +231,7 @@ jobs:
             docker compose --env-file .env.production up -d --force-recreate
 
             echo "=== Waiting for app to be ready ==="
+            sleep 15
             MAX_RETRIES=12
             STATUS="000"
             for i in $(seq 1 $MAX_RETRIES); do
@@ -356,4 +356,3 @@ jobs:
                 "footer": { "text": "Phish-Slayer CI/CD" }
               }]
             }'
-      

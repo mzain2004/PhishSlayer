@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { IngestionPipeline } from "@/lib/ingestion/pipeline";
+import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -22,23 +23,32 @@ function getAdminClient() {
 }
 
 export async function POST(request: NextRequest) {
+  const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+  const start = Date.now();
+  const route = "/api/webhooks/wazuh";
+
   // Wazuh sends webhook payloads here
   const providedSecret = request.headers.get("x-wazuh-webhook-secret") ?? "";
   const expected = process.env.WAZUH_WEBHOOK_SECRET ?? "";
   if (!expected || !safeEqual(providedSecret, expected)) {
+    logger.warn("auth_failed", { route, request_id: requestId, user_id: null, org_id: null, error_code: "UNAUTHORIZED" });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   // Get orgId from query param or header (assuming multi-tenant webhook setup)
   const orgId = request.nextUrl.searchParams.get("organization_id");
   if (!orgId) {
+    logger.warn("validation_failed", { route, request_id: requestId, user_id: null, org_id: null, error_code: "MISSING_ORG_ID" });
     return NextResponse.json({ error: "Missing organization_id" }, { status: 400 });
   }
+
+  logger.info("webhook_received", { route, request_id: requestId, user_id: null, org_id: orgId, metadata: { source: "wazuh" } });
 
   let rawAlert;
   try {
     rawAlert = await request.text(); // Pipeline parses strings
-  } catch (e) {
+  } catch {
+    logger.warn("validation_failed", { route, request_id: requestId, user_id: null, org_id: orgId, error_code: "INVALID_BODY" });
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
@@ -47,8 +57,11 @@ export async function POST(request: NextRequest) {
   // Background processing - do not await
   const supabase = getAdminClient();
   const pipeline = new IngestionPipeline(supabase);
-  
-  pipeline.ingestEvent(rawAlert, connectorId, orgId, 'wazuh').catch(console.error);
 
+  pipeline.ingestEvent(rawAlert, connectorId, orgId, 'wazuh').catch((_err) => {
+    logger.error("request_failed", { route, request_id: requestId, user_id: null, org_id: orgId, duration_ms: Date.now() - start, error_code: "PIPELINE_ERROR" });
+  });
+
+  logger.info("request_complete", { route, request_id: requestId, user_id: null, org_id: orgId, duration_ms: Date.now() - start, metadata: { source: "wazuh" } });
   return NextResponse.json({ success: true, message: "Accepted" }, { status: 200 });
 }

@@ -1,455 +1,365 @@
-## Context (carry forward)
-- Project: PhishSlayer — Next.js 15, Supabase, Clerk, Groq, Docker on Azure
-- Repo: D:\Phish Slayer (mzain2004/Phish-Slayer on GitHub)
-- Audit found 32 issues — 6 CRITICAL, 10 HIGH must be fixed before next deploy
-- MCP connectors available: Supabase, GitHub, Clerk — USE THEM for all DB and repo operations
-- NEVER modify server.js beyond what is explicitly instructed
-- NEVER overwrite .env files — append only
-- ALWAYS run npm run build before declaring any feature complete
-- Docker port is always 3000:3000, env file is always .env.production
+Read the ruflo repository at https://github.com/ruvnet/ruflo/tree/main and do the following:
 
----
+1. Use the Bash tool to clone it locally:
+   git clone https://github.com/ruvnet/ruflo.git /tmp/ruflo
 
-## YOUR ROLE
-You are a senior security engineer fixing critical vulnerabilities in a production Next.js 15 
-security platform. Fix ONLY what is listed. Do not refactor, rename, or improve anything else.
-After EACH fix output: ✅ [C1/C2/etc] [filename:line] — Fixed: [one line description]
+2. Read the full structure:
+   find /tmp/ruflo -type f -name "_.py" -o -name "_.ts" -o -name "\*.md" | head -60
 
----
+3. Read these specific paths:
+   - /tmp/ruflo/README.md
+   - Any files in /tmp/ruflo/workflows/
+   - Any files in /tmp/ruflo/agents/
+   - Any files in /tmp/ruflo/swarm/
+   - Any CLAUDE.md files
 
-## PHASE 1 — CRITICAL FIXES (do in exact order)
+4. Identify ONLY the workflows and patterns that are directly relevant to PhishSlayer:
+   - Multi-agent swarm coordination (maps to L3 Hunter Reader→Hunter→Reviewer)
+   - Autonomous workflow loops (maps to L1→L2→L3 chain)
+   - RAG integration patterns (maps to Page Index RAG)
+   - Claude Code native hooks (maps to CI/CD review)
 
-### C6 FIRST — Fix .dockerignore (prevents secrets entering build context)
+5. For each relevant workflow found:
+   - Explain what it does in 2 sentences
+   - Show exactly where it fits in PhishSlayer's architecture
+   - Show the specific file in phishslayer-api/ where it should be integrated
+   - Show the integration code (NOT a full rewrite — adapter pattern only)
 
-Read `.dockerignore`. Find the line `!.env.production` and delete it.
-The file should EXCLUDE all .env files. .env.production must NEVER be copied into Docker build.
-Correct .dockerignore should contain:
-.env
-.env.local
-.env.production
-.env*.local
-Save the file.
-✅ Confirm: `!.env.production` line is gone.
+6. Do NOT copy the full ruflo codebase. Extract ONLY the workflow patterns
+   and adapt them to work with PhishSlayer's existing:
+   - AgentScope v1.x agents
+   - LangGraph state machines
+   - DeerFlow 2.0 pipeline
+   - phishslayer-api/ structure
 
----
+7. After integrating each pattern:
+   - Run npm run build (Next.js must still pass)
+   - Run python -m py_compile on each new .py file
 
-### C1 — Fix deploy.yml hardcoded API keys
+8. Output a summary:
+   Workflow | Source file in ruflo | Integrated into | Lines added
 
-Read `.github/workflows/deploy.yml`.
-Find lines ~209-210 containing:
-  `INGEST_API_KEY=ps_ingest_2026_phishslayer`
-  `PHISH_SLAYER_API_KEY=ps_main_2026_phishslayer`
+Audit the entire PhishSlayer codebase for logging coverage, then implement
+structured logging everywhere it's missing.
 
-Replace BOTH hardcoded values with GitHub Secrets references:
-  `INGEST_API_KEY=${{ secrets.INGEST_API_KEY }}`
-  `PHISH_SLAYER_API_KEY=${{ secrets.PHISH_SLAYER_API_KEY }}`
+## STEP 1 — AUDIT FIRST
 
-Then use the GitHub MCP connector to add these secrets to the repo:
-  - Secret name: `INGEST_API_KEY` → value: `ps_ingest_2026_phishslayer`
-  - Secret name: `PHISH_SLAYER_API_KEY` → value: `ps_main_2026_phishslayer`
-  
-Also scan deploy.yml for ANY other hardcoded values that look like keys/tokens/passwords.
-Move every one to GitHub Secrets using the same pattern.
-✅ Confirm: zero hardcoded secret values remain in deploy.yml.
+Run these scans:
 
----
-
-### C2 — Remove AGENT_SECRET from server.js stdout
-
-Read `server.js`. Find line ~76 where it logs the AGENT_SECRET value.
-Delete ONLY that console.log/console.warn line. Touch nothing else in server.js.
-✅ Confirm: AGENT_SECRET value is never printed to stdout.
-
----
-
-### C5 — Fix ingest webhook auth (no-op → real verification)
-
-Read `app/api/ingest/webhook/route.ts`.
-Find line ~17 with the comment admitting the API key is never verified.
-
-Replace the no-op with real verification:
-```typescript
-// At the TOP of the POST handler, before any processing:
-const ingestKey = request.headers.get('x-api-key') ?? 
-                  request.headers.get('authorization')?.replace('Bearer ', '')
-
-if (!ingestKey || ingestKey !== process.env.INGEST_API_KEY) {
-  return NextResponse.json(
-    { error: 'UNAUTHORIZED' },
-    { status: 401 }
-  )
-}
-```
-
-Verify `INGEST_API_KEY` is in `.env.production`. If missing, append:
-INGEST_API_KEY=ps_ingest_2026_phishslayer
-✅ Confirm: unauthenticated requests to /api/ingest/webhook return 401.
-
----
-
-### C4 — Add Clerk auth to all 15 unauthenticated routes
-
-Run this scan first:
 ```bash
-grep -rn "export async function" app/api/ --include="*.ts" -l | xargs grep -L "auth()"
+# What logging exists currently
+grep -rn "console\.log\|console\.error\|console\.warn\|logger\." app/ --include="*.ts" | wc -l
+grep -rn "import.*logger\|from.*logger" app/ --include="*.ts" | head -20
+grep -rn "console\.log\|console\.error" phishslayer-api/ --include="*.py" | wc -l
+grep -rn "import logging\|from.*logging" phishslayer-api/ --include="*.py" | head -20
 ```
 
-For EVERY file returned, add Clerk authentication at the top of each handler:
-```typescript
-import { auth } from '@clerk/nextjs/server'
+Report: how many files have zero logging, which critical paths have no logs.
 
-export async function GET(request: Request) {
-  const { userId, orgId } = await auth()
-  if (!userId || !orgId) {
-    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
-  }
-  // existing code continues...
+## STEP 2 — CREATE STRUCTURED LOGGER (Next.js)
+
+Create `lib/logger.ts`:
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+
+export type LogLevel = "debug" | "info" | "warn" | "error";
+
+export interface LogEntry {
+  timestamp: string; // ISO 8601
+  level: LogLevel;
+  request_id: string; // from header or generated
+  user_id: string | null; // Clerk userId
+  org_id: string | null; // Clerk orgId
+  route: string; // API route path
+  event: string; // what happened
+  duration_ms?: number; // for timing logs
+  alert_id?: string; // for agent operations
+  agent_level?: string; // l1 | l2 | l3
+  error_code?: string; // sanitized error code
+  metadata?: Record<string, unknown>; // extra context
 }
-```
 
-Apply this pattern to ALL of these known unprotected routes:
-- app/api/sandbox/url/route.ts
-- app/api/sandbox/email/route.ts  
-- app/api/soc/l1/route.ts
-- app/api/soc/pipeline/route.ts
-- app/api/vulnerabilities/route.ts
-- ALL other routes returned by the grep scan above
-
-EXCEPTION: Do NOT add Clerk auth to:
-- app/api/webhooks/wazuh/route.ts (uses HMAC)
-- app/api/webhooks/polar/route.ts (uses Polar signature)
-- app/api/ingest/webhook/route.ts (uses API key — just fixed in C5)
-
-After adding auth, also add org-scoping to every DB query in those files:
-- Every `supabase.from('table').select()` must have `.eq('org_id', orgId)`
-- Every INSERT must include `org_id: orgId` in the data object
-
-✅ Confirm: zero routes (except webhooks) accessible without valid Clerk session.
-
----
-
-### C3 — Add auth to dashboard WebSocket
-
-Read `app/api/dashboard/ws/route.ts`.
-The WebSocket currently accepts ALL connections with zero auth.
-
-Add token validation at connection time:
-```typescript
-import { auth } from '@clerk/nextjs/server'
-
-export async function GET(request: Request) {
-  // Validate before upgrading to WebSocket
-  const { userId, orgId } = await auth()
-  if (!userId || !orgId) {
-    return new Response('Unauthorized', { status: 401 })
-  }
-  
-  // Scope all WebSocket messages to this orgId only
-  // Store orgId in connection context
-  // Filter all broadcast events: only send events where event.orgId === orgId
-  
-  // existing WebSocket upgrade code...
+function buildEntry(
+  level: LogLevel,
+  event: string,
+  context: Partial<LogEntry>,
+): LogEntry {
+  return {
+    timestamp: new Date().toISOString(),
+    level,
+    request_id: context.request_id ?? crypto.randomUUID(),
+    user_id: context.user_id ?? null,
+    org_id: context.org_id ?? null,
+    route: context.route ?? "unknown",
+    event,
+    ...context,
+  };
 }
+
+export const logger = {
+  info: (event: string, ctx?: Partial<LogEntry>) =>
+    console.log(JSON.stringify(buildEntry("info", event, ctx ?? {}))),
+  warn: (event: string, ctx?: Partial<LogEntry>) =>
+    console.warn(JSON.stringify(buildEntry("warn", event, ctx ?? {}))),
+  error: (event: string, ctx?: Partial<LogEntry>) =>
+    console.error(JSON.stringify(buildEntry("error", event, ctx ?? {}))),
+  debug: (event: string, ctx?: Partial<LogEntry>) =>
+    process.env.NODE_ENV !== "production" &&
+    console.debug(JSON.stringify(buildEntry("debug", event, ctx ?? {}))),
+};
 ```
 
-Ensure WebSocket messages are filtered by orgId — no cross-tenant data can leak.
-✅ Confirm: WebSocket returns 401 without valid Clerk session.
+## STEP 3 — REQUEST CONTEXT MIDDLEWARE
 
----
+Update `middleware.ts` (ONLY add request_id injection — nothing else):
 
-## PHASE 2 — HIGH FIXES
+- Generate `x-request-id` header if not present: `crypto.randomUUID()`
+- Pass it through to all API routes via response headers
 
-### H1 — Fix all error.message leaks (80+ occurrences)
+## STEP 4 — API ROUTE LOGGING HELPER
 
-Run scan:
-```bash
-grep -rn "error\.message\|err\.message\|\.stack" app/api/ --include="*.ts"
-```
+Create `lib/api-logger.ts`:
 
-For EVERY occurrence where error.message appears in a Response or NextResponse:
-
-Replace:
 ```typescript
-// WRONG — leaks internal details
-return NextResponse.json({ error: error.message }, { status: 500 })
-return NextResponse.json({ message: err.message }, { status: 500 })
-```
+import { auth } from "@clerk/nextjs/server";
+import { logger } from "./logger";
 
-With:
-```typescript
-// CORRECT — sanitized
-console.error('[ROUTE_NAME]', error) // keep server-side logging
-return NextResponse.json({ error: 'INTERNAL_SERVER_ERROR' }, { status: 500 })
-```
+export async function withLogging(
+  request: Request,
+  route: string,
+  handler: (ctx: {
+    userId: string;
+    orgId: string;
+    requestId: string;
+  }) => Promise<Response>,
+): Promise<Response> {
+  const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+  const { userId, orgId } = await auth();
+  const start = Date.now();
 
-Known critical locations — fix these first:
-- `app/api/cron/l2-respond/route.ts` line ~664
-- `app/api/cron/l2-respond/route.ts` line ~726
+  logger.info("request_start", {
+    route,
+    request_id: requestId,
+    user_id: userId,
+    org_id: orgId,
+  });
 
-Then fix ALL remaining occurrences from the grep output.
-✅ Confirm: zero error.message values in any API response body.
-
----
-
-### H2 — Add POLAR_WEBHOOK_SECRET to .env.production
-
-Read `.env.production`. Check if `POLAR_WEBHOOK_SECRET` exists.
-If MISSING, append this line:
-POLAR_WEBHOOK_SECRET=REPLACE_WITH_ACTUAL_VALUE_FROM_POLAR_DASHBOARD
-
-Then read `app/api/webhooks/polar/route.ts`.
-Verify the webhook validates the Polar signature using this secret.
-If signature validation is missing, add:
-```typescript
-import { validateEvent } from '@polar-sh/nextjs'
-
-export async function POST(request: Request) {
-  const body = await request.text()
-  const signature = request.headers.get('x-polar-signature') ?? ''
-  
   try {
-    const event = validateEvent(
-      body,
-      signature,
-      process.env.POLAR_WEBHOOK_SECRET!
-    )
-    // process event...
+    const response = await handler({
+      userId: userId!,
+      orgId: orgId!,
+      requestId,
+    });
+    logger.info("request_complete", {
+      route,
+      request_id: requestId,
+      user_id: userId,
+      org_id: orgId,
+      duration_ms: Date.now() - start,
+    });
+    return response;
   } catch (error) {
-    return NextResponse.json({ error: 'INVALID_SIGNATURE' }, { status: 403 })
+    logger.error("request_failed", {
+      route,
+      request_id: requestId,
+      user_id: userId,
+      org_id: orgId,
+      duration_ms: Date.now() - start,
+      error_code: "UNHANDLED_EXCEPTION",
+    });
+    throw error;
   }
 }
 ```
-✅ Confirm: Polar webhook validates signature before processing.
 
----
+## STEP 5 — ADD LOGGING TO ALL CRITICAL API ROUTES
 
-### H3 — Fix Wazuh webhook HMAC validation
+For every file in these paths, add structured logging:
 
-Read `app/api/webhooks/wazuh/route.ts`.
-Verify HMAC validation is present and actually executed (not commented out).
+- app/api/agents/l1/route.ts
+- app/api/agents/l2/route.ts
+- app/api/agents/l3/route.ts
+- app/api/webhooks/wazuh/route.ts
+- app/api/webhooks/polar/route.ts
+- app/api/ingest/webhook/route.ts
+- app/api/cron/l1-triage/route.ts
+- app/api/cron/l2-respond/route.ts
+- app/api/cron/l3-hunt/route.ts
+- app/api/billing/webhook/route.ts
 
-If missing or commented out, add:
-```typescript
-import { createHmac, timingSafeEqual } from 'crypto'
+Log these events at minimum per route:
 
-function validateWazuhSignature(body: string, signature: string): boolean {
-  const expected = createHmac('sha256', process.env.WAZUH_WEBHOOK_SECRET!)
-    .update(body)
-    .digest('hex')
-  const expectedBuf = Buffer.from(`sha256=${expected}`)
-  const signatureBuf = Buffer.from(signature)
-  if (expectedBuf.length !== signatureBuf.length) return false
-  return timingSafeEqual(expectedBuf, signatureBuf)
+- request_start (with userId, orgId, requestId)
+- auth_failed (if 401 returned)
+- validation_failed (if Zod throws)
+- agent_dispatched (with alert_id)
+- webhook_received (with source)
+- webhook_signature_invalid
+- request_complete (with duration_ms)
+- request_failed (with error_code)
+
+## STEP 6 — PYTHON STRUCTURED LOGGER
+
+Create `phishslayer-api/observability/logger.py`:
+
+```python
+import logging
+import json
+import time
+from datetime import datetime, timezone
+from typing import Optional
+import uuid
+
+class StructuredFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname.lower(),
+            "event": record.getMessage(),
+            "request_id": getattr(record, "request_id", None),
+            "user_id": getattr(record, "user_id", None),
+            "org_id": getattr(record, "org_id", None),
+            "alert_id": getattr(record, "alert_id", None),
+            "agent_level": getattr(record, "agent_level", None),
+            "duration_ms": getattr(record, "duration_ms", None),
+            "error_code": getattr(record, "error_code", None),
+            "module": record.module,
+            "metadata": getattr(record, "metadata", None)
+        }
+        # Remove None values for clean logs
+        entry = {k: v for k, v in entry.items() if v is not None}
+        return json.dumps(entry)
+
+def get_logger(name: str) -> logging.Logger:
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        handler.setFormatter(StructuredFormatter())
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG if settings.DEBUG else logging.INFO)
+    return logger
+
+class AgentLogger:
+    """Context-aware logger for agent operations."""
+    def __init__(self, agent_level: str, alert_id: str, org_id: str, request_id: str):
+        self._logger = get_logger(f"phishslayer.agents.{agent_level}")
+        self._ctx = {
+            "agent_level": agent_level,
+            "alert_id": alert_id,
+            "org_id": org_id,
+            "request_id": request_id
+        }
+
+    def info(self, event: str, **kwargs):
+        self._logger.info(event, extra={**self._ctx, "metadata": kwargs or None})
+
+    def warn(self, event: str, **kwargs):
+        self._logger.warning(event, extra={**self._ctx, "metadata": kwargs or None})
+
+    def error(self, event: str, error_code: str = "UNKNOWN", **kwargs):
+        self._logger.error(event, extra={**self._ctx, "error_code": error_code, "metadata": kwargs or None})
+
+    def tool_call(self, tool_name: str, duration_ms: int, success: bool, **kwargs):
+        self._logger.info(
+            f"tool_call:{tool_name}",
+            extra={**self._ctx, "duration_ms": duration_ms,
+                   "metadata": {"tool": tool_name, "success": success, **kwargs}}
+        )
+```
+
+## STEP 7 — ADD LOGGING TO AGENT SERVICE
+
+Inject `AgentLogger` into:
+
+- `core/harness/agent_executor.py` — log session start/end, token usage
+- `core/harness/consequence_predictor.py` — log prediction + confidence
+- `core/harness/memory_manager.py` — log cache hits/misses
+- `agents/l1_triage/agent.py` — log every node completion
+- Each OSINT tool (scrapling, virustotal, abuseipdb, urlscan) — log call + duration
+
+## STEP 8 — FASTAPI REQUEST LOGGING MIDDLEWARE
+
+Add to `phishslayer-api/main.py`:
+
+```python
+from starlette.middleware.base import BaseHTTPMiddleware
+import time, uuid
+
+class StructuredLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        request_id = request.headers.get("x-request-id", str(uuid.uuid4()))
+        start = time.time()
+
+        api_logger.info("request_start", extra={
+            "request_id": request_id,
+            "metadata": {"method": request.method, "path": request.url.path}
+        })
+
+        response = await call_next(request)
+        duration_ms = int((time.time() - start) * 1000)
+
+        api_logger.info("request_complete", extra={
+            "request_id": request_id,
+            "duration_ms": duration_ms,
+            "metadata": {"status_code": response.status_code}
+        })
+
+        response.headers["x-request-id"] = request_id
+        return response
+
+app.add_middleware(StructuredLoggingMiddleware)
+```
+
+## STEP 9 — VALIDATION
+
+After implementing:
+
+1. Run: npm run build (must pass)
+2. Start dev server, hit /api/agents/l1 with invalid auth
+3. Confirm log output is:
+
+```json
+{
+  "timestamp": "2026-05-07T...",
+  "level": "warn",
+  "event": "auth_failed",
+  "request_id": "uuid",
+  "route": "/api/agents/l1"
 }
-
-export async function POST(request: Request) {
-  const body = await request.text()
-  const signature = request.headers.get('x-hub-signature-256') ?? ''
-  
-  if (!validateWazuhSignature(body, signature)) {
-    return NextResponse.json({ error: 'INVALID_SIGNATURE' }, { status: 401 })
-  }
-  // existing processing...
-}
 ```
 
-Append to `.env.production` if missing:
-WAZUH_WEBHOOK_SECRET=REPLACE_WITH_ACTUAL_WAZUH_WEBHOOK_SECRET
-✅ Confirm: unsigned Wazuh webhooks rejected with 401.
+4. Confirm NO raw error.message in any log event
+5. Confirm ALL log entries are valid JSON (pipe to `jq . ` test)
 
----
+## STEP 10 — SUPABASE LOG TABLE (optional but recommended)
 
-## PHASE 3 — DATABASE FIXES (use Supabase MCP connector)
+Via Supabase MCP, create:
 
-### DB1 — Apply critical security migration
-
-Use the Supabase MCP connector to:
-
-1. First READ the migration file:
-   `supabase/migrations/20260427000001_critical_security_fixes.sql`
-   
-2. Check if it has been applied:
-   Query via Supabase MCP: 
-   `SELECT * FROM supabase_migrations.schema_migrations WHERE version = '20260427000001'`
-
-3. If NOT applied — execute the full migration via Supabase MCP.
-
-4. After applying, verify via Supabase MCP that RLS is enabled on all tables:
 ```sql
-SELECT tablename, rowsecurity 
-FROM pg_tables 
-WHERE schemaname = 'public' 
-AND tablename IN ('organizations','alerts','agent_reasoning','soc_metrics',
-                  'static_analysis','ioc_store','intelligence_documents',
-                  'document_chunks','capabilities','agent_evolution',
-                  'consequence_predictions','decepticon_findings');
-```
-Any table showing `rowsecurity = false` = CRITICAL. Enable RLS:
-```sql
-ALTER TABLE [tablename] ENABLE ROW LEVEL SECURITY;
-```
-
-### DB2 — Verify RLS policies exist
-
-Via Supabase MCP, check policies:
-```sql
-SELECT tablename, policyname, cmd, qual 
-FROM pg_policies 
-WHERE schemaname = 'public'
-ORDER BY tablename;
-```
-
-For ANY table missing SELECT/INSERT/UPDATE policies, create them:
-```sql
--- Template for org-scoped policy
-CREATE POLICY "org_isolation_select" ON [tablename]
-  FOR SELECT USING (org_id = (
-    SELECT org_id FROM organizations 
-    WHERE clerk_org_id = auth.jwt() ->> 'org_id'
-  ));
-
-CREATE POLICY "org_isolation_insert" ON [tablename]
-  FOR INSERT WITH CHECK (org_id = (
-    SELECT org_id FROM organizations 
-    WHERE clerk_org_id = auth.jwt() ->> 'org_id'
-  ));
-```
-
-### DB3 — Add decepticon_findings table
-
-Via Supabase MCP, create the table if it doesn't exist:
-```sql
-CREATE TABLE IF NOT EXISTS decepticon_findings (
-    id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    attack_name       text NOT NULL,
-    agent_level       text CHECK (agent_level IN ('l1','l2','l3')),
-    attack_vector     text NOT NULL,
-    payload_summary   text,
-    defense_passed    boolean NOT NULL,
-    resistance_score  float4,
-    details           jsonb,
-    run_date          timestamptz DEFAULT now()
+CREATE TABLE IF NOT EXISTS platform_logs (
+    id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    timestamp   timestamptz NOT NULL DEFAULT now(),
+    level       text CHECK (level IN ('debug','info','warn','error')),
+    event       text NOT NULL,
+    request_id  text,
+    user_id     text,
+    org_id      uuid,
+    alert_id    uuid,
+    agent_level text,
+    duration_ms int,
+    error_code  text,
+    metadata    jsonb
 );
--- No RLS — red team table, internal only, no org_id
--- No public access policy
-REVOKE ALL ON decepticon_findings FROM anon, authenticated;
-GRANT ALL ON decepticon_findings TO service_role;
+-- No RLS — admin-only table
+-- Partition by month for scale
+CREATE INDEX idx_platform_logs_org ON platform_logs(org_id, timestamp DESC);
+CREATE INDEX idx_platform_logs_alert ON platform_logs(alert_id);
+CREATE INDEX idx_platform_logs_request ON platform_logs(request_id);
+CREATE INDEX idx_platform_logs_level ON platform_logs(level, timestamp DESC);
 ```
 
-### DB4 — Add missing indexes
+Write ERROR + WARN level logs to this table in addition to stdout.
+Read-only via `/api/admin/logs` route (admin role only).
 
-Via Supabase MCP, add indexes for common query patterns:
-```sql
--- Alerts queried by org + status constantly
-CREATE INDEX IF NOT EXISTS idx_alerts_org_status 
-  ON alerts(org_id, status);
-CREATE INDEX IF NOT EXISTS idx_alerts_org_severity 
-  ON alerts(org_id, severity);
-CREATE INDEX IF NOT EXISTS idx_alerts_created 
-  ON alerts(created_at DESC);
-
--- Agent reasoning queried by alert_id
-CREATE INDEX IF NOT EXISTS idx_agent_reasoning_alert 
-  ON agent_reasoning(alert_id);
-CREATE INDEX IF NOT EXISTS idx_agent_reasoning_org 
-  ON agent_reasoning(org_id);
-
--- IOC store queried by value  
-CREATE INDEX IF NOT EXISTS idx_ioc_store_value 
-  ON ioc_store(org_id, ioc_type, value);
-
--- Capabilities queried by org + active
-CREATE INDEX IF NOT EXISTS idx_capabilities_org_active 
-  ON capabilities(org_id, active);
-```
-
----
-
-## PHASE 4 — FORCE-DYNAMIC AUDIT
-
-Run:
-```bash
-grep -rn "export async function" app/api/ --include="*.ts" -l | xargs grep -L "force-dynamic"
-```
-
-For EVERY file returned, add at the TOP of the file (before imports if possible, else after):
-```typescript
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
-```
-
-✅ Confirm: every API route has both exports.
-
----
-
-## PHASE 5 — VALIDATION
-
-After ALL fixes are applied:
-
-1. Run build:
-```bash
-npm run build
-```
-Fix any TypeScript errors introduced. Do NOT ignore them.
-
-2. Run security re-scan:
-```bash
-# Confirm no error.message in responses
-grep -rn "error\.message" app/api/ | grep -v "console\|logger\|\/\/"
-
-# Confirm no hardcoded secrets
-grep -rn "ps_ingest\|ps_main_2026\|AKIAR" --include="*.ts" --include="*.yml" .
-
-# Confirm all routes have auth
-grep -rn "export async function" app/api/ --include="*.ts" -l | xargs grep -L "auth()" | grep -v "webhooks"
-```
-
-3. ALL three scans must return ZERO results.
-
-4. Via Supabase MCP — verify RLS one final time:
-```sql
-SELECT tablename, rowsecurity FROM pg_tables 
-WHERE schemaname = 'public' AND rowsecurity = false;
-```
-Must return zero rows.
-
----
-
-## FINAL REPORT FORMAT
-
-After completing all phases, output:
-PhishSlayer Security Fix Report
-Date: [today]
-Fixes Applied
-✅ C6 - .dockerignore: !.env.production removed
-✅ C1 - deploy.yml: API keys moved to GitHub Secrets
-✅ C2 - server.js:76: AGENT_SECRET log removed
-✅ C5 - ingest/webhook: real API key verification added
-✅ C4 - [N] routes: Clerk auth added to all [list them]
-✅ C3 - dashboard/ws: WebSocket auth + org scoping added
-✅ H1 - [N] error.message leaks fixed
-✅ H2 - POLAR_WEBHOOK_SECRET: added + signature validation
-✅ H3 - Wazuh webhook: HMAC validation added
-✅ DB1 - Critical migration: applied
-✅ DB2 - RLS policies: verified/added on all tables
-✅ DB3 - decepticon_findings table: created
-✅ DB4 - Indexes: added
-Build Status
-npm run build: [PASS/FAIL + any errors]
-Remaining Issues
-[List anything that needs manual action — e.g. actual secret values to set in Polar dashboard]
-Manual Actions Required
-
-Set POLAR_WEBHOOK_SECRET in .env.production with actual value from polar.sh dashboard
-Set WAZUH_WEBHOOK_SECRET in .env.production with actual value from Wazuh config
-Redeploy Docker container: docker compose down && docker compose up -d --build
-
-
----
-
-## STOP CONDITIONS — stop and ask before doing these:
-- Deleting any table or column in Supabase
-- Modifying middleware.ts beyond adding auth patterns
-- Changing any Clerk organization settings
-- Rotating or changing any API key values (only move them, never change them)
-- Any change to server.js beyond removing the one console.log line
+Run npm run build after all changes. Output summary of files modified.

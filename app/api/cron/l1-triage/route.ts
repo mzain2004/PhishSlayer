@@ -5,6 +5,7 @@ import {
   saveReasoningChain,
 } from "@/lib/reasoning-chain";
 import { getGroqModel } from "@/lib/ai/groq";
+import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -42,12 +43,18 @@ function isAuthorized(request: NextRequest): boolean {
 }
 
 export async function GET(request: NextRequest) {
+  const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+  const route = "/api/cron/l1-triage";
+
   if (!isAuthorized(request)) {
+    logger.warn("auth_failed", { route, request_id: requestId, user_id: null, org_id: null, error_code: "UNAUTHORIZED" });
     return NextResponse.json(
       { success: false, error: "Unauthorized" },
       { status: 401 },
     );
   }
+
+  logger.info("request_start", { route, request_id: requestId, user_id: null, org_id: null });
 
   const startedAt = Date.now();
   const internalBaseUrl =
@@ -72,6 +79,7 @@ export async function GET(request: NextRequest) {
   const parsed = TriageSummarySchema.safeParse(payload);
 
   if (!parsed.success) {
+    logger.error("request_failed", { route, request_id: requestId, user_id: null, org_id: null, duration_ms: Date.now() - startedAt, error_code: "INVALID_TRIAGE_RESPONSE" });
     return NextResponse.json(
       {
         success: false,
@@ -117,5 +125,6 @@ export async function GET(request: NextRequest) {
     await Promise.allSettled(saves);
   }
 
+  logger.info("request_complete", { route, request_id: requestId, user_id: null, org_id: null, duration_ms: Date.now() - startedAt, agent_level: "L1" });
   return NextResponse.json(parsed.data, { status: response.status });
 }

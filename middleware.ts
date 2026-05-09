@@ -40,6 +40,9 @@ export default clerkMiddleware(async (auth, request) => {
   const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
   const { pathname } = request.nextUrl;
 
+  // ── Request ID injection ───────────────────────────────────────────
+  const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+
   // 1. Rate Limiting
   if (pathname.startsWith("/api/")) {
     if (isRateLimited(ip, 100, "api")) {
@@ -73,6 +76,9 @@ export default clerkMiddleware(async (auth, request) => {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+
+  // Forward the request ID on all responses so clients can correlate logs
+  response.headers.set("x-request-id", requestId);
 
   return response;
 });

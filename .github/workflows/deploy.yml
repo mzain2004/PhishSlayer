@@ -38,6 +38,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Security audit
+        run: npm audit --audit-level=high || true
+
       - name: TypeScript type check
         run: npx tsc --noEmit
 
@@ -214,6 +217,9 @@ jobs:
           CLERK_WEBHOOK_SECRET=${{ secrets.CLERK_WEBHOOK_SECRET }}
           SENTRY_DSN=${{ secrets.SENTRY_DSN }}
           NEXT_PUBLIC_SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          AGENTOPS_API_KEY=${{ secrets.AGENTOPS_API_KEY }}
+          PYTHON_API_URL=http://api:8000
           ENVEOF
 
             echo "=== Pulling latest image from GHCR ==="

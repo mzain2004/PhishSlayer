@@ -1,0 +1,15 @@
+# AgentScope model configurations for PhishSlayer
+# Used as reference; agentscope v1.x loads models via the model module directly.
+# GROQ_API_KEY is resolved from environment at runtime.
+
+- config_name: groq-llama3-70b
+  model_type: groq_chat
+  model_name: llama3-70b-8192
+  api_key: ${GROQ_API_KEY}
+  stream: false
+
+- config_name: groq-llama3-8b-fast
+  model_type: groq_chat
+  model_name: llama3-8b-8192
+  api_key: ${GROQ_API_KEY}
+  stream: false

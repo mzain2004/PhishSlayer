@@ -8,19 +8,29 @@ from pathlib import Path
 # Correct — resolves absolute path first
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env.local")
 
+import asyncio
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
+from starlette.middleware.base import BaseHTTPMiddleware
 import os
+import time as _time
+import uuid as _uuid
 import agentops
+import agentscope
 import uuid
 from agents.l1_triage import L1TriageAgent, TriageResult
 from harness.lifecycle_hooks import LifecycleHooks
 from harness.verify_interface import VerifyInterface
 from harness.state_store import StateStore
 from middleware.auth_dependency import get_current_user
+from config.settings import settings as app_settings
+from observability.agentops_client import init_agentops
+from observability.logger import get_logger
 from dataclasses import asdict
+
+_api_log = get_logger("phishslayer.api")
 
 # Import all routers
 from routers import (
@@ -29,15 +39,22 @@ from routers import (
     users, wazuh, incidents, health, soc
 )
 from routes.wazuh_webhook import router as wazuh_router
+from routes.agent_dispatch import router as agent_dispatch_router
 
 # Lifecycle events
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup and shutdown"""
-    # Startup
+    agentscope.init(project="phishslayer", name="api")
+    init_agentops(api_key=app_settings.AGENTOPS_API_KEY, env=app_settings.ENV)
+
+    # Start supervisor health-check background task
+    from agents.orchestrator.supervisor import supervisor
+    asyncio.create_task(supervisor.health_check())
+
     print("PhishSlayer API starting...")
     yield
-    # Shutdown
+    agentops.end_all_sessions()
     print("PhishSlayer API shutting down...")
 
 
@@ -49,21 +66,39 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# AgentOps — wire before any route logic
-agentops.init(
-    api_key=os.getenv("AGENTOPS_API_KEY", ""),
-    default_tags=["phishslayer", "soc", "production"],
-    skip_auto_end_session=True
-)
-
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000").split(","),
+    allow_origins=app_settings.CORS_ORIGINS.split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class StructuredLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        request_id = request.headers.get("x-request-id", str(_uuid.uuid4()))
+        start = _time.time()
+        _api_log.info(
+            "request_start",
+            extra={"request_id": request_id, "metadata": {"method": request.method, "path": request.url.path}},
+        )
+        response = await call_next(request)
+        duration_ms = int((_time.time() - start) * 1000)
+        _api_log.info(
+            "request_complete",
+            extra={
+                "request_id": request_id,
+                "duration_ms": duration_ms,
+                "metadata": {"status_code": response.status_code},
+            },
+        )
+        response.headers["x-request-id"] = request_id
+        return response
+
+
+app.add_middleware(StructuredLoggingMiddleware)
 
 # Mount all routers with their prefixes
 # Core SOC functionality
@@ -96,6 +131,7 @@ app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
 app.include_router(cron.router, prefix="/api/cron", tags=["Cron Jobs"])
 app.include_router(wazuh_router)
+app.include_router(agent_dispatch_router, tags=["Agent Dispatch"])
 
 @app.post("/api/v1/alerts/ingest")
 async def ingest_alert(request: dict, current_user: dict = Depends(get_current_user)):

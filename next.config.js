@@ -28,11 +28,26 @@ const securityHeaders = [
   { key: "X-XSS-Protection", value: "1; mode=block" },
   {
     key: "Strict-Transport-Security",
-    value: "max-age=31536000; includeSubDomains",
+    value: "max-age=63072000; includeSubDomains; preload",
   },
   {
     key: "Content-Security-Policy",
     value: cspHeader,
+  },
+  // CORS — restrict to production origin in production, allow localhost in dev
+  {
+    key: "Access-Control-Allow-Origin",
+    value: process.env.NODE_ENV === "production"
+      ? "https://phishslayer.tech"
+      : "http://localhost:3000",
+  },
+  {
+    key: "Access-Control-Allow-Methods",
+    value: "GET, POST, PUT, DELETE, OPTIONS",
+  },
+  {
+    key: "Access-Control-Allow-Headers",
+    value: "Content-Type, Authorization, x-request-id",
   },
 ];
 

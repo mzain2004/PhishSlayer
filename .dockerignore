@@ -5,3 +5,6 @@ node_modules
 README.md
 Dockerfile
 docker-compose.yml
+**/*.log
+**/__pycache__
+**/*.pyc

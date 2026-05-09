@@ -25,7 +25,7 @@ COPY phishslayer-api/ /app/
 COPY phishslayer-api/agents/ /app/agents/
 
 # Never run as root
-RUN adduser --disabled-password --gecos "" appuser
+RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
 USER appuser
 
 EXPOSE 8000

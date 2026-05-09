@@ -225,11 +225,11 @@ jobs:
             echo "=== Pulling latest image from GHCR ==="
             echo "${{ secrets.GITHUB_TOKEN }}" | \
               docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker compose down --remove-orphans
+            docker compose --env-file .env.production down --remove-orphans
             docker login ghcr.io -u mzain2004 -p ${{ secrets.GITHUB_TOKEN }}
-            docker compose pull
-            docker compose build --no-cache mcp-osint mcp-wazuh mcp-graph
-            docker compose up -d --force-recreate
+            docker compose --env-file .env.production pull
+            docker compose --env-file .env.production build --no-cache mcp-osint mcp-wazuh mcp-graph
+            docker compose --env-file .env.production up -d --force-recreate
 
             echo "=== Waiting for app to be ready ==="
             MAX_RETRIES=12

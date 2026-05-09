@@ -17,9 +17,21 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import os
 import time as _time
 import uuid as _uuid
-import agentops
-import agentscope
 import uuid
+
+try:
+    import agentops
+    _AGENTOPS = True
+except ImportError:
+    agentops = None
+    _AGENTOPS = False
+
+try:
+    import agentscope
+    _AGENTSCOPE = True
+except ImportError:
+    agentscope = None
+    _AGENTSCOPE = False
 from agents.l1_triage import L1TriageAgent, TriageResult
 from harness.lifecycle_hooks import LifecycleHooks
 from harness.verify_interface import VerifyInterface
@@ -45,7 +57,8 @@ from routes.agent_dispatch import router as agent_dispatch_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup and shutdown"""
-    agentscope.init(project="phishslayer", name="api")
+    if _AGENTSCOPE:
+        agentscope.init(project="phishslayer", name="api")
     init_agentops(api_key=app_settings.AGENTOPS_API_KEY, env=app_settings.ENV)
 
     # Start supervisor health-check background task
@@ -54,7 +67,8 @@ async def lifespan(app: FastAPI):
 
     print("PhishSlayer API starting...")
     yield
-    agentops.end_all_sessions()
+    if _AGENTOPS:
+        agentops.end_all_sessions()
     print("PhishSlayer API shutting down...")
 
 

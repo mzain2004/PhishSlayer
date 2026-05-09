@@ -228,6 +228,7 @@ jobs:
             docker compose down --remove-orphans
             docker login ghcr.io -u mzain2004 -p ${{ secrets.GITHUB_TOKEN }}
             docker compose pull
+            docker compose build --no-cache mcp-osint mcp-wazuh mcp-graph
             docker compose up -d --force-recreate
 
             echo "=== Waiting for app to be ready ==="

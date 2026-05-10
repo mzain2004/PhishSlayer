@@ -1,24 +1,12 @@
 import {
-  Activity,
-  AlertTriangle,
+  Bell,
   Bot,
-  CreditCard,
-  Eye,
+  BarChart2,
   FileText,
-  KeyRound,
-  LayoutDashboard,
-  LifeBuoy,
-  Mail,
-  Plug,
-  Radar,
   Search,
   Settings,
   Shield,
-  ShieldAlert,
-  ShieldCheck,
-  Terminal,
-  User,
-  Users,
+  TrendingUp,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -35,67 +23,30 @@ export type DashboardNavGroup = {
 
 export const dashboardNavGroups: DashboardNavGroup[] = [
   {
-    label: "Overview",
+    label: "OPERATIONS",
     items: [
-      { href: "/dashboard", label: "Command Center", icon: LayoutDashboard },
+      { href: "/dashboard/alerts", label: "Alerts", icon: Bell },
+      { href: "/dashboard/hunting", label: "Hunting", icon: Search },
     ],
   },
   {
-    label: "Threat Scanner",
+    label: "INTELLIGENCE",
     items: [
-      { href: "/dashboard/threats", label: "Threat Scanner", icon: Radar },
-      { href: "/dashboard/email-analyzer", label: "Email Analyzer", icon: Mail },
-      { href: "/dashboard/scans", label: "Scan History", icon: Search },
+      { href: "/dashboard/iocs", label: "IOCs", icon: Shield },
+      { href: "/dashboard/reports", label: "Reports", icon: FileText },
     ],
   },
   {
-    label: "Incidents",
-    items: [
-      { href: "/dashboard/incidents", label: "Incidents", icon: AlertTriangle },
-      { href: "/dashboard/uba", label: "UBA", icon: ShieldAlert },
-      { href: "/dashboard/escalations", label: "Escalations", icon: Shield },
-    ],
-  },
-  {
-    label: "Threat Hunt",
-    items: [
-      { href: "/dashboard/hunt", label: "Threat Hunt", icon: Activity },
-      { href: "/dashboard/detection-rules", label: "Detection Rules", icon: ShieldCheck },
-    ],
-  },
-  {
-    label: "Vulnerabilities",
-    items: [
-      { href: "/dashboard/vulnerabilities", label: "Vulnerabilities", icon: AlertTriangle },
-    ],
-  },
-  {
-    label: "Intel Vault",
-    items: [
-      { href: "/dashboard/threat-intel", label: "Threat Intel", icon: FileText },
-      { href: "/dashboard/intel", label: "Intel Vault", icon: FileText },
-      { href: "/dashboard/darkweb", label: "Dark Web", icon: Eye },
-    ],
-  },
-  {
-    label: "Automation",
+    label: "PLATFORM",
     items: [
       { href: "/dashboard/agents", label: "Agents", icon: Bot },
-      { href: "/dashboard/terminal", label: "AI Terminal", icon: Terminal },
-      { href: "/dashboard/integrations", label: "Integrations", icon: Plug },
+      { href: "/dashboard/evolution", label: "Evolution", icon: TrendingUp },
+      { href: "/dashboard/metrics", label: "Metrics", icon: BarChart2 },
     ],
   },
   {
-    label: "Platform",
-    items: [
-      { href: "/dashboard/identity", label: "Identity", icon: Users },
-      { href: "/dashboard/reports", label: "Reports", icon: FileText },
-      { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
-      { href: "/dashboard/apikeys", label: "API Keys", icon: KeyRound },
-      { href: "/dashboard/support", label: "Support", icon: LifeBuoy },
-      { href: "/dashboard/settings", label: "Settings", icon: Settings },
-      { href: "/dashboard/profile", label: "Profile", icon: User },
-    ],
+    label: "SETTINGS",
+    items: [{ href: "/dashboard/settings", label: "Settings", icon: Settings }],
   },
 ];
 

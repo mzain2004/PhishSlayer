@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PhishSlayer — SOC Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="styles2.css" />
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="components.jsx"></script>
+<script type="text/babel" src="detail-panel.jsx"></script>
+<script type="text/babel" src="screens.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="screens2.jsx"></script>
+<script type="text/babel" src="screens3.jsx"></script>
+
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "density": "comfortable",
+  "accent": "indigo",
+  "animation": "full",
+  "tier": "cmd-center",
+  "showResolved": true,
+  "shortcutHints": true
+}/*EDITMODE-END*/;
+
+const NAV_SECTIONS = [
+  { label: 'Operations', items: [
+    { id: 'alerts',   name: 'Alerts',   icon: 'shield' },
+    { id: 'hunt',     name: 'Hunting',  icon: 'crosshair' },
+  ]},
+  { label: 'Intelligence', items: [
+    { id: 'iocs',     name: 'IOCs',     icon: 'fingerprint' },
+    { id: 'reports',  name: 'Reports',  icon: 'fileText' },
+  ]},
+  { label: 'Platform', items: [
+    { id: 'agents',    name: 'Agents',    icon: 'cpu' },
+    { id: 'evolution', name: 'Evolution', icon: 'dna' },
+    { id: 'metrics',   name: 'Metrics',   icon: 'chart' },
+  ]},
+  { label: 'Settings', items: [
+    { id: 'settings',      name: 'Settings',      icon: 'gear' },
+    { id: 'integrations',  name: 'Integrations',  icon: 'cpu' },
+  ]},
+];
+
+const NAV_ICONS = {
+  shield: IShield,
+  crosshair: ICrosshair,
+  fingerprint: IFingerprint,
+  fileText: IFile,
+  cpu: ICpu,
+  dna: IDna,
+  chart: IChart,
+  gear: ISettings,
+};
+
+function App() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [route, setRoute] = React.useState('alerts');
+  const [onboarded, setOnboarded] = React.useState(true);
+  const [showConsequenceModal, setShowConsequenceModal] = React.useState(false);
+  const [alerts, setAlerts] = React.useState(() => SEED_ALERTS);
+  const [selectedAlert, setSelectedAlert] = React.useState(null);
+  const [recentlyFlashed, setRecentlyFlashed] = React.useState(new Set());
+  const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
+  const [navCollapsed, setNavCollapsed] = React.useState(false);
+
+  // Apply accent tweak to root
+  React.useEffect(() => {
+    document.documentElement.dataset.accent = tweaks.accent;
+    document.documentElement.dataset.animation = tweaks.animation;
+  }, [tweaks.accent, tweaks.animation]);
+
+  // Tick alert ages, randomly progress triaging→escalated→responded, occasionally inject a new alert.
+  React.useEffect(() => {
+    const tick = setInterval(() => {
+      setAlerts(prev => {
+        let next = prev.map(a => ({ ...a, age_seconds: a.age_seconds + 5 }));
+        // promote a triaging alert occasionally
+        if (Math.random() < 0.18) {
+          const idx = next.findIndex(a => a.status === 'triaging');
+          if (idx >= 0) {
+            const a = next[idx];
+            next[idx] = {
+              ...a,
+              status: a.severity === 'critical' || a.severity === 'high' ? 'escalated' : 'responded',
+              confidence: a.confidence ?? (0.6 + Math.random() * 0.3),
+            };
+            triggerFlash(a.id);
+          }
+        }
+        // inject a new alert ~every 25s
+        if (Math.random() < 0.07) {
+          const fresh = makeRandomAlert();
+          next = [fresh, ...next];
+          triggerFlash(fresh.id);
+        }
+        return next;
+      });
+    }, 5000);
+    return () => clearInterval(tick);
+  }, []);
+
+  function triggerFlash(id) {
+    setRecentlyFlashed(prev => {
+      const n = new Set(prev);
+      n.add(id);
+      setTimeout(() => {
+        setRecentlyFlashed(p => { const m = new Set(p); m.delete(id); return m; });
+      }, 800);
+      return n;
+    });
+  }
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    const onKey = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === '?') { setShortcutsOpen(true); }
+      else if (e.key === 'Escape') { setShortcutsOpen(false); setSelectedAlert(null); }
+      else if (e.key === 'g') { /* go-to */ }
+      else if ((e.key === 'a' || e.key === '1') && !e.metaKey && !e.ctrlKey) { setRoute('alerts'); }
+      else if (e.key === '2') setRoute('hunt');
+      else if (e.key === '3') setRoute('metrics');
+      else if (e.key === '4') setRoute('evolution');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  if (!onboarded) {
+    return <OnboardingScreenV2 onComplete={() => setOnboarded(true)} />;
+  }
+
+  const liveCount = alerts.filter(a => !a.resolved && (a.severity === 'critical' || a.severity === 'high')).length;
+  const evoCount = 3;
+
+  return (
+    <div className={`shell ${navCollapsed ? 'nav-collapsed' : ''}`} data-density={tweaks.density}>
+      {/* TOPBAR */}
+      <header className="topbar">
+        <div className="brand">
+          <div className="logo" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2 L20 5 V12 C20 17 16 21 12 22 C8 21 4 17 4 12 V5 Z"
+                    stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+              <path d="M9 12 L11 14 L15 10" stroke="currentColor" strokeWidth="2"
+                    strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span className="name">PhishSlayer</span>
+          <span className="ver">v0.6.2</span>
+        </div>
+
+        <div className="topbar-mid">
+          <button className="org-picker" aria-label="Switch organization">
+            <span className="org-dot" />
+            <span className="org-name">Contoso Industries</span>
+            <span className="org-tag">prod</span>
+            <IChevDown size={11} />
+          </button>
+        </div>
+
+        <div className="topbar-right">
+          <button className="cmd-k" aria-label="Open command palette">
+            <ISearch size={12} />
+            <span>Quick search</span>
+            <kbd>⌘K</kbd>
+          </button>
+          <span className={`tier-badge tier-${tweaks.tier}`}>
+            {tweaks.tier === 'free' ? 'FREE' : tweaks.tier === 'cmd-center' ? 'CMD CENTER' : 'SOC PRO'}
+          </span>
+          <button className="icon-btn" aria-label="Notifications">
+            <IBell size={15} />
+            <span className="dot-red" />
+          </button>
+          <div className="avatar" aria-label="User menu">JR</div>
+        </div>
+      </header>
+
+      <div className="body">
+        {/* SIDENAV */}
+        <nav className="sidenav" aria-label="Primary">
+          {NAV_SECTIONS.map(section => (
+            <div key={section.label} className="nav-section">
+              <div className="nav-section-label">{section.label}</div>
+              {section.items.map(item => {
+                const Ico = NAV_ICONS[item.icon];
+                const isActive = route === item.id ||
+                  (item.id === 'evolution' && route === 'evolution') ||
+                  (item.id === 'hunt' && route === 'hunt');
+                const badge = item.id === 'alerts' ? liveCount :
+                              item.id === 'evolution' ? evoCount : null;
+                return (
+                  <button
+                    key={item.id}
+                    className={`nav-item ${isActive ? 'active' : ''}`}
+                    onClick={() => setRoute(item.id)}
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    <span className="ico"><Ico size={15} /></span>
+                    <span className="label">{item.name}</span>
+                    {badge > 0 && (
+                      <span className={`nav-badge ${item.id === 'alerts' && liveCount > 0 ? 'pulse' : ''}`}>
+                        {badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+          <div style={{ flex: 1 }} />
+          <button className="nav-collapse" onClick={() => setNavCollapsed(c => !c)} aria-label="Collapse navigation">
+            <IChevLeft size={11} /> {!navCollapsed && 'Collapse'}
+          </button>
+          {tweaks.shortcutHints && !navCollapsed && (
+            <div className="shortcut-hint">
+              Press <kbd>?</kbd> for shortcuts
+            </div>
+          )}
+        </nav>
+
+        {/* MAIN */}
+        <main className="main">
+          {route === 'alerts' && (
+            <AlertQueueScreen
+              alerts={alerts}
+              selectedId={selectedAlert?.id}
+              onSelect={setSelectedAlert}
+              density={tweaks.density}
+              showResolved={tweaks.showResolved}
+              recentlyFlashed={recentlyFlashed}
+            />
+          )}
+          {route === 'hunt' && <HuntScreen onBack={() => setRoute('alerts')} />}
+          {route === 'metrics' && <MetricsScreen />}
+          {route === 'evolution' && <EvolutionScreen />}
+          {route === 'settings' && <SettingsScreenV2 />}
+          {route === 'integrations' && <IntegrationsScreen />}
+          {route === 'iocs' && <IOCsScreen />}
+          {route === 'reports' && <ReportsScreen />}
+          {route === 'agents' && <AgentsScreen />}
+        </main>
+      </div>
+
+      <DetailPanel
+        alert={selectedAlert}
+        open={!!selectedAlert}
+        onClose={() => setSelectedAlert(null)}
+        onOpenHunt={() => { setRoute('hunt'); setSelectedAlert(null); }}
+        onApprove={() => {
+          setShowConsequenceModal(true);
+        }}
+        onReject={() => {
+          setAlerts(prev => prev.map(a => a.id === selectedAlert.id ? { ...a, status: 'pending' } : a));
+        }}
+      />
+
+      <ConsequenceModal
+        alert={selectedAlert}
+        open={showConsequenceModal}
+        onClose={() => setShowConsequenceModal(false)}
+        onApprove={() => {
+          setShowConsequenceModal(false);
+          setAlerts(prev => prev.map(a => a.id === selectedAlert?.id ? { ...a, status: 'responded' } : a));
+          setSelectedAlert(null);
+        }}
+        onReject={() => {
+          setShowConsequenceModal(false);
+          setAlerts(prev => prev.map(a => a.id === selectedAlert?.id ? { ...a, status: 'pending' } : a));
+        }}
+      />
+
+      {shortcutsOpen && <ShortcutsOverlay onClose={() => setShortcutsOpen(false)} />}
+
+      {/* Tweaks panel */}
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Display" />
+        <TweakRadio label="Density"
+                    value={tweaks.density}
+                    options={['compact', 'comfortable', 'spacious']}
+                    onChange={(v) => setTweak('density', v)} />
+        <TweakRadio label="Accent"
+                    value={tweaks.accent}
+                    options={['indigo', 'amethyst', 'cyan']}
+                    onChange={(v) => setTweak('accent', v)} />
+        <TweakRadio label="Animation"
+                    value={tweaks.animation}
+                    options={['full', 'subtle', 'off']}
+                    onChange={(v) => setTweak('animation', v)} />
+        <TweakSection label="Workspace" />
+        <TweakSelect label="Tier"
+                     value={tweaks.tier}
+                     options={[
+                       { value: 'free', label: 'Free' },
+                       { value: 'soc-pro', label: 'SOC Pro' },
+                       { value: 'cmd-center', label: 'Command Center' },
+                     ]}
+                     onChange={(v) => setTweak('tier', v)} />
+        <TweakToggle label="Expand AI-resolved by default"
+                     value={tweaks.showResolved} onChange={(v) => setTweak('showResolved', v)} />
+        <TweakToggle label="Show shortcut hints"
+                     value={tweaks.shortcutHints} onChange={(v) => setTweak('shortcutHints', v)} />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+function ComingSoonScreen({ route }) {
+  const titles = {
+    iocs: ['IOCs', 'Indicators of compromise across your tenant'],
+    reports: ['Reports', 'Past hunt reports & exec digests'],
+    agents: ['Agents', 'L1 / L2 / L3 configuration'],
+  };
+  const [t, sub] = titles[route];
+  return (
+    <div>
+      <header className="page-header">
+        <div>
+          <h1>{t}</h1>
+          <div className="subtitle">{sub}</div>
+        </div>
+      </header>
+      <div className="empty-state" style={{ marginTop: 60 }}>
+        <div className="ico">⌖</div>
+        <h3>This view is wireframed in the blueprint</h3>
+        <p>Visit Alerts, Hunting, Metrics, Evolution or Settings to explore the prototype.</p>
+      </div>
+    </div>
+  );
+}
+
+function ShortcutsOverlay({ onClose }) {
+  const groups = [
+    ['Navigation', [['1', 'Alerts'], ['2', 'Hunting'], ['3', 'Metrics'], ['4', 'Evolution']]],
+    ['Alert queue', [['↑ ↓', 'Move row focus'], ['Enter', 'Open detail panel'], ['Esc', 'Close panel'], ['f', 'Mark false positive']]],
+    ['General', [['?', 'Show this dialog'], ['⌘K', 'Quick search'], ['Esc', 'Close any overlay']]],
+  ];
+  return (
+    <div role="dialog" aria-modal="true" onClick={onClose}
+         style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 100,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div onClick={e => e.stopPropagation()}
+           style={{ width: 480, background: 'var(--bg-elevated)', border: '1px solid var(--bg-border)',
+                    borderRadius: 12, padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--text-primary)', margin: 0 }}>
+            Keyboard shortcuts
+          </h2>
+          <button onClick={onClose} className="btn ghost" style={{ padding: '4px 8px' }}><IX size={14} /></button>
+        </div>
+        {groups.map(([name, items]) => (
+          <div key={name} style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.1em',
+                          color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: 8 }}>{name}</div>
+            {items.map(([k, desc]) => (
+              <div key={k} style={{ display: 'flex', justifyContent: 'space-between',
+                                    alignItems: 'center', padding: '6px 0', fontSize: 13 }}>
+                <span style={{ color: 'var(--text-secondary)' }}>{desc}</span>
+                <kbd style={{ fontFamily: 'var(--font-mono)', fontSize: 11, padding: '2px 8px',
+                              background: 'var(--bg-base)', border: '1px solid var(--bg-border)',
+                              borderRadius: 4, color: 'var(--text-primary)' }}>{k}</kbd>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -45,8 +45,8 @@ const AGENT_STEPS = [
     icon: Zap,
     title: 'L1 Triage',
     desc: 'Every alert enriched in 3s',
-    color: '#6366F1',
-    shadow: 'rgba(99,102,241,0.35)',
+    color: '#7C5CFF',
+    shadow: 'rgba(124,92,255,0.35)',
   },
   {
     id: 'L2',
@@ -144,7 +144,7 @@ function sevColor(sev: string) {
 function statusStyle(status: string) {
   if (status === 'AUTO-CLOSED') return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25';
   if (status === 'L3 HUNTING') return 'bg-purple-500/15 text-purple-400 border border-purple-500/25';
-  return 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/25';
+  return 'bg-[rgba(124,92,255,0.15)] text-[#9175FF] border border-[rgba(124,92,255,0.25)]';
 }
 
 /* ─── Page ────────────────────────────────────────────────── */
@@ -174,7 +174,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-[#f0f0f5] font-sans overflow-x-hidden selection:bg-indigo-500/30">
+    <div className="min-h-screen font-sans overflow-x-hidden" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
 
       {/* ── Matrix background ──────────────────────────────── */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden>
@@ -183,8 +183,8 @@ export default function LandingPage() {
           className="absolute inset-0"
           style={{
             backgroundImage: `
-              linear-gradient(to right, rgba(99,102,241,0.06) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(99,102,241,0.06) 1px, transparent 1px)
+              linear-gradient(to right, rgba(124,92,255,0.06) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(124,92,255,0.06) 1px, transparent 1px)
             `,
             backgroundSize: '40px 40px',
           }}
@@ -192,21 +192,21 @@ export default function LandingPage() {
         {/* Scanline */}
         <div className="scanline" />
         {/* Glow orbs */}
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-indigo-600/8 rounded-full blur-[120px]" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-[rgba(124,92,255,0.08)] rounded-full blur-[120px]" />
         <div className="absolute top-1/2 -right-60 w-[500px] h-[500px] bg-purple-600/7 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 -left-40 w-96 h-96 bg-indigo-600/6 rounded-full blur-[100px]" />
+        <div className="absolute bottom-0 -left-40 w-96 h-96 bg-[rgba(124,92,255,0.06)] rounded-full blur-[100px]" />
       </div>
 
       {/* ── Navbar ─────────────────────────────────────────── */}
       <nav
         className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-          isScrolled ? 'bg-[#0a0a0f]/85 backdrop-blur-md border-b border-white/5' : 'bg-transparent'
+          isScrolled ? 'bg-[#080D12]/85 backdrop-blur-md border-b border-white/5' : 'bg-transparent'
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C5CFF] to-[#A855F7] flex items-center justify-center shadow-lg shadow-[rgba(124,92,255,0.3)]">
               <Shield className="w-4 h-4 text-white" />
             </div>
             <span className="text-base font-bold tracking-tight text-[#f0f0f5]">PhishSlayer</span>
@@ -229,7 +229,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/sign-up"
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:opacity-90 transition-opacity shadow-lg shadow-indigo-500/20"
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-[#7C5CFF] to-[#A855F7] hover:opacity-90 transition-opacity shadow-lg shadow-[rgba(124,92,255,0.2)]"
             >
               Start Free
             </Link>
@@ -245,23 +245,23 @@ export default function LandingPage() {
         className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 text-center pt-16"
       >
         {/* Live badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-xs font-mono text-indigo-300 mb-8">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-mono mb-8" style={{ borderColor: 'var(--accent-border)', background: 'var(--accent-dim)', color: '#C4B5FD' }}>
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-400" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: 'var(--accent)' }} />
+            <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: 'var(--accent)' }} />
           </span>
           Autonomous Engine v2.0 — Online
         </div>
 
         {/* Shield logo mark */}
-        <div className="w-20 h-20 mb-8 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-indigo-500/30">
+        <div className="w-20 h-20 mb-8 rounded-2xl bg-gradient-to-br from-[#7C5CFF] to-[#A855F7] flex items-center justify-center shadow-2xl shadow-[rgba(124,92,255,0.3)]">
           <Shield className="w-10 h-10 text-white" />
         </div>
 
         {/* Headline */}
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-[#f0f0f5] max-w-4xl leading-[1.1]">
           Your SOC.{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-fuchsia-400">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9175FF] via-[#A855F7] to-[#C084FC]">
             Automated. Evolved.
           </span>
         </h1>
@@ -275,7 +275,7 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
           <Link
             href="/sign-up"
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-xl shadow-indigo-500/30"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-white bg-gradient-to-r from-[#7C5CFF] to-[#A855F7] hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-xl shadow-[rgba(124,92,255,0.3)]"
           >
             Start Free <ChevronRight className="w-4 h-4" />
           </Link>
@@ -292,9 +292,9 @@ export default function LandingPage() {
           <div className="stat-ticker flex gap-20 whitespace-nowrap will-change-transform">
             {[...STATS, ...STATS].map((s, i) => (
               <div key={i} className="flex items-center gap-3 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
                 <span className="text-[11px] font-mono text-[#9ca3af] uppercase tracking-widest">{s.label}</span>
-                <span className="text-sm font-bold text-indigo-300 font-mono">{s.value}</span>
+                <span className="text-sm font-bold font-mono" style={{ color: '#C4B5FD' }}>{s.value}</span>
               </div>
             ))}
           </div>
@@ -306,7 +306,7 @@ export default function LandingPage() {
       ═══════════════════════════════════════════════════════ */}
       <section id="problem" className="relative z-10 max-w-7xl mx-auto px-6 py-28">
         <div className="text-center mb-16 reveal">
-          <p className="text-xs font-mono text-indigo-400 uppercase tracking-widest mb-3">The Problem</p>
+          <p className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>The Problem</p>
           <h2 className="text-3xl md:text-5xl font-bold text-[#f0f0f5]">Your analysts are drowning.</h2>
         </div>
 
@@ -335,10 +335,10 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-20 reveal">
-            <p className="text-xs font-mono text-indigo-400 uppercase tracking-widest mb-3">How It Works</p>
+            <p className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>How It Works</p>
             <h2 className="text-3xl md:text-5xl font-bold text-[#f0f0f5]">
               Three agents.{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9175FF] to-[#A855F7]">
                 One mission.
               </span>
             </h2>
@@ -350,7 +350,7 @@ export default function LandingPage() {
             <div
               className="hidden md:block absolute top-12 left-[calc(16.67%+3rem)] right-[calc(16.67%+3rem)] h-px z-0"
               style={{
-                background: 'linear-gradient(to right, rgba(99,102,241,0.6), rgba(168,85,247,0.6))',
+                background: 'linear-gradient(to right, rgba(124,92,255,0.6), rgba(168,85,247,0.6))',
               }}
             />
 
@@ -380,7 +380,7 @@ export default function LandingPage() {
 
                 {/* Mobile connector arrow */}
                 {idx < AGENT_STEPS.length - 1 && (
-                  <ChevronRight className="md:hidden mt-8 w-5 h-5 rotate-90 text-indigo-500" />
+                  <ChevronRight className="md:hidden mt-8 w-5 h-5 rotate-90" style={{ color: 'var(--accent)' }} />
                 )}
               </div>
             ))}
@@ -393,7 +393,7 @@ export default function LandingPage() {
       ═══════════════════════════════════════════════════════ */}
       <section id="features" className="relative z-10 max-w-7xl mx-auto px-6 py-28">
         <div className="text-center mb-16 reveal">
-          <p className="text-xs font-mono text-indigo-400 uppercase tracking-widest mb-3">Features</p>
+          <p className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>Features</p>
           <h2 className="text-3xl md:text-5xl font-bold text-[#f0f0f5]">
             Built for scale.{' '}
             <span className="text-[#9ca3af]">Engineered for speed.</span>
@@ -404,10 +404,10 @@ export default function LandingPage() {
           {FEATURES.map(({ icon: Icon, title, desc }) => (
             <div
               key={title}
-              className="reveal group p-7 rounded-2xl border border-white/8 bg-white/[0.025] hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all"
+              className="reveal group p-7 rounded-2xl border border-white/8 bg-white/[0.025] hover:border-[rgba(124,92,255,0.3)] hover:bg-[rgba(124,92,255,0.05)] transition-all"
             >
-              <div className="w-11 h-11 rounded-xl bg-indigo-500/10 flex items-center justify-center mb-5 group-hover:bg-indigo-500/20 transition-colors">
-                <Icon className="w-5 h-5 text-indigo-400" />
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:bg-[rgba(124,92,255,0.20)] transition-colors" style={{ background: 'var(--accent-dim)' }}>
+                <Icon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
               </div>
               <h3 className="text-base font-bold text-[#f0f0f5] mb-2">{title}</h3>
               <p className="text-sm text-[#9ca3af] leading-relaxed">{desc}</p>
@@ -422,7 +422,7 @@ export default function LandingPage() {
       <section id="demo" className="relative z-10 py-28 border-y border-white/5 bg-white/[0.02]">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12 reveal">
-            <p className="text-xs font-mono text-indigo-400 uppercase tracking-widest mb-3">Live Demo Preview</p>
+            <p className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>Live Demo Preview</p>
             <h2 className="text-3xl md:text-4xl font-bold text-[#f0f0f5]">See it in action</h2>
           </div>
 
@@ -455,7 +455,7 @@ export default function LandingPage() {
                 key={a.id}
                 className="grid grid-cols-2 md:grid-cols-5 gap-4 px-5 py-4 border-b border-white/5 hover:bg-white/3 transition-colors items-center"
               >
-                <span className="text-xs font-mono text-indigo-300">{a.id}</span>
+                <span className="text-xs font-mono" style={{ color: '#C4B5FD' }}>{a.id}</span>
                 <span className={`text-xs font-mono font-bold ${sevColor(a.sev)}`}>{a.sev}</span>
                 <span className="text-xs text-[#f0f0f5] hidden md:block">{a.type}</span>
                 <span className="text-xs font-mono text-[#9ca3af] hidden md:block">{a.src}</span>
@@ -471,7 +471,7 @@ export default function LandingPage() {
             {/* Footer */}
             <div className="px-5 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1">
               <span className="text-[10px] font-mono text-[#9ca3af]">4 alerts · 3 auto-resolved · avg 3s triage</span>
-              <span className="text-[10px] font-mono text-indigo-400">↑ 70% auto-close rate</span>
+              <span className="text-[10px] font-mono" style={{ color: 'var(--accent)' }}>↑ 70% auto-close rate</span>
             </div>
           </div>
         </div>
@@ -482,7 +482,7 @@ export default function LandingPage() {
       ═══════════════════════════════════════════════════════ */}
       <section id="pricing" className="relative z-10 max-w-7xl mx-auto px-6 py-28">
         <div className="text-center mb-16 reveal">
-          <p className="text-xs font-mono text-indigo-400 uppercase tracking-widest mb-3">Pricing</p>
+          <p className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>Pricing</p>
           <h2 className="text-3xl md:text-5xl font-bold text-[#f0f0f5]">Scale with your SOC.</h2>
         </div>
 
@@ -492,12 +492,12 @@ export default function LandingPage() {
               key={plan.name}
               className={`reveal rounded-2xl p-8 flex flex-col relative ${
                 plan.highlight
-                  ? 'border-2 border-indigo-500 bg-indigo-500/10 shadow-2xl shadow-indigo-500/20'
+                  ? 'border-2 border-[#7C5CFF] bg-[rgba(124,92,255,0.10)] shadow-2xl shadow-[rgba(124,92,255,0.2)]'
                   : 'border border-white/8 bg-white/[0.025]'
               }`}
             >
               {'badge' in plan && plan.badge && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-[10px] font-bold text-white uppercase tracking-wider shadow-lg whitespace-nowrap">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#7C5CFF] to-[#A855F7] text-[10px] font-bold text-white uppercase tracking-wider shadow-lg whitespace-nowrap">
                   {plan.badge}
                 </div>
               )}
@@ -511,7 +511,7 @@ export default function LandingPage() {
               <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-center gap-2.5 text-sm text-[#9ca3af]">
-                    <Check className="w-4 h-4 text-indigo-400 shrink-0" />
+                    <Check className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} />
                     {f}
                   </li>
                 ))}
@@ -521,7 +521,7 @@ export default function LandingPage() {
                 href="/sign-up"
                 className={`w-full py-3 rounded-xl text-sm font-bold text-center transition-all ${
                   plan.highlight
-                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90 shadow-lg shadow-indigo-500/30'
+                    ? 'bg-gradient-to-r from-[#7C5CFF] to-[#A855F7] text-white hover:opacity-90 shadow-lg shadow-[rgba(124,92,255,0.3)]'
                     : 'border border-white/10 bg-white/5 text-[#f0f0f5] hover:bg-white/10'
                 }`}
               >
@@ -533,7 +533,7 @@ export default function LandingPage() {
 
         <p className="text-center text-sm text-[#9ca3af] mt-10">
           Need more?{' '}
-          <a href="mailto:zainrana605890@gmail.com" className="text-indigo-400 hover:underline">
+          <a href="mailto:zainrana605890@gmail.com" style={{ color: 'var(--accent)' }} className="hover:underline">
             Contact us
           </a>{' '}
           for a custom enterprise plan.
@@ -563,7 +563,7 @@ export default function LandingPage() {
 
             {/* MACH37 */}
             <div className="px-5 py-3 rounded-xl border border-white/8 bg-white/5 flex items-center gap-2.5 text-sm text-[#9ca3af]">
-              <Activity className="w-4 h-4 text-indigo-400 shrink-0" />
+              <Activity className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} />
               <span>
                 <span className="text-[#f0f0f5] font-semibold">MACH37</span> Cyber Accelerator Applicant
               </span>
@@ -588,7 +588,7 @@ export default function LandingPage() {
           {/* Brand */}
           <div className="flex-1 max-w-xs">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C5CFF] to-[#A855F7] flex items-center justify-center">
                 <Shield className="w-4 h-4 text-white" />
               </div>
               <span className="text-base font-bold text-[#f0f0f5]">PhishSlayer</span>
@@ -603,25 +603,25 @@ export default function LandingPage() {
             <h5 className="text-[10px] font-semibold text-[#f0f0f5] uppercase tracking-widest mb-4">Navigate</h5>
             <ul className="space-y-2.5">
               <li>
-                <Link href="/dashboard" className="text-sm text-[#9ca3af] hover:text-indigo-400 transition-colors">
+                <Link href="/dashboard" className="text-sm text-[#9ca3af] transition-colors hover:opacity-80">
                   Dashboard
                 </Link>
               </li>
               <li>
-                <a href="#features" className="text-sm text-[#9ca3af] hover:text-indigo-400 transition-colors">
+                <a href="#features" className="text-sm text-[#9ca3af] transition-colors hover:opacity-80">
                   Docs
                 </a>
               </li>
               <li>
                 <a
                   href="mailto:zainrana605890@gmail.com"
-                  className="text-sm text-[#9ca3af] hover:text-indigo-400 transition-colors"
+                  className="text-sm text-[#9ca3af] transition-colors hover:opacity-80"
                 >
                   Contact
                 </a>
               </li>
               <li>
-                <Link href="/privacy" className="text-sm text-[#9ca3af] hover:text-indigo-400 transition-colors">
+                <Link href="/privacy" className="text-sm text-[#9ca3af] transition-colors hover:opacity-80">
                   Privacy
                 </Link>
               </li>

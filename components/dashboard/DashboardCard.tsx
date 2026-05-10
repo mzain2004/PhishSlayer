@@ -9,5 +9,12 @@ export default function DashboardCard({
   children,
   className,
 }: DashboardCardProps) {
-  return <div className={cn("glass p-6", className)}>{children}</div>;
+  return (
+    <div
+      className={cn("p-6 rounded-lg", className)}
+      style={{ background: 'var(--bg-surface)', border: '1px solid var(--bg-border)' }}
+    >
+      {children}
+    </div>
+  );
 }

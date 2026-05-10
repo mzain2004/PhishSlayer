@@ -14,7 +14,7 @@ type Props = {
 const hoverProps = {
   whileHover: {
     scale: 1.02,
-    boxShadow: "0 8px 32px rgba(45, 212, 191, 0.15)",
+    boxShadow: "0 8px 32px rgba(124, 92, 255, 0.15)",
   },
   transition: { type: "spring" as const, stiffness: 300, damping: 20 },
 };

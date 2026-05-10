@@ -81,7 +81,7 @@ export default function DashboardLayoutClient({
       className="dashboard-theme relative flex h-screen flex-row overflow-hidden text-white"
       style={{
         background:
-          "linear-gradient(135deg,#0f0c29 0%,#1a1a3e 30%,#0d2b2b 70%,#0D1117 100%)",
+          "var(--bg-primary)",
       }}
     />
   );
@@ -91,14 +91,14 @@ export default function DashboardLayoutClient({
       loadingFallback={loadingFallback}
       onUserChange={handleUserChange}
     >
-      <a href="#main" className="sr-only focus:not-sr-only fixed top-4 left-4 z-[100] bg-[#7c6af7] text-white px-4 py-2 rounded-lg font-bold">
+      <a href="#main" className="sr-only focus:not-sr-only fixed top-4 left-4 z-[100] text-white px-4 py-2 rounded-lg font-bold" style={{ background: 'var(--accent)' }}>
         Skip to main content
       </a>
       <div
         className="dashboard-theme relative min-h-screen overflow-hidden text-white"
         style={{
           background:
-            "linear-gradient(135deg,#0f0c29 0%,#1a1a3e 30%,#0d2b2b 70%,#0D1117 100%)",
+            "var(--bg-primary)",
         }}
       >
         <Sidebar
@@ -107,7 +107,7 @@ export default function DashboardLayoutClient({
         />
 
         <div className="relative z-10 flex min-h-screen w-full flex-col md:pl-[240px]">
-          <header className="sticky top-0 z-20 border-b border-white/10 bg-[#0b1016]/80 px-4 py-4 backdrop-blur md:px-6">
+          <header className="sticky top-0 z-20 border-b px-4 py-4 backdrop-blur md:px-6" style={{ borderColor: 'var(--bg-border)', background: 'rgba(18,21,28,0.85)' }}>
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-start gap-3">
                 <button
@@ -120,10 +120,10 @@ export default function DashboardLayoutClient({
                 </button>
 
                 <div>
-                  <p className="text-xs uppercase tracking-widest text-gray-400">
+                  <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>
                     {getDashboardBreadcrumb(pathname).join(" / ")}
                   </p>
-                  <h1 className="dashboard-page-title text-white">
+                  <h1 className="dashboard-page-title" style={{ color: 'var(--text-primary)' }}>
                     {getDashboardTitle(pathname)}
                   </h1>
                 </div>
@@ -138,7 +138,7 @@ export default function DashboardLayoutClient({
                     className="h-10 w-10 rounded-full border border-white/20 object-cover"
                   />
                 ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-sm font-semibold text-white">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold" style={{ border: '1px solid var(--bg-border)', background: 'var(--accent-dim)', color: 'var(--accent)' }}>
                     {initialsFromProfile(profile)}
                   </div>
                 )}

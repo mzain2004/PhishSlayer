@@ -16,16 +16,16 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <div className="flex h-16 items-center gap-3 border-b border-white/10 px-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/20">
-          <Shield className="h-5 w-5 text-primary" />
+      <div className="flex h-16 items-center gap-3 px-5" style={{ borderBottom: '1px solid var(--bg-border)' }}>
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: 'var(--accent-dim)' }}>
+          <Shield className="h-5 w-5" style={{ color: 'var(--accent)' }} />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm uppercase tracking-widest text-gray-400">
-            SOC
+          <p className="truncate text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'var(--text-tertiary)' }}>
+            SOC PLATFORM
           </p>
-          <p className="truncate text-sm font-semibold text-white">
-            Phish Slayer
+          <p className="truncate text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+            PhishSlayer
           </p>
         </div>
       </div>
@@ -34,7 +34,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <div className="flex flex-col gap-6 px-2">
           {dashboardNavGroups.map((group) => (
             <div key={group.label} className="flex flex-col gap-1">
-              <h3 className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">
+              <h3 className="px-3 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'var(--text-tertiary)' }}>
                 {group.label}
               </h3>
               <div className="flex flex-col gap-1">
@@ -49,12 +49,17 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       key={item.href}
                       href={item.href}
                       onClick={onNavigate}
-                      className={cn(
-                        "flex items-center gap-3 rounded-r-lg border-l-2 px-3 py-2 text-sm transition-colors",
-                        isActive
-                          ? "border-l-primary bg-primary/15 text-white"
-                          : "border-l-transparent text-gray-300 hover:border-l-accent hover:bg-accent/15 hover:text-white",
-                      )}
+                      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-all duration-150"
+                      style={isActive ? {
+                        color: 'var(--text-primary)',
+                        background: 'var(--accent-dim)',
+                        borderLeft: '2px solid var(--accent)',
+                      } : {
+                        color: 'var(--text-secondary)',
+                        borderLeft: '2px solid transparent',
+                      }}
+                      onMouseEnter={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)'; } }}
+                      onMouseLeave={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; } }}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       <span>{item.label}</span>
@@ -82,24 +87,26 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         />
       ) : null}
 
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[240px] border-r border-white/10 bg-base/95 backdrop-blur md:flex md:flex-col">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[240px] backdrop-blur md:flex md:flex-col" style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--bg-border)' }}>
         <SidebarContent />
       </aside>
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col border-r border-white/10 bg-base shadow-2xl transition-transform md:hidden",
+          "fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col shadow-2xl transition-transform md:hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
+        style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--bg-border)' }}
       >
-        <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
-          <span className="text-xs uppercase tracking-widest text-gray-400">
+        <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid var(--bg-border)' }}>
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>
             Navigation
           </span>
           <button
             type="button"
             onClick={onCloseMobile}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md"
+            style={{ border: '1px solid var(--bg-border)', color: 'var(--text-secondary)' }}
             aria-label="Close sidebar"
           >
             <X className="h-4 w-4" />

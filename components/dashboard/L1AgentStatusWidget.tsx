@@ -119,7 +119,7 @@ export default function L1AgentStatusWidget() {
           type="button"
           onClick={runL1Triage}
           disabled={loading}
-          className="rounded-full px-4 py-2 text-sm font-semibold text-black bg-gradient-to-r from-[#2DD4BF] to-[#22c55e] disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
+          className="rounded-full px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#7C5CFF] to-[#A855F7] disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
         >
           {loading ? (
             <>

@@ -1,287 +1,358 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-type Severity = "critical" | "high" | "medium" | "low";
-type Status = "new" | "triaging" | "escalated" | "ai_resolved" | "closed";
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import {
+  IChevRight, IChevDown, ISearch, IPlus,
+} from '@/components/ui/icons';
+
+type Severity = 'critical' | 'high' | 'medium' | 'low';
+type Status = 'triaging' | 'escalated' | 'responded' | 'closed' | 'fp' | 'pending';
+type BlastRadius = 'user' | 'device' | 'org' | 'tenant';
 
 interface Alert {
   id: string;
   severity: Severity;
-  attack_type: string;
-  source_ip: string;
+  attack: string;
+  src_ip: string;
+  target: string;
+  country: string;
   status: Status;
-  confidence_score: number;
-  created_at: string;
-  organization_id: string;
-  affected_asset?: string;
+  confidence: number | null;
+  age_seconds: number;
+  started_at: string;
+  resolved: boolean;
+  blast_radius: BlastRadius;
+  fp_probability: number;
+  proposed_action?: string;
+  proposed_action_short?: string;
+  side_effects?: string[];
+  rollback_steps?: string[];
+  recovery_time?: string;
+  isNew?: boolean;
 }
 
-const SEV_COLORS: Record<Severity, string> = {
-  critical: "#ef4444",
-  high: "#f97316",
-  medium: "#f59e0b",
-  low: "#22c55e",
-};
+const SEED_ALERTS: Alert[] = [
+  { id: '3f92a1c0', severity: 'critical', attack: 'Credential stuffing', src_ip: '185.220.101.42', target: 'a.harrington@contoso.com', country: '🇷🇺 RU', status: 'triaging', confidence: null, age_seconds: 130, started_at: '12:34:01', resolved: false, blast_radius: 'user', fp_probability: 0.38, proposed_action: 'Revoke all sessions for a.harrington@contoso.com', proposed_action_short: 'sessions.revoke(user)', rollback_steps: ['Re-enable user account if flagged disabled', 'Restore previous Conditional Access policy version', 'Notify user via secondary email contact'], side_effects: ['User logged out of all Microsoft 365 apps', 'Outlook mobile + desktop will require re-auth', 'Active Teams call (if any) will drop'], recovery_time: '~5 min' },
+  { id: '8a2bf013', severity: 'high', attack: 'Impossible travel', src_ip: '45.33.32.156', target: 'm.bilic@contoso.com', country: '🇩🇪 DE → 🇧🇷 BR', status: 'escalated', confidence: 0.71, age_seconds: 510, started_at: '12:25:00', resolved: false, blast_radius: 'user', fp_probability: 0.22, proposed_action: 'Block sign-in from 45.33.32.156 + force MFA challenge', proposed_action_short: 'mfa.challenge(user)' },
+  { id: 'c01a92e4', severity: 'medium', attack: 'Brute force', src_ip: '192.0.2.135', target: 'svc-payroll@contoso.com', country: '🇨🇳 CN', status: 'responded', confidence: 0.88, age_seconds: 920, started_at: '12:18:15', resolved: false, blast_radius: 'device', fp_probability: 0.08 },
+  { id: 'b71e8f24', severity: 'high', attack: 'Suspicious OAuth grant', src_ip: '203.0.113.18', target: 'j.okeefe@contoso.com', country: '🇳🇱 NL', status: 'pending', confidence: null, age_seconds: 22, started_at: '12:35:48', resolved: false, blast_radius: 'org', fp_probability: 0.31, proposed_action: 'Revoke OAuth consent for "InvoiceProBoost" + audit org-wide grants', proposed_action_short: 'oauth.revoke(org)' },
+  { id: '4d8c2a91', severity: 'critical', attack: 'Anomalous data exfiltration', src_ip: '198.51.100.221', target: 's.zheng@contoso.com', country: '🇰🇵 KP', status: 'escalated', confidence: 0.94, age_seconds: 1240, started_at: '12:08:30', resolved: false, blast_radius: 'tenant', fp_probability: 0.06, proposed_action: 'Quarantine mailbox + isolate device from corp network', proposed_action_short: 'mailbox.quarantine + device.isolate' },
+  { id: 'e2f071b3', severity: 'medium', attack: 'Mailbox rule abuse', src_ip: '203.0.113.74', target: 'r.delacruz@contoso.com', country: '🇻🇳 VN', status: 'responded', confidence: 0.82, age_seconds: 1820, started_at: '11:59:12', resolved: false, blast_radius: 'user', fp_probability: 0.14 },
+  { id: '7c19af52', severity: 'low', attack: 'Password spray', src_ip: '94.198.40.7', target: '*.contoso.com (12 users)', country: '🇧🇷 BR', status: 'pending', confidence: null, age_seconds: 4, started_at: '12:36:06', resolved: false, blast_radius: 'org', fp_probability: 0.45 },
+  { id: '9af3211c', severity: 'low', attack: 'Tor exit node sign-in', src_ip: '185.220.101.42', target: 'k.osei@contoso.com', country: '🇩🇪 DE', status: 'closed', confidence: 0.91, age_seconds: 2240, started_at: '11:56:22', resolved: true, blast_radius: 'user', fp_probability: 0.07 },
+  { id: '5b8d31f9', severity: 'medium', attack: 'Token theft', src_ip: '85.62.10.211', target: 'finance-bot@contoso.com', country: '🇪🇸 ES', status: 'closed', confidence: 0.96, age_seconds: 2810, started_at: '11:46:20', resolved: true, blast_radius: 'device', fp_probability: 0.03 },
+  { id: 'a812ee03', severity: 'low', attack: 'Service principal anomaly', src_ip: '198.51.100.6', target: 'sp-graph-sync', country: '—', status: 'fp', confidence: 0.42, age_seconds: 3500, started_at: '11:35:30', resolved: true, blast_radius: 'org', fp_probability: 0.83 },
+];
 
-const SEV_BG: Record<Severity, string> = {
-  critical: "#ef444420",
-  high: "#f9731620",
-  medium: "#f59e0b20",
-  low: "#22c55e20",
-};
+function ageString(seconds: number): string {
+  if (seconds < 60) return `${Math.max(1, Math.floor(seconds))}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+  return `${Math.floor(seconds / 86400)}d`;
+}
+
+function confLevel(score: number | null): string {
+  if (score == null) return 'empty';
+  if (score >= 0.85) return 'high';
+  if (score >= 0.6) return 'medium';
+  return 'low';
+}
 
 function SeverityBadge({ severity }: { severity: Severity }) {
-  return (
-    <span
-      className="px-2 py-0.5 rounded text-[10px] font-bold uppercase"
-      style={{ backgroundColor: SEV_BG[severity], color: SEV_COLORS[severity] }}
-    >
-      {severity}
-    </span>
-  );
+  return <span className={`sev-badge ${severity}`} aria-label={`Severity ${severity}`}>{severity}</span>;
 }
 
 function StatusBadge({ status }: { status: Status }) {
-  const configs: Record<Status, { label: string; className: string }> = {
-    new: { label: "NEW", className: "bg-zinc-700 text-zinc-300" },
-    triaging: { label: "TRIAGING", className: "bg-indigo-500/20 text-indigo-300 animate-pulse" },
-    escalated: { label: "ESCALATED", className: "bg-amber-500/20 text-amber-300" },
-    ai_resolved: { label: "AI RESOLVED", className: "bg-green-500/20 text-green-400" },
-    closed: { label: "CLOSED", className: "bg-zinc-800 text-zinc-500" },
-  };
-  const c = configs[status] ?? configs.new;
+  const labelMap: Record<Status, string> = { triaging: 'TRIAGING', escalated: 'ESCALATED', responded: 'RESPONDED', closed: 'CLOSED', fp: 'FALSE POSITIVE', pending: 'PENDING' };
   return (
-    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${c.className}`}>
-      {c.label}
+    <span className={`status-badge ${status}`}>
+      {status === 'triaging' && <span className="pulse-dot" />}
+      {labelMap[status]}
     </span>
   );
 }
 
-function ConfidenceBar({ score }: { score: number }) {
-  const pct = Math.round(score * 100);
-  const color = pct >= 85 ? "#22c55e" : pct >= 60 ? "#f59e0b" : "#ef4444";
+function ConfidenceBar({ score }: { score: number | null }) {
+  const level = confLevel(score);
+  if (score == null) {
+    return (
+      <span className="conf-bar">
+        <span className="track"><span className="fill" style={{ width: 0 }} /></span>
+        <span className="num empty">—</span>
+      </span>
+    );
+  }
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full"
-          style={{ width: `${pct}%`, backgroundColor: color }}
-        />
-      </div>
-      <span className="text-xs font-mono text-zinc-400">{pct}%</span>
+    <span className="conf-bar">
+      <span className="track"><span className={`fill ${level}`} style={{ width: `${score * 100}%` }} /></span>
+      <span className="num">{score.toFixed(2)}</span>
+    </span>
+  );
+}
+
+function FilterDropdown({ label, value, options, onChange }: { label: string; value: string; options: [string, string][]; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
+  const current = options.find(o => o[0] === value)?.[1] || label;
+  const isActive = value !== 'all' && value !== '24h';
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button className={`filter-pill ${isActive ? 'active' : ''}`} onClick={() => setOpen(o => !o)}>
+        <span>{label}: {current}</span>
+        <IChevDown size={10} style={{ color: 'var(--text-tertiary)' }} />
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, background: 'var(--bg-elevated)', border: '1px solid var(--bg-border)', borderRadius: 6, padding: 4, minWidth: 160, zIndex: 20, boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
+          {options.map(([val, lab]) => (
+            <button key={val} onClick={() => { onChange(val); setOpen(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: 12, background: value === val ? 'var(--bg-hover)' : 'transparent', border: 0, color: value === val ? 'var(--accent-400)' : 'var(--text-secondary)', borderRadius: 4, cursor: 'pointer' }}>
+              {lab}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-function age(createdAt: string): string {
-  const diff = Date.now() - new Date(createdAt).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 60) return `${m}m`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h`;
-  return `${Math.floor(h / 24)}d`;
+function AlertRow({ alert, selected, flashing, onClick, resolved }: { alert: Alert; selected: boolean; flashing: boolean; onClick: () => void; resolved?: boolean }) {
+  return (
+    <tr
+      className={['density-comfortable', selected && 'selected', flashing && 'flash', resolved && 'resolved'].filter(Boolean).join(' ')}
+      data-severity={alert.severity}
+      onClick={onClick}
+      role="row"
+      tabIndex={0}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
+    >
+      <td><SeverityBadge severity={alert.severity} /></td>
+      <td>
+        <div className="attack-cell">
+          <span>{alert.attack}</span>
+          <span className="target">→ {alert.target}</span>
+        </div>
+      </td>
+      <td className="col-mono">{alert.src_ip}</td>
+      <td><StatusBadge status={alert.status} /></td>
+      <td><ConfidenceBar score={alert.confidence} /></td>
+      <td className="col-mono muted">{alert.country}</td>
+      <td className="col-age">{ageString(alert.age_seconds)}</td>
+      <td><span className="row-arrow"><IChevRight size={14} /></span></td>
+    </tr>
+  );
 }
 
-export default function AlertsPage() {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [filterSev, setFilterSev] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [search, setSearch] = useState("");
+function AlertsPageContent() {
+  const [alerts, setAlerts] = useState<Alert[]>(SEED_ALERTS);
   const [flashIds, setFlashIds] = useState<Set<string>>(new Set());
-  const [aiCollapsed, setAiCollapsed] = useState(true);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [expandResolved, setExpandResolved] = useState(false);
+  const [filters, setFilters] = useState({ severity: 'all', status: 'all', range: '24h' });
+  const [search, setSearch] = useState('');
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const selectedId = searchParams.get('alert');
 
   const supabase = createClient();
 
   useEffect(() => {
-    fetchAlerts();
+    fetch('/api/alerts')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.alerts?.length) setAlerts(d.alerts); })
+      .catch(() => {/* keep seed data */});
 
     const channel = supabase
-      .channel("alerts-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "alerts" },
-        (payload) => {
-          const a = payload.new as Alert;
-          if (!a?.id) return;
-          setAlerts((prev) => {
-            const idx = prev.findIndex((x) => x.id === a.id);
-            if (idx >= 0) {
-              const next = [...prev];
-              next[idx] = a;
-              return next;
-            }
-            return [a, ...prev];
-          });
-          setFlashIds((prev) => {
-            const next = new Set(prev);
-            next.add(a.id);
-            setTimeout(() => setFlashIds((p) => { const s = new Set(p); s.delete(a.id); return s; }), 300);
-            return next;
-          });
-        }
-      )
+      .channel('alerts-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, payload => {
+        const a = payload.new as Alert;
+        if (!a?.id) return;
+        setAlerts(prev => {
+          const idx = prev.findIndex(x => x.id === a.id);
+          if (idx >= 0) { const next = [...prev]; next[idx] = a; return next; }
+          return [{ ...a, isNew: true }, ...prev];
+        });
+        setFlashIds(prev => {
+          const next = new Set(prev);
+          next.add(a.id);
+          setTimeout(() => setFlashIds(p => { const s = new Set(p); s.delete(a.id); return s; }), 700);
+          return next;
+        });
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const fetchAlerts = async () => {
-    const resp = await fetch("/api/alerts");
-    if (resp.ok) {
-      const data = await resp.json();
-      setAlerts(data.alerts ?? []);
-    }
-  };
+  // Age ticker
+  useEffect(() => {
+    const t = setInterval(() => {
+      setAlerts(prev => prev.map(a => ({ ...a, age_seconds: a.age_seconds + 1 })));
+    }, 1000);
+    return () => clearInterval(t);
+  }, []);
 
   // Keyboard nav
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (!filtered.length) return;
-      if (e.key === "Escape") { setSelected(null); return; }
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault();
-        setSelected((prev) => {
-          const idx = filtered.findIndex((a) => a.id === prev);
-          if (e.key === "ArrowDown") return filtered[Math.min(idx + 1, filtered.length - 1)].id;
-          return filtered[Math.max(idx - 1, 0)].id;
-        });
-      }
-      if (e.key === "Enter" && selected) {
-        window.location.href = `/dashboard/alerts/${selected}`;
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [alerts, selected]);
-
-  const filtered = alerts.filter((a) => {
-    if (filterSev !== "all" && a.severity !== filterSev) return false;
-    if (filterStatus !== "all" && a.status !== filterStatus) return false;
+  const filtered = alerts.filter(a => {
+    if (filters.severity !== 'all' && a.severity !== filters.severity) return false;
+    if (filters.status !== 'all' && a.status !== filters.status) return false;
     if (search) {
       const q = search.toLowerCase();
-      if (
-        !a.source_ip?.includes(q) &&
-        !a.id.includes(q) &&
-        !a.attack_type?.toLowerCase().includes(q) &&
-        !a.affected_asset?.toLowerCase().includes(q)
-      )
-        return false;
+      if (!a.src_ip.includes(q) && !a.target.toLowerCase().includes(q) && !a.attack.toLowerCase().includes(q)) return false;
     }
     return true;
   });
+  const openAlerts = filtered.filter(a => !a.resolved);
+  const resolvedAlerts = filtered.filter(a => a.resolved);
 
-  const active = filtered.filter((a) => a.status !== "ai_resolved");
-  const aiResolved = filtered.filter((a) => a.status === "ai_resolved");
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!openAlerts.length) return;
+      if (e.key === 'Escape') { router.push('/alerts'); return; }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const idx = openAlerts.findIndex(a => a.id === selectedId);
+        const next = e.key === 'ArrowDown'
+          ? openAlerts[Math.min(idx + 1, openAlerts.length - 1)]
+          : openAlerts[Math.max(idx - 1, 0)];
+        if (next) router.push(`/alerts?alert=${next.id}`);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [openAlerts, selectedId]);
 
-  const renderRow = (alert: Alert) => (
-    <tr
-      key={alert.id}
-      onClick={() => setSelected(alert.id === selected ? null : alert.id)}
-      className={`cursor-pointer border-b border-zinc-800 transition-colors ${
-        selected === alert.id ? "bg-indigo-900/20" : "hover:bg-zinc-800/50"
-      } ${flashIds.has(alert.id) ? "bg-indigo-900/40" : ""}`}
-    >
-      <td className="py-3 px-4">
-        <SeverityBadge severity={alert.severity} />
-      </td>
-      <td className="py-3 px-4 text-sm text-zinc-300 font-medium">{alert.attack_type}</td>
-      <td className="py-3 px-4 font-mono text-xs text-zinc-400">{alert.source_ip}</td>
-      <td className="py-3 px-4">
-        <StatusBadge status={alert.status} />
-      </td>
-      <td className="py-3 px-4">
-        <ConfidenceBar score={alert.confidence_score ?? 0} />
-      </td>
-      <td className="py-3 px-4 text-xs text-zinc-500 font-mono">{age(alert.created_at)}</td>
-    </tr>
-  );
+  const counts = {
+    open: alerts.filter(a => !a.resolved).length,
+    aiResolved: alerts.filter(a => a.resolved && a.status === 'closed').length,
+    pending: alerts.filter(a => a.status === 'pending' || a.status === 'escalated').length,
+  };
 
   return (
-    <div className="p-6 space-y-5 max-w-7xl mx-auto" ref={containerRef}>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Alert Queue</h1>
-        <p className="text-xs text-zinc-500">↑↓ navigate · Enter open · Esc close</p>
-      </div>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <header className="page-header">
+        <div>
+          <h1>Alerts</h1>
+          <div className="subtitle">
+            <span style={{ color: 'var(--text-primary)' }}>{counts.open} open</span>
+            <span style={{ margin: '0 8px', color: 'var(--text-tertiary)' }}>·</span>
+            <span>{counts.aiResolved} AI resolved</span>
+            <span style={{ margin: '0 8px', color: 'var(--text-tertiary)' }}>·</span>
+            <span>{counts.pending} pending review</span>
+          </div>
+        </div>
+        <button className="btn primary"><IPlus size={13} /> Manual alert</button>
+      </header>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search IP, asset, ID…"
-          className="flex-1 min-w-48 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+      <div className="filter-bar" role="toolbar" aria-label="Alert filters">
+        <FilterDropdown
+          label="Severity"
+          value={filters.severity}
+          options={[['all','All'],['critical','Critical'],['high','High'],['medium','Medium'],['low','Low']]}
+          onChange={v => setFilters(f => ({ ...f, severity: v }))}
         />
-        <select
-          value={filterSev}
-          onChange={(e) => setFilterSev(e.target.value)}
-          className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white"
-        >
-          <option value="all">All Severities</option>
-          <option value="critical">Critical</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white"
-        >
-          <option value="all">All Statuses</option>
-          <option value="new">New</option>
-          <option value="triaging">Triaging</option>
-          <option value="escalated">Escalated</option>
-          <option value="closed">Closed</option>
-        </select>
+        <FilterDropdown
+          label="Status"
+          value={filters.status}
+          options={[['all','All'],['triaging','Triaging'],['escalated','Escalated'],['responded','Responded'],['pending','Pending']]}
+          onChange={v => setFilters(f => ({ ...f, status: v }))}
+        />
+        <FilterDropdown
+          label="Time"
+          value={filters.range}
+          options={[['1h','Last hour'],['24h','Last 24h'],['7d','Last 7 days']]}
+          onChange={v => setFilters(f => ({ ...f, range: v }))}
+        />
+        <div className="search-input">
+          <ISearch size={13} />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search IPs, users, attack types..."
+            aria-label="Search alerts"
+          />
+        </div>
       </div>
 
-      {/* Active alerts table */}
-      <div className="rounded-xl border border-zinc-800 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-zinc-900">
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <table className="alert-table" role="grid">
+          <thead>
             <tr>
-              {["SEV", "ATTACK TYPE", "SOURCE IP", "STATUS", "CONFIDENCE", "AGE"].map((h) => (
-                <th key={h} className="text-left py-3 px-4 text-xs font-semibold text-zinc-500 tracking-wider">
-                  {h}
-                </th>
-              ))}
+              <th style={{ width: 80 }}>Sev</th>
+              <th>Attack type</th>
+              <th>Source IP</th>
+              <th>Status</th>
+              <th>Conf</th>
+              <th>Geo</th>
+              <th style={{ width: 60 }}>Age</th>
+              <th style={{ width: 40 }}></th>
             </tr>
           </thead>
-          <tbody className="bg-zinc-950">
-            {active.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-12 text-center text-zinc-500 text-sm">
-                  No active alerts matching filters
+          <tbody>
+            {openAlerts.map(a => (
+              <AlertRow
+                key={a.id}
+                alert={a}
+                selected={a.id === selectedId}
+                flashing={flashIds.has(a.id)}
+                onClick={() => router.push(a.id === selectedId ? '/alerts' : `/alerts?alert=${a.id}`)}
+              />
+            ))}
+            {openAlerts.length === 0 && (
+              <tr><td colSpan={8}>
+                <div className="empty-state">
+                  <div className="ico">⌖</div>
+                  <h3>No alerts match these filters</h3>
+                  <p>Adjust filters or wait for new events</p>
+                </div>
+              </td></tr>
+            )}
+
+            {resolvedAlerts.length > 0 && (
+              <tr className={`resolved-group-row ${expandResolved ? 'expanded' : ''}`} onClick={() => setExpandResolved(e => !e)} style={{ cursor: 'pointer' }}>
+                <td colSpan={8}>
+                  <span className="chev"><IChevRight size={11} /></span>
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>AI Resolved ({resolvedAlerts.length})</span>
+                  <span style={{ marginLeft: 10 }}>
+                    {expandResolved ? 'Showing auto-closed alerts' : 'Click to expand auto-closed alerts'}
+                  </span>
                 </td>
               </tr>
-            ) : (
-              active.map(renderRow)
             )}
+            {expandResolved && resolvedAlerts.map(a => (
+              <AlertRow
+                key={a.id}
+                alert={a}
+                selected={a.id === selectedId}
+                flashing={false}
+                onClick={() => router.push(a.id === selectedId ? '/alerts' : `/alerts?alert=${a.id}`)}
+                resolved
+              />
+            ))}
           </tbody>
         </table>
       </div>
 
-      {/* AI Resolved group */}
-      {aiResolved.length > 0 && (
-        <div className="rounded-xl border border-zinc-800 overflow-hidden">
-          <button
-            className="w-full flex items-center justify-between py-3 px-4 bg-zinc-900 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
-            onClick={() => setAiCollapsed((v) => !v)}
-          >
-            <span>AI Resolved ({aiResolved.length})</span>
-            <span>{aiCollapsed ? "▶" : "▼"}</span>
-          </button>
-          {!aiCollapsed && (
-            <table className="w-full">
-              <tbody className="bg-zinc-950/50">{aiResolved.map(renderRow)}</tbody>
-            </table>
-          )}
-        </div>
-      )}
+      {/* Keyboard hint */}
+      <div style={{ padding: '8px 32px', fontSize: 11, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', borderTop: '1px solid var(--bg-border)', background: 'var(--bg-base)' }}>
+        ↑↓ navigate · Enter open · Esc close · ?/K shortcuts
+      </div>
     </div>
+  );
+}
+
+export default function AlertsPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 32, color: 'var(--text-secondary)' }}>Loading alerts…</div>}>
+      <AlertsPageContent />
+    </Suspense>
   );
 }

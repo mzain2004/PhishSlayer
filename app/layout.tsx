@@ -4,7 +4,6 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { validateEnv } from "@/lib/config/validateEnv";
 import AnimatedGradientMesh from "@/components/AnimatedGradientMesh";
-import GlobalSupportWidget from "@/components/GlobalSupportWidget";
 import { ClerkProvider } from "@clerk/nextjs";
 
 // Validate environment variables at startup (server-side only)
@@ -32,10 +31,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className="dark selection:bg-teal-500/30"
       >
-        <body className="bg-black text-white antialiased min-h-screen font-sans">
+        <body className="antialiased min-h-screen font-sans" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
           <AnimatedGradientMesh />
           {children}
-          <GlobalSupportWidget />
           <Toaster richColors position="top-right" />
         </body>
       </html>

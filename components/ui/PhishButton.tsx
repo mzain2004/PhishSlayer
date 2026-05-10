@@ -16,8 +16,8 @@ interface PhishButtonProps {
 
 const styles: Record<ButtonVariant, CSSProperties> = {
   primary: {
-    background: "linear-gradient(135deg, #2DD4BF, #22c55e)",
-    color: "#000000",
+    background: "linear-gradient(135deg, #7C5CFF, #A855F7)",
+    color: "#FFFFFF",
     fontWeight: 700,
     border: "none",
   },
@@ -44,7 +44,7 @@ const styles: Record<ButtonVariant, CSSProperties> = {
 };
 
 const hoverStyles: Record<ButtonVariant, any> = {
-  primary: { scale: 1.05, boxShadow: "0 0 28px rgba(45,212,191,0.5)" },
+  primary: { scale: 1.05, boxShadow: "0 0 28px rgba(124,92,255,0.5)" },
   secondary: { scale: 1.03, background: "rgba(255,255,255,0.15)" },
   danger: { scale: 1.03, background: "rgba(248,81,73,0.22)" },
   success: { scale: 1.03, background: "rgba(63,185,80,0.22)" },

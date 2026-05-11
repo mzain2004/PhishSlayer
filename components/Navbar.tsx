@@ -32,12 +32,12 @@ export default function Navbar() {
         >
           Features
         </a>
-        <a
-          href="#pricing"
+        <Link
+          href="/pricing"
           className="text-sm font-medium text-white/70 transition-all duration-300 ease-out hover:text-white hover:scale-105 hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] inline-block"
         >
           Pricing
-        </a>
+        </Link>
         <a
           href="#company"
           className="text-sm font-medium text-white/70 transition-all duration-300 ease-out hover:text-white hover:scale-105 hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] inline-block"

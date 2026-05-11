@@ -1,30 +1,69 @@
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { getAllIntegrations } from '@/lib/integrations/registry';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import {
+  getMcpTools,
+  type MCPToolCategory,
+  type OrgIntegrationStatus,
+} from "@/lib/mcp-tools";
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+type MarketplaceIntegration = ReturnType<typeof getMcpTools>[number] & {
+  status: OrgIntegrationStatus;
+  connected: boolean;
+  connectedAt: string | null;
+  config: Record<string, unknown> | null;
+  shared: boolean;
+  category: MCPToolCategory;
+};
 
 export async function GET() {
   const { orgId } = await auth();
-  if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!orgId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  const integrations = getAllIntegrations();
-  const supabase = await createClient();
+  const [organizationResult, integrationsResult] = await Promise.all([
+    supabaseAdmin
+      .from("organizations")
+      .select("tier")
+      .eq("id", orgId)
+      .maybeSingle(),
+    supabaseAdmin
+      .from("org_integrations")
+      .select("tool_id, config, connected_at")
+      .eq("org_id", orgId),
+  ]);
 
-  const { data: connected } = await supabase
-    .from('connector_configs')
-    .select('vendor, connector_type')
-    .eq('organization_id', orgId);
+  const orgTier = organizationResult.data?.tier ?? "free";
+  const connectedByToolId = new Map(
+    (integrationsResult.data ?? []).map((row) => [row.tool_id, row]),
+  );
 
-  const result = integrations.map(integration => ({
-    ...integration,
-    is_connected: connected?.some(c => 
-      c.vendor.toLowerCase() === integration.id.toLowerCase() || 
-      c.vendor.toLowerCase() === integration.vendor.toLowerCase()
-    ) || false
-  }));
+  const tools: MarketplaceIntegration[] = getMcpTools().map((tool) => {
+    const connection = connectedByToolId.get(tool.id);
+    const connected = Boolean(connection);
+    const shared = !connected && tool.tier === "all";
+    const status: OrgIntegrationStatus = connected
+      ? "connected"
+      : shared
+        ? "using_shared"
+        : "not_connected";
 
-  return NextResponse.json(result);
+    return {
+      ...tool,
+      status,
+      connected,
+      connectedAt: connection?.connected_at ?? null,
+      config: (connection?.config as Record<string, unknown> | null) ?? null,
+      shared,
+    };
+  });
+
+  return NextResponse.json({
+    orgTier,
+    tools,
+  });
 }

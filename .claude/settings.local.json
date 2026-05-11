@@ -105,7 +105,9 @@
       "Bash(dir D:\\\\Phish Slayer\\\\app *)",
       "Bash(Get-Content \"C:\\\\Users\\\\zainr\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--Phish-Slayer\\\\f5c44c9e-76f9-4cc9-9c34-7b4150c7dec9\\\\tasks\\\\b18twbszi.output\" -Wait)",
       "Bash(Select-String -Pattern \"compiled|error|failed|warn|✓|Route\" --AllMatches)",
-      "Bash(Get-Content *)"
+      "Bash(Get-Content *)",
+      "Bash(Select-Object -First 80)",
+      "PowerShell(Rename-Item *)"
     ]
   },
   "enableAllProjectMcpServers": true,

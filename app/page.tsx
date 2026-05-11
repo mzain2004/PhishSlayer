@@ -22,6 +22,7 @@ import {
   Activity,
   Target,
 } from "lucide-react";
+import { CONTACT_EMAIL } from "@/lib/email";
 
 /* ─── Static data ─────────────────────────────────────────── */
 
@@ -295,12 +296,12 @@ export default function LandingPage() {
             >
               Features
             </a>
-            <a
-              href="#pricing"
+            <Link
+              href="/pricing"
               className="hover:text-[#f0f0f5] transition-colors"
             >
               Pricing
-            </a>
+            </Link>
           </div>
 
           {/* Auth CTAs */}
@@ -378,7 +379,7 @@ export default function LandingPage() {
             Start Free <ChevronRight className="w-4 h-4" />
           </Link>
           <a
-            href="mailto:zainrana605890@gmail.com"
+            href={`mailto:${CONTACT_EMAIL}`}
             className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-[#f0f0f5] border border-white/10 bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
           >
             Book Demo
@@ -738,17 +739,26 @@ export default function LandingPage() {
           ))}
         </div>
 
-        <p className="text-center text-sm text-[#9ca3af] mt-10">
-          Need more?{" "}
-          <a
-            href="mailto:zainrana605890@gmail.com"
+        <div className="text-center mt-10 flex flex-col items-center gap-3">
+          <p className="text-sm text-[#9ca3af]">
+            Need more?{" "}
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              style={{ color: "var(--accent)" }}
+              className="hover:underline"
+            >
+              Contact us
+            </a>{" "}
+            for a custom enterprise plan.
+          </p>
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
             style={{ color: "var(--accent)" }}
-            className="hover:underline"
           >
-            Contact us
-          </a>{" "}
-          for a custom enterprise plan.
-        </p>
+            View all plans <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════
@@ -839,16 +849,16 @@ export default function LandingPage() {
                 </Link>
               </li>
               <li>
-                <a
-                  href="#features"
+                <Link
+                  href="/docs"
                   className="text-sm text-[#9ca3af] transition-colors hover:opacity-80"
                 >
                   Docs
-                </a>
+                </Link>
               </li>
               <li>
                 <a
-                  href="mailto:zainrana605890@gmail.com"
+                  href={`mailto:${CONTACT_EMAIL}`}
                   className="text-sm text-[#9ca3af] transition-colors hover:opacity-80"
                 >
                   Contact

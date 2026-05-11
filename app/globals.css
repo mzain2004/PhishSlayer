@@ -1301,3 +1301,7 @@ body {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono);
 }
+
+/* ── Docs ─────────────────────────────────────────────── */
+.docs-card { transition: border-color 0.15s, background 0.15s; }
+.docs-card:hover { border-color: var(--accent-border) !important; background: var(--bg-elevated) !important; }

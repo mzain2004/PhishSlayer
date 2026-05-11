@@ -16,15 +16,27 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <div className="flex h-16 items-center gap-3 px-5" style={{ borderBottom: '1px solid var(--bg-border)' }}>
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: 'var(--accent-dim)' }}>
-          <Shield className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+      <div
+        className="flex h-16 items-center gap-3 px-5"
+        style={{ borderBottom: "1px solid var(--bg-border)" }}
+      >
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-lg"
+          style={{ background: "var(--accent-dim)" }}
+        >
+          <img src="/logo.png" alt="PhishSlayer" className="h-5 w-auto" />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'var(--text-tertiary)' }}>
+          <p
+            className="truncate text-[10px] font-bold uppercase tracking-[0.2em]"
+            style={{ color: "var(--text-tertiary)" }}
+          >
             SOC PLATFORM
           </p>
-          <p className="truncate text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+          <p
+            className="truncate text-sm font-semibold"
+            style={{ color: "var(--text-primary)" }}
+          >
             PhishSlayer
           </p>
         </div>
@@ -34,7 +46,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <div className="flex flex-col gap-6 px-2">
           {dashboardNavGroups.map((group) => (
             <div key={group.label} className="flex flex-col gap-1">
-              <h3 className="px-3 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'var(--text-tertiary)' }}>
+              <h3
+                className="px-3 text-[10px] font-bold uppercase tracking-[0.2em]"
+                style={{ color: "var(--text-tertiary)" }}
+              >
                 {group.label}
               </h3>
               <div className="flex flex-col gap-1">
@@ -50,16 +65,34 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       href={item.href}
                       onClick={onNavigate}
                       className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-all duration-150"
-                      style={isActive ? {
-                        color: 'var(--text-primary)',
-                        background: 'var(--accent-dim)',
-                        borderLeft: '2px solid var(--accent)',
-                      } : {
-                        color: 'var(--text-secondary)',
-                        borderLeft: '2px solid transparent',
+                      style={
+                        isActive
+                          ? {
+                              color: "var(--text-primary)",
+                              background: "var(--accent-dim)",
+                              borderLeft: "2px solid var(--accent)",
+                            }
+                          : {
+                              color: "var(--text-secondary)",
+                              borderLeft: "2px solid transparent",
+                            }
+                      }
+                      onMouseEnter={(e) => {
+                        if (!isActive) {
+                          (e.currentTarget as HTMLElement).style.color =
+                            "var(--text-primary)";
+                          (e.currentTarget as HTMLElement).style.background =
+                            "var(--bg-elevated)";
+                        }
                       }}
-                      onMouseEnter={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)'; } }}
-                      onMouseLeave={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; } }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) {
+                          (e.currentTarget as HTMLElement).style.color =
+                            "var(--text-secondary)";
+                          (e.currentTarget as HTMLElement).style.background =
+                            "transparent";
+                        }
+                      }}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       <span>{item.label}</span>
@@ -87,7 +120,13 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         />
       ) : null}
 
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[240px] backdrop-blur md:flex md:flex-col" style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--bg-border)' }}>
+      <aside
+        className="fixed inset-y-0 left-0 z-30 hidden w-[240px] backdrop-blur md:flex md:flex-col"
+        style={{
+          background: "var(--bg-surface)",
+          borderRight: "1px solid var(--bg-border)",
+        }}
+      >
         <SidebarContent />
       </aside>
 
@@ -96,17 +135,29 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
           "fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col shadow-2xl transition-transform md:hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
-        style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--bg-border)' }}
+        style={{
+          background: "var(--bg-surface)",
+          borderRight: "1px solid var(--bg-border)",
+        }}
       >
-        <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid var(--bg-border)' }}>
-          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>
+        <div
+          className="flex items-center justify-between px-3 py-2"
+          style={{ borderBottom: "1px solid var(--bg-border)" }}
+        >
+          <span
+            className="text-xs font-bold uppercase tracking-widest"
+            style={{ color: "var(--text-tertiary)" }}
+          >
             Navigation
           </span>
           <button
             type="button"
             onClick={onCloseMobile}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md"
-            style={{ border: '1px solid var(--bg-border)', color: 'var(--text-secondary)' }}
+            style={{
+              border: "1px solid var(--bg-border)",
+              color: "var(--text-secondary)",
+            }}
             aria-label="Close sidebar"
           >
             <X className="h-4 w-4" />

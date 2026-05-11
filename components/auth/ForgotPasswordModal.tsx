@@ -35,9 +35,8 @@ export default function ForgotPasswordModal({
 
     const redirectBase =
       process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
-    const { error: authError } = await supabase.auth.resetPasswordForEmail(
-      email
-    );
+    const { error: authError } =
+      await supabase.auth.resetPasswordForEmail(email);
 
     if (authError) {
       setError(authError.message);
@@ -67,11 +66,9 @@ export default function ForgotPasswordModal({
       </motion.button>
 
       <div className="flex items-center justify-center gap-2 mb-8">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#A78BFA] to-[#2DD4BF] flex items-center justify-center">
-          <Shield className="w-4 h-4 text-black" />
-        </div>
+        <img src="/logo.png" alt="PhishSlayer" className="h-8 w-auto" />
         <span className="font-space-grotesk font-extrabold text-xl tracking-tight text-white">
-          Phish-Slayer
+          PhishSlayer
         </span>
       </div>
 

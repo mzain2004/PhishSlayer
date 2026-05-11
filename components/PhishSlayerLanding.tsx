@@ -293,9 +293,9 @@ export default function PhishSlayerLanding({
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
               Most Popular
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
+            <h3 className="text-2xl font-bold text-white mb-2">SOC Pro</h3>
             <div className="flex items-baseline gap-1 mb-6">
-              <span className="text-5xl font-bold text-white">$20</span>
+              <span className="text-5xl font-bold text-white">$1,499</span>
               <span className="text-white/50">/month</span>
             </div>
             <p className="text-white/70 mb-8 h-12">
@@ -310,9 +310,11 @@ export default function PhishSlayerLanding({
             {...tactileProps}
             className={`p-8 ${glassCard} rounded-2xl`}
           >
-            <h3 className="text-2xl font-bold text-white mb-2">Enterprise</h3>
+            <h3 className="text-2xl font-bold text-white mb-2">
+              Command Center
+            </h3>
             <div className="flex items-baseline gap-1 mb-6">
-              <span className="text-4xl font-bold text-white">$250</span>
+              <span className="text-4xl font-bold text-white">$4,999</span>
               <span className="text-white/50">/month</span>
             </div>
             <p className="text-white/70 mb-8 h-12">

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { auth } from '@clerk/nextjs/server';
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { checkRateLimit, getClientIp } from "@/lib/security/rateLimit";
+import { SUPPORT_EMAIL } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -18,11 +19,11 @@ const EmailPayloadSchema = z.object({
 export async function POST(request: Request) {
   try {
     const { userId } = await auth();
-  if (!userId) {
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+    }
 
-  const supabase = await createClient();
+    const supabase = await createClient();
 
     const clientIp = getClientIp(request);
     const rate = checkRateLimit(`communications:${userId}:${clientIp}`, {
@@ -89,7 +90,7 @@ export async function POST(request: Request) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "Phish-Slayer <support@phishslayer.tech>",
+            from: `PhishSlayer <${SUPPORT_EMAIL}>`,
             to: [email],
             subject: "Welcome to Phish-Slayer Updates",
             html: `

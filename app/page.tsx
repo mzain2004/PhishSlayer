@@ -1,150 +1,211 @@
-'use client';
+"use client";
 
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
-  Shield, Zap, Eye, Users, Network,
-  AlertTriangle, Clock, TrendingDown,
-  ChevronRight, Check, Github, Linkedin, Twitter,
-  Brain, Activity, Target,
-} from 'lucide-react';
+  Shield,
+  Zap,
+  Eye,
+  Users,
+  Network,
+  AlertTriangle,
+  Clock,
+  TrendingDown,
+  ChevronRight,
+  Check,
+  Github,
+  Linkedin,
+  Twitter,
+  Brain,
+  Activity,
+  Target,
+} from "lucide-react";
 
 /* ─── Static data ─────────────────────────────────────────── */
 
 const STATS = [
-  { label: 'MTTR', value: '<10min' },
-  { label: 'Auto-close', value: '70%' },
-  { label: 'FP rate', value: '<10%' },
-  { label: 'Coverage', value: '24/7' },
+  { label: "MTTR", value: "<10min" },
+  { label: "Auto-close", value: "70%" },
+  { label: "FP rate", value: "<10%" },
+  { label: "Coverage", value: "24/7" },
 ];
 
 const PAIN_POINTS = [
   {
     icon: AlertTriangle,
-    title: 'Alert Fatigue',
-    desc: '10,000+ alerts/day — 95% noise your analysts never needed to see.',
+    title: "Alert Fatigue",
+    desc: "10,000+ alerts/day — 95% noise your analysts never needed to see.",
   },
   {
     icon: Clock,
-    title: 'Slow MTTR',
-    desc: '45-minute industry average. PhishSlayer closes the same alert in under 10.',
+    title: "Slow MTTR",
+    desc: "45-minute industry average. PhishSlayer closes the same alert in under 10.",
   },
   {
     icon: TrendingDown,
-    title: 'Manual Triage Waste',
-    desc: '80% of analyst time spent on repetitive L1 work that should never touch a human.',
+    title: "Manual Triage Waste",
+    desc: "80% of analyst time spent on repetitive L1 work that should never touch a human.",
   },
 ];
 
 const AGENT_STEPS = [
   {
-    id: 'L1',
-    model: 'Haiku',
+    id: "L1",
+    model: "Haiku",
     icon: Zap,
-    title: 'L1 Triage',
-    desc: 'Every alert enriched in 3s',
-    color: '#7C5CFF',
-    shadow: 'rgba(124,92,255,0.35)',
+    title: "L1 Triage",
+    desc: "Every alert enriched in 3s",
+    color: "#7C5CFF",
+    shadow: "rgba(124,92,255,0.35)",
   },
   {
-    id: 'L2',
-    model: 'Sonnet',
+    id: "L2",
+    model: "Sonnet",
     icon: Brain,
-    title: 'L2 Response',
-    desc: 'Consequence-checked auto-remediation',
-    color: '#8B5CF6',
-    shadow: 'rgba(139,92,246,0.35)',
+    title: "L2 Response",
+    desc: "Consequence-checked auto-remediation",
+    color: "#8B5CF6",
+    shadow: "rgba(139,92,246,0.35)",
   },
   {
-    id: 'L3',
-    model: 'Opus',
+    id: "L3",
+    model: "Opus",
     icon: Eye,
-    title: 'L3 Hunting',
-    desc: 'Deep investigation swarms',
-    color: '#A855F7',
-    shadow: 'rgba(168,85,247,0.35)',
+    title: "L3 Hunting",
+    desc: "Deep investigation swarms",
+    color: "#A855F7",
+    shadow: "rgba(168,85,247,0.35)",
   },
 ];
 
 const FEATURES = [
   {
     icon: Zap,
-    title: 'Agentic L1/L2/L3 Chain',
-    desc: 'Multi-tier agents handle triage, response, and deep-dive hunting end to end — zero human queuing.',
+    title: "Agentic L1/L2/L3 Chain",
+    desc: "Multi-tier agents handle triage, response, and deep-dive hunting end to end — zero human queuing.",
   },
   {
     icon: Target,
-    title: 'Consequence Prediction',
-    desc: 'Every remediation is consequence-checked before execution. No blind firewall rules.',
+    title: "Consequence Prediction",
+    desc: "Every remediation is consequence-checked before execution. No blind firewall rules.",
   },
   {
     icon: Activity,
-    title: 'Self-Evolving Agents',
-    desc: 'HALO + OpenSpace + EvoMap continuously refine playbooks from closed alerts — no manual tuning.',
+    title: "Self-Evolving Agents",
+    desc: "HALO + OpenSpace + EvoMap continuously refine playbooks from closed alerts — no manual tuning.",
   },
   {
     icon: Users,
-    title: 'Multi-Tenant MSSP Isolation',
-    desc: 'Clerk orgs + Supabase RLS ensure zero data bleed between your clients.',
+    title: "Multi-Tenant MSSP Isolation",
+    desc: "Clerk orgs + Supabase RLS ensure zero data bleed between your clients.",
   },
   {
     icon: Shield,
-    title: 'Decepticon Red-Team Hardening',
-    desc: 'Built-in adversarial testing pressure-tests every agent decision before it reaches production.',
+    title: "Decepticon Red-Team Hardening",
+    desc: "Built-in adversarial testing pressure-tests every agent decision before it reaches production.",
   },
   {
     icon: Network,
-    title: '17+ Tool Integrations',
-    desc: 'VirusTotal, Shodan, AbuseIPDB, Wazuh, Slack and more — all routed through the MCP Gateway.',
+    title: "17+ Tool Integrations",
+    desc: "VirusTotal, Shodan, AbuseIPDB, Wazuh, Slack and more — all routed through the MCP Gateway.",
   },
 ];
 
 const MOCK_ALERTS = [
-  { id: 'ALT-0042', sev: 'CRITICAL', type: 'Phishing', src: '185.220.101.47', status: 'AUTO-CLOSED', ttl: '3s' },
-  { id: 'ALT-0041', sev: 'HIGH', type: 'C2 Beacon', src: '104.21.45.230', status: 'L2 RESPONSE', ttl: '18s' },
-  { id: 'ALT-0040', sev: 'HIGH', type: 'Lateral Move', src: '10.0.1.55', status: 'L3 HUNTING', ttl: '45s' },
-  { id: 'ALT-0039', sev: 'MEDIUM', type: 'Recon Scan', src: '216.58.210.14', status: 'AUTO-CLOSED', ttl: '3s' },
+  {
+    id: "ALT-0042",
+    sev: "CRITICAL",
+    type: "Phishing",
+    src: "185.220.101.47",
+    status: "AUTO-CLOSED",
+    ttl: "3s",
+  },
+  {
+    id: "ALT-0041",
+    sev: "HIGH",
+    type: "C2 Beacon",
+    src: "104.21.45.230",
+    status: "L2 RESPONSE",
+    ttl: "18s",
+  },
+  {
+    id: "ALT-0040",
+    sev: "HIGH",
+    type: "Lateral Move",
+    src: "10.0.1.55",
+    status: "L3 HUNTING",
+    ttl: "45s",
+  },
+  {
+    id: "ALT-0039",
+    sev: "MEDIUM",
+    type: "Recon Scan",
+    src: "216.58.210.14",
+    status: "AUTO-CLOSED",
+    ttl: "3s",
+  },
 ];
 
 const PRICING = [
   {
-    name: 'Free',
-    price: '$0',
-    period: '/mo',
+    name: "Free",
+    price: "$0",
+    period: "/mo",
     highlight: false,
-    features: ['50 alerts/day', 'L1 triage only', '1 user', 'Community support'],
+    features: [
+      "50 alerts/day",
+      "L1 triage only",
+      "1 user",
+      "Community support",
+    ],
   },
   {
-    name: 'SOC Pro',
-    price: '$1,499',
-    period: '/mo',
+    name: "SOC Pro",
+    price: "$1,499",
+    period: "/mo",
     highlight: true,
-    badge: 'Most Popular',
-    features: ['10,000 alerts/day', 'L1 + L2 + L3 chain', '25 users', 'Slack + email SLA', 'Custom playbooks', 'MSSP white-label'],
+    badge: "Most Popular",
+    features: [
+      "10,000 alerts/day",
+      "L1 + L2 + L3 chain",
+      "25 users",
+      "Slack + email SLA",
+      "Custom playbooks",
+      "MSSP white-label",
+    ],
   },
   {
-    name: 'Command Center',
-    price: '$4,999',
-    period: '/mo',
+    name: "Command Center",
+    price: "$4,999",
+    period: "/mo",
     highlight: false,
-    features: ['Unlimited alerts', 'Unlimited users', 'Dedicated success manager', 'On-prem option', 'Red-team hardening', 'Priority SLA'],
+    features: [
+      "Unlimited alerts",
+      "Unlimited users",
+      "Dedicated success manager",
+      "On-prem option",
+      "Red-team hardening",
+      "Priority SLA",
+    ],
   },
 ];
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 
 function sevColor(sev: string) {
-  if (sev === 'CRITICAL') return 'text-red-400';
-  if (sev === 'HIGH') return 'text-orange-400';
-  return 'text-yellow-400';
+  if (sev === "CRITICAL") return "text-red-400";
+  if (sev === "HIGH") return "text-orange-400";
+  return "text-yellow-400";
 }
 
 function statusStyle(status: string) {
-  if (status === 'AUTO-CLOSED') return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25';
-  if (status === 'L3 HUNTING') return 'bg-purple-500/15 text-purple-400 border border-purple-500/25';
-  return 'bg-[rgba(124,92,255,0.15)] text-[#9175FF] border border-[rgba(124,92,255,0.25)]';
+  if (status === "AUTO-CLOSED")
+    return "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25";
+  if (status === "L3 HUNTING")
+    return "bg-purple-500/15 text-purple-400 border border-purple-500/25";
+  return "bg-[rgba(124,92,255,0.15)] text-[#9175FF] border border-[rgba(124,92,255,0.25)]";
 }
 
 /* ─── Page ────────────────────────────────────────────────── */
@@ -155,8 +216,8 @@ export default function LandingPage() {
   /* Navbar scroll shadow */
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   /* Scroll-reveal via IntersectionObserver */
@@ -164,20 +225,26 @@ export default function LandingPage() {
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) (e.target as HTMLElement).dataset.visible = 'true';
+          if (e.isIntersecting)
+            (e.target as HTMLElement).dataset.visible = "true";
         });
       },
-      { threshold: 0.12, rootMargin: '0px 0px -48px 0px' },
+      { threshold: 0.12, rootMargin: "0px 0px -48px 0px" },
     );
-    document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
 
   return (
-    <div className="min-h-screen font-sans overflow-x-hidden" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-
+    <div
+      className="min-h-screen font-sans overflow-x-hidden"
+      style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}
+    >
       {/* ── Matrix background ──────────────────────────────── */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden>
+      <div
+        className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
+        aria-hidden
+      >
         {/* Grid lines */}
         <div
           className="absolute inset-0"
@@ -186,7 +253,7 @@ export default function LandingPage() {
               linear-gradient(to right, rgba(124,92,255,0.06) 1px, transparent 1px),
               linear-gradient(to bottom, rgba(124,92,255,0.06) 1px, transparent 1px)
             `,
-            backgroundSize: '40px 40px',
+            backgroundSize: "40px 40px",
           }}
         />
         {/* Scanline */}
@@ -200,23 +267,40 @@ export default function LandingPage() {
       {/* ── Navbar ─────────────────────────────────────────── */}
       <nav
         className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-          isScrolled ? 'bg-[#080D12]/85 backdrop-blur-md border-b border-white/5' : 'bg-transparent'
+          isScrolled
+            ? "bg-[#080D12]/85 backdrop-blur-md border-b border-white/5"
+            : "bg-transparent"
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C5CFF] to-[#A855F7] flex items-center justify-center shadow-lg shadow-[rgba(124,92,255,0.3)]">
-              <Shield className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-base font-bold tracking-tight text-[#f0f0f5]">PhishSlayer</span>
+            <img src="/logo.png" alt="PhishSlayer" className="h-8 w-auto" />
+            <span className="text-base font-bold tracking-tight text-[#f0f0f5]">
+              PhishSlayer
+            </span>
           </div>
 
           {/* Nav links */}
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#9ca3af]">
-            <a href="#how-it-works" className="hover:text-[#f0f0f5] transition-colors">How It Works</a>
-            <a href="#features" className="hover:text-[#f0f0f5] transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-[#f0f0f5] transition-colors">Pricing</a>
+            <a
+              href="#how-it-works"
+              className="hover:text-[#f0f0f5] transition-colors"
+            >
+              How It Works
+            </a>
+            <a
+              href="#features"
+              className="hover:text-[#f0f0f5] transition-colors"
+            >
+              Features
+            </a>
+            <a
+              href="#pricing"
+              className="hover:text-[#f0f0f5] transition-colors"
+            >
+              Pricing
+            </a>
           </div>
 
           {/* Auth CTAs */}
@@ -245,22 +329,35 @@ export default function LandingPage() {
         className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 text-center pt-16"
       >
         {/* Live badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-mono mb-8" style={{ borderColor: 'var(--accent-border)', background: 'var(--accent-dim)', color: '#C4B5FD' }}>
+        <div
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-mono mb-8"
+          style={{
+            borderColor: "var(--accent-border)",
+            background: "var(--accent-dim)",
+            color: "#C4B5FD",
+          }}
+        >
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: 'var(--accent)' }} />
-            <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: 'var(--accent)' }} />
+            <span
+              className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+              style={{ background: "var(--accent)" }}
+            />
+            <span
+              className="relative inline-flex rounded-full h-2 w-2"
+              style={{ background: "var(--accent)" }}
+            />
           </span>
           Autonomous Engine v2.0 — Online
         </div>
 
-        {/* Shield logo mark */}
+        {/* Logo mark */}
         <div className="w-20 h-20 mb-8 rounded-2xl bg-gradient-to-br from-[#7C5CFF] to-[#A855F7] flex items-center justify-center shadow-2xl shadow-[rgba(124,92,255,0.3)]">
-          <Shield className="w-10 h-10 text-white" />
+          <img src="/logo.png" alt="PhishSlayer" className="h-10 w-auto" />
         </div>
 
         {/* Headline */}
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-[#f0f0f5] max-w-4xl leading-[1.1]">
-          Your SOC.{' '}
+          Your SOC.{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9175FF] via-[#A855F7] to-[#C084FC]">
             Automated. Evolved.
           </span>
@@ -268,7 +365,8 @@ export default function LandingPage() {
 
         {/* Subheadline */}
         <p className="text-lg md:text-xl text-[#9ca3af] max-w-2xl mx-auto mb-10 leading-relaxed">
-          L1+L2+L3 agentic triage, response and hunting — fully automated for MSSP scale.
+          L1+L2+L3 agentic triage, response and hunting — fully automated for
+          MSSP scale.
         </p>
 
         {/* CTAs */}
@@ -292,9 +390,19 @@ export default function LandingPage() {
           <div className="stat-ticker flex gap-20 whitespace-nowrap will-change-transform">
             {[...STATS, ...STATS].map((s, i) => (
               <div key={i} className="flex items-center gap-3 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
-                <span className="text-[11px] font-mono text-[#9ca3af] uppercase tracking-widest">{s.label}</span>
-                <span className="text-sm font-bold font-mono" style={{ color: '#C4B5FD' }}>{s.value}</span>
+                <span
+                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ background: "var(--accent)" }}
+                />
+                <span className="text-[11px] font-mono text-[#9ca3af] uppercase tracking-widest">
+                  {s.label}
+                </span>
+                <span
+                  className="text-sm font-bold font-mono"
+                  style={{ color: "#C4B5FD" }}
+                >
+                  {s.value}
+                </span>
               </div>
             ))}
           </div>
@@ -304,10 +412,20 @@ export default function LandingPage() {
       {/* ═══════════════════════════════════════════════════════
           2. PROBLEM
       ═══════════════════════════════════════════════════════ */}
-      <section id="problem" className="relative z-10 max-w-7xl mx-auto px-6 py-28">
+      <section
+        id="problem"
+        className="relative z-10 max-w-7xl mx-auto px-6 py-28"
+      >
         <div className="text-center mb-16 reveal">
-          <p className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>The Problem</p>
-          <h2 className="text-3xl md:text-5xl font-bold text-[#f0f0f5]">Your analysts are drowning.</h2>
+          <p
+            className="text-xs font-mono uppercase tracking-widest mb-3"
+            style={{ color: "var(--accent)" }}
+          >
+            The Problem
+          </p>
+          <h2 className="text-3xl md:text-5xl font-bold text-[#f0f0f5]">
+            Your analysts are drowning.
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -335,9 +453,14 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-20 reveal">
-            <p className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>How It Works</p>
+            <p
+              className="text-xs font-mono uppercase tracking-widest mb-3"
+              style={{ color: "var(--accent)" }}
+            >
+              How It Works
+            </p>
             <h2 className="text-3xl md:text-5xl font-bold text-[#f0f0f5]">
-              Three agents.{' '}
+              Three agents.{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9175FF] to-[#A855F7]">
                 One mission.
               </span>
@@ -350,40 +473,53 @@ export default function LandingPage() {
             <div
               className="hidden md:block absolute top-12 left-[calc(16.67%+3rem)] right-[calc(16.67%+3rem)] h-px z-0"
               style={{
-                background: 'linear-gradient(to right, rgba(124,92,255,0.6), rgba(168,85,247,0.6))',
+                background:
+                  "linear-gradient(to right, rgba(124,92,255,0.6), rgba(168,85,247,0.6))",
               }}
             />
 
-            {AGENT_STEPS.map(({ id, model, icon: Icon, title, desc, color, shadow }, idx) => (
-              <div key={id} className="reveal relative z-10 flex-1 flex flex-col items-center text-center px-6 pb-10 md:pb-0">
-                {/* Icon box */}
+            {AGENT_STEPS.map(
+              ({ id, model, icon: Icon, title, desc, color, shadow }, idx) => (
                 <div
-                  className="w-24 h-24 rounded-2xl flex items-center justify-center mb-5 shadow-2xl"
-                  style={{
-                    background: `${color}20`,
-                    border: `1px solid ${color}40`,
-                    boxShadow: `0 0 40px ${shadow}`,
-                  }}
+                  key={id}
+                  className="reveal relative z-10 flex-1 flex flex-col items-center text-center px-6 pb-10 md:pb-0"
                 >
-                  <Icon className="w-10 h-10" style={{ color }} />
+                  {/* Icon box */}
+                  <div
+                    className="w-24 h-24 rounded-2xl flex items-center justify-center mb-5 shadow-2xl"
+                    style={{
+                      background: `${color}20`,
+                      border: `1px solid ${color}40`,
+                      boxShadow: `0 0 40px ${shadow}`,
+                    }}
+                  >
+                    <Icon className="w-10 h-10" style={{ color }} />
+                  </div>
+
+                  {/* Agent badge */}
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-[#9ca3af] mb-4">
+                    <span className="font-bold" style={{ color }}>
+                      {id}
+                    </span>
+                    <span className="text-white/20">·</span>
+                    {model}
+                  </div>
+
+                  <h3 className="text-xl font-bold text-[#f0f0f5] mb-2">
+                    {title}
+                  </h3>
+                  <p className="text-sm text-[#9ca3af] max-w-xs">{desc}</p>
+
+                  {/* Mobile connector arrow */}
+                  {idx < AGENT_STEPS.length - 1 && (
+                    <ChevronRight
+                      className="md:hidden mt-8 w-5 h-5 rotate-90"
+                      style={{ color: "var(--accent)" }}
+                    />
+                  )}
                 </div>
-
-                {/* Agent badge */}
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-[#9ca3af] mb-4">
-                  <span className="font-bold" style={{ color }}>{id}</span>
-                  <span className="text-white/20">·</span>
-                  {model}
-                </div>
-
-                <h3 className="text-xl font-bold text-[#f0f0f5] mb-2">{title}</h3>
-                <p className="text-sm text-[#9ca3af] max-w-xs">{desc}</p>
-
-                {/* Mobile connector arrow */}
-                {idx < AGENT_STEPS.length - 1 && (
-                  <ChevronRight className="md:hidden mt-8 w-5 h-5 rotate-90" style={{ color: 'var(--accent)' }} />
-                )}
-              </div>
-            ))}
+              ),
+            )}
           </div>
         </div>
       </section>
@@ -391,11 +527,19 @@ export default function LandingPage() {
       {/* ═══════════════════════════════════════════════════════
           4. FEATURES GRID (2×3)
       ═══════════════════════════════════════════════════════ */}
-      <section id="features" className="relative z-10 max-w-7xl mx-auto px-6 py-28">
+      <section
+        id="features"
+        className="relative z-10 max-w-7xl mx-auto px-6 py-28"
+      >
         <div className="text-center mb-16 reveal">
-          <p className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>Features</p>
+          <p
+            className="text-xs font-mono uppercase tracking-widest mb-3"
+            style={{ color: "var(--accent)" }}
+          >
+            Features
+          </p>
           <h2 className="text-3xl md:text-5xl font-bold text-[#f0f0f5]">
-            Built for scale.{' '}
+            Built for scale.{" "}
             <span className="text-[#9ca3af]">Engineered for speed.</span>
           </h2>
         </div>
@@ -406,10 +550,15 @@ export default function LandingPage() {
               key={title}
               className="reveal group p-7 rounded-2xl border border-white/8 bg-white/[0.025] hover:border-[rgba(124,92,255,0.3)] hover:bg-[rgba(124,92,255,0.05)] transition-all"
             >
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:bg-[rgba(124,92,255,0.20)] transition-colors" style={{ background: 'var(--accent-dim)' }}>
-                <Icon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:bg-[rgba(124,92,255,0.20)] transition-colors"
+                style={{ background: "var(--accent-dim)" }}
+              >
+                <Icon className="w-5 h-5" style={{ color: "var(--accent)" }} />
               </div>
-              <h3 className="text-base font-bold text-[#f0f0f5] mb-2">{title}</h3>
+              <h3 className="text-base font-bold text-[#f0f0f5] mb-2">
+                {title}
+              </h3>
               <p className="text-sm text-[#9ca3af] leading-relaxed">{desc}</p>
             </div>
           ))}
@@ -419,11 +568,21 @@ export default function LandingPage() {
       {/* ═══════════════════════════════════════════════════════
           5. LIVE DEMO PREVIEW
       ═══════════════════════════════════════════════════════ */}
-      <section id="demo" className="relative z-10 py-28 border-y border-white/5 bg-white/[0.02]">
+      <section
+        id="demo"
+        className="relative z-10 py-28 border-y border-white/5 bg-white/[0.02]"
+      >
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12 reveal">
-            <p className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>Live Demo Preview</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-[#f0f0f5]">See it in action</h2>
+            <p
+              className="text-xs font-mono uppercase tracking-widest mb-3"
+              style={{ color: "var(--accent)" }}
+            >
+              Live Demo Preview
+            </p>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#f0f0f5]">
+              See it in action
+            </h2>
           </div>
 
           {/* Glassmorphism terminal card */}
@@ -433,7 +592,9 @@ export default function LandingPage() {
               <span className="w-3 h-3 rounded-full bg-red-500/70" />
               <span className="w-3 h-3 rounded-full bg-yellow-500/70" />
               <span className="w-3 h-3 rounded-full bg-emerald-500/70" />
-              <span className="ml-3 text-xs font-mono text-[#9ca3af]">PhishSlayer — Alert Queue</span>
+              <span className="ml-3 text-xs font-mono text-[#9ca3af]">
+                PhishSlayer — Alert Queue
+              </span>
               <div className="ml-auto flex items-center gap-1.5 text-[11px] font-mono text-emerald-400">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 LIVE
@@ -455,23 +616,47 @@ export default function LandingPage() {
                 key={a.id}
                 className="grid grid-cols-2 md:grid-cols-5 gap-4 px-5 py-4 border-b border-white/5 hover:bg-white/3 transition-colors items-center"
               >
-                <span className="text-xs font-mono" style={{ color: '#C4B5FD' }}>{a.id}</span>
-                <span className={`text-xs font-mono font-bold ${sevColor(a.sev)}`}>{a.sev}</span>
-                <span className="text-xs text-[#f0f0f5] hidden md:block">{a.type}</span>
-                <span className="text-xs font-mono text-[#9ca3af] hidden md:block">{a.src}</span>
+                <span
+                  className="text-xs font-mono"
+                  style={{ color: "#C4B5FD" }}
+                >
+                  {a.id}
+                </span>
+                <span
+                  className={`text-xs font-mono font-bold ${sevColor(a.sev)}`}
+                >
+                  {a.sev}
+                </span>
+                <span className="text-xs text-[#f0f0f5] hidden md:block">
+                  {a.type}
+                </span>
+                <span className="text-xs font-mono text-[#9ca3af] hidden md:block">
+                  {a.src}
+                </span>
                 <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${statusStyle(a.status)}`}>
+                  <span
+                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${statusStyle(a.status)}`}
+                  >
                     {a.status}
                   </span>
-                  <span className="text-[10px] font-mono text-[#9ca3af]">{a.ttl}</span>
+                  <span className="text-[10px] font-mono text-[#9ca3af]">
+                    {a.ttl}
+                  </span>
                 </div>
               </div>
             ))}
 
             {/* Footer */}
             <div className="px-5 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1">
-              <span className="text-[10px] font-mono text-[#9ca3af]">4 alerts · 3 auto-resolved · avg 3s triage</span>
-              <span className="text-[10px] font-mono" style={{ color: 'var(--accent)' }}>↑ 70% auto-close rate</span>
+              <span className="text-[10px] font-mono text-[#9ca3af]">
+                4 alerts · 3 auto-resolved · avg 3s triage
+              </span>
+              <span
+                className="text-[10px] font-mono"
+                style={{ color: "var(--accent)" }}
+              >
+                ↑ 70% auto-close rate
+              </span>
             </div>
           </div>
         </div>
@@ -480,10 +665,20 @@ export default function LandingPage() {
       {/* ═══════════════════════════════════════════════════════
           6. PRICING
       ═══════════════════════════════════════════════════════ */}
-      <section id="pricing" className="relative z-10 max-w-7xl mx-auto px-6 py-28">
+      <section
+        id="pricing"
+        className="relative z-10 max-w-7xl mx-auto px-6 py-28"
+      >
         <div className="text-center mb-16 reveal">
-          <p className="text-xs font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>Pricing</p>
-          <h2 className="text-3xl md:text-5xl font-bold text-[#f0f0f5]">Scale with your SOC.</h2>
+          <p
+            className="text-xs font-mono uppercase tracking-widest mb-3"
+            style={{ color: "var(--accent)" }}
+          >
+            Pricing
+          </p>
+          <h2 className="text-3xl md:text-5xl font-bold text-[#f0f0f5]">
+            Scale with your SOC.
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
@@ -492,26 +687,38 @@ export default function LandingPage() {
               key={plan.name}
               className={`reveal rounded-2xl p-8 flex flex-col relative ${
                 plan.highlight
-                  ? 'border-2 border-[#7C5CFF] bg-[rgba(124,92,255,0.10)] shadow-2xl shadow-[rgba(124,92,255,0.2)]'
-                  : 'border border-white/8 bg-white/[0.025]'
+                  ? "border-2 border-[#7C5CFF] bg-[rgba(124,92,255,0.10)] shadow-2xl shadow-[rgba(124,92,255,0.2)]"
+                  : "border border-white/8 bg-white/[0.025]"
               }`}
             >
-              {'badge' in plan && plan.badge && (
+              {"badge" in plan && plan.badge && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#7C5CFF] to-[#A855F7] text-[10px] font-bold text-white uppercase tracking-wider shadow-lg whitespace-nowrap">
                   {plan.badge}
                 </div>
               )}
 
-              <h3 className="text-xl font-bold text-[#f0f0f5] mb-1">{plan.name}</h3>
+              <h3 className="text-xl font-bold text-[#f0f0f5] mb-1">
+                {plan.name}
+              </h3>
               <div className="flex items-end gap-1 mb-6">
-                <span className="text-4xl font-bold text-[#f0f0f5]">{plan.price}</span>
-                <span className="text-[#9ca3af] text-sm mb-1">{plan.period}</span>
+                <span className="text-4xl font-bold text-[#f0f0f5]">
+                  {plan.price}
+                </span>
+                <span className="text-[#9ca3af] text-sm mb-1">
+                  {plan.period}
+                </span>
               </div>
 
               <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-[#9ca3af]">
-                    <Check className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} />
+                  <li
+                    key={f}
+                    className="flex items-center gap-2.5 text-sm text-[#9ca3af]"
+                  >
+                    <Check
+                      className="w-4 h-4 shrink-0"
+                      style={{ color: "var(--accent)" }}
+                    />
                     {f}
                   </li>
                 ))}
@@ -521,8 +728,8 @@ export default function LandingPage() {
                 href="/sign-up"
                 className={`w-full py-3 rounded-xl text-sm font-bold text-center transition-all ${
                   plan.highlight
-                    ? 'bg-gradient-to-r from-[#7C5CFF] to-[#A855F7] text-white hover:opacity-90 shadow-lg shadow-[rgba(124,92,255,0.3)]'
-                    : 'border border-white/10 bg-white/5 text-[#f0f0f5] hover:bg-white/10'
+                    ? "bg-gradient-to-r from-[#7C5CFF] to-[#A855F7] text-white hover:opacity-90 shadow-lg shadow-[rgba(124,92,255,0.3)]"
+                    : "border border-white/10 bg-white/5 text-[#f0f0f5] hover:bg-white/10"
                 }`}
               >
                 Get Started
@@ -532,10 +739,14 @@ export default function LandingPage() {
         </div>
 
         <p className="text-center text-sm text-[#9ca3af] mt-10">
-          Need more?{' '}
-          <a href="mailto:zainrana605890@gmail.com" style={{ color: 'var(--accent)' }} className="hover:underline">
+          Need more?{" "}
+          <a
+            href="mailto:zainrana605890@gmail.com"
+            style={{ color: "var(--accent)" }}
+            className="hover:underline"
+          >
             Contact us
-          </a>{' '}
+          </a>{" "}
           for a custom enterprise plan.
         </p>
       </section>
@@ -543,7 +754,10 @@ export default function LandingPage() {
       {/* ═══════════════════════════════════════════════════════
           7. SOCIAL PROOF / BADGES
       ═══════════════════════════════════════════════════════ */}
-      <section id="about" className="relative z-10 py-24 border-y border-white/5 bg-white/[0.02]">
+      <section
+        id="about"
+        className="relative z-10 py-24 border-y border-white/5 bg-white/[0.02]"
+      >
         <div className="max-w-5xl mx-auto px-6 text-center">
           <p className="reveal text-xl md:text-2xl font-semibold text-[#f0f0f5] mb-3">
             &ldquo;Built for MSSPs tired of duct-taping bots together.&rdquo;
@@ -557,15 +771,20 @@ export default function LandingPage() {
             <div className="px-5 py-3 rounded-xl border border-white/8 bg-white/5 flex items-center gap-2.5 text-sm text-[#9ca3af]">
               <Shield className="w-4 h-4 text-red-400 shrink-0" />
               <span>
-                <span className="text-[#f0f0f5] font-semibold">DEF CON 34</span> CFP Submitted
+                <span className="text-[#f0f0f5] font-semibold">DEF CON 34</span>{" "}
+                CFP Submitted
               </span>
             </div>
 
             {/* MACH37 */}
             <div className="px-5 py-3 rounded-xl border border-white/8 bg-white/5 flex items-center gap-2.5 text-sm text-[#9ca3af]">
-              <Activity className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} />
+              <Activity
+                className="w-4 h-4 shrink-0"
+                style={{ color: "var(--accent)" }}
+              />
               <span>
-                <span className="text-[#f0f0f5] font-semibold">MACH37</span> Cyber Accelerator Applicant
+                <span className="text-[#f0f0f5] font-semibold">MACH37</span>{" "}
+                Cyber Accelerator Applicant
               </span>
             </div>
 
@@ -573,7 +792,11 @@ export default function LandingPage() {
             <div className="px-5 py-3 rounded-xl border border-white/8 bg-white/5 flex items-center gap-2.5 text-sm text-[#9ca3af]">
               <Brain className="w-4 h-4 text-purple-400 shrink-0" />
               <span>
-                Backed by <span className="text-[#f0f0f5] font-semibold">Anthropic Claude</span> Models
+                Backed by{" "}
+                <span className="text-[#f0f0f5] font-semibold">
+                  Anthropic Claude
+                </span>{" "}
+                Models
               </span>
             </div>
           </div>
@@ -591,24 +814,35 @@ export default function LandingPage() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C5CFF] to-[#A855F7] flex items-center justify-center">
                 <Shield className="w-4 h-4 text-white" />
               </div>
-              <span className="text-base font-bold text-[#f0f0f5]">PhishSlayer</span>
+              <span className="text-base font-bold text-[#f0f0f5]">
+                PhishSlayer
+              </span>
             </div>
             <p className="text-sm text-[#9ca3af] leading-relaxed">
-              Autonomous SOC intelligence platform for MSSPs and enterprise security teams.
+              Autonomous SOC intelligence platform for MSSPs and enterprise
+              security teams.
             </p>
           </div>
 
           {/* Nav links */}
           <div>
-            <h5 className="text-[10px] font-semibold text-[#f0f0f5] uppercase tracking-widest mb-4">Navigate</h5>
+            <h5 className="text-[10px] font-semibold text-[#f0f0f5] uppercase tracking-widest mb-4">
+              Navigate
+            </h5>
             <ul className="space-y-2.5">
               <li>
-                <Link href="/dashboard" className="text-sm text-[#9ca3af] transition-colors hover:opacity-80">
+                <Link
+                  href="/dashboard"
+                  className="text-sm text-[#9ca3af] transition-colors hover:opacity-80"
+                >
                   Dashboard
                 </Link>
               </li>
               <li>
-                <a href="#features" className="text-sm text-[#9ca3af] transition-colors hover:opacity-80">
+                <a
+                  href="#features"
+                  className="text-sm text-[#9ca3af] transition-colors hover:opacity-80"
+                >
                   Docs
                 </a>
               </li>
@@ -621,7 +855,10 @@ export default function LandingPage() {
                 </a>
               </li>
               <li>
-                <Link href="/privacy" className="text-sm text-[#9ca3af] transition-colors hover:opacity-80">
+                <Link
+                  href="/privacy"
+                  className="text-sm text-[#9ca3af] transition-colors hover:opacity-80"
+                >
                   Privacy
                 </Link>
               </li>

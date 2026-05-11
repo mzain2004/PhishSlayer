@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Shield } from "lucide-react";
+// Use logo.png for branding
 
 const glassCard = "glass";
 
@@ -19,11 +19,9 @@ export default function Navbar() {
       className={`relative z-10 w-full max-w-7xl mx-auto px-6 py-4 mt-6 flex items-center justify-between ${glassCard} rounded-full`}
     >
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-          <Shield className="w-4 h-4 text-black" />
-        </div>
+        <img src="/logo.png" alt="PhishSlayer" className="h-8 w-auto" />
         <span className="font-space-grotesk font-bold text-xl tracking-tight text-white">
-          Phish-Slayer
+          PhishSlayer
         </span>
       </div>
 

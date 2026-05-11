@@ -70,8 +70,8 @@ export function HeroSection() {
             variants={fadeInUp}
             className="text-[16px] text-[#8B949E] mb-8 leading-[1.7] max-w-2xl mx-auto"
           >
-            Deploy military-grade EDR starting at $588/year. Uncompromising
-            security without the legacy enterprise bloat.
+            Deploy military-grade EDR starting at $1,499/month or $17,988/year.
+            Uncompromising security without the legacy enterprise bloat.
           </motion.p>
 
           {/* Buttons */}

@@ -31,9 +31,9 @@ export function PricingSection() {
       annualPrice: "0",
       description: "For individuals and small labs.",
       features: [
-        "10 AI Scans / Day",
+        "50 alerts/day",
+        "L1 agent only",
         "Community Threat Feed",
-        "Public Sandbox Matches",
         "Standard Speed Detection",
       ],
       cta: "Get Started Free",
@@ -41,10 +41,8 @@ export function PricingSection() {
     },
     {
       name: "SOC Pro",
-      monthlyPrice: "49",
-      annualPrice: "470",
-      savings: "Save $118 â€” 2 months free",
-      strikethrough: "$588",
+      monthlyPrice: "1,499",
+      annualPrice: "17,988",
       description: "For proactive security teams.",
       features: [
         "Unlimited AI Scans",
@@ -57,11 +55,9 @@ export function PricingSection() {
       popular: false,
     },
     {
-      name: "Command & Control",
-      monthlyPrice: "299",
-      annualPrice: "2870",
-      savings: "Save $718 â€” 2 months free",
-      strikethrough: "$3,588",
+      name: "Command Center",
+      monthlyPrice: "4,999",
+      annualPrice: "59,988",
       description: "For critical infrastructure.",
       features: [
         "Unlimited EDR Nodes",
@@ -70,7 +66,23 @@ export function PricingSection() {
         "Auto-Remediation Actions",
         "24/7 Priority Support",
       ],
-      cta: "Start Global Fleet",
+      cta: "Start Command Center",
+      popular: true,
+    },
+    {
+      name: "Enterprise",
+      monthlyPrice: "Custom",
+      annualPrice: "Custom",
+      description:
+        "For large enterprises and MSSPs with custom deployment needs.",
+      features: [
+        "Custom pricing",
+        "Dedicated TAM",
+        "Private deployment options",
+        "Custom SLA",
+        "Security review support",
+      ],
+      cta: "Contact Sales",
       popular: false,
     },
   ];
@@ -170,12 +182,13 @@ export function PricingSection() {
             hidden: {},
             visible: { transition: { staggerChildren: 0.25 } },
           }}
-          className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+          className="grid md:grid-cols-2 xl:grid-cols-4 gap-8 max-w-7xl mx-auto"
         >
           {tiers.map((tier, i) => {
-            const isCC = tier.name === "Command & Control";
+            const isCC = tier.name === "Command Center";
             const isSocPro = tier.name === "SOC Pro";
             const isFree = tier.name === "Free";
+            const isEnterprise = tier.name === "Enterprise";
 
             return (
               <motion.div
@@ -199,7 +212,7 @@ export function PricingSection() {
                         borderRadius: "16px",
                       }
                 }
-                className={`relative p-8 flex flex-col transition-all duration-300 ease-out hover:-translate-y-2 bg-black ${isCC ? "shadow-2xl z-20" : isFree ? "opacity-90" : ""}`}
+                className={`relative p-8 flex flex-col transition-all duration-300 ease-out hover:-translate-y-2 bg-black ${isCC ? "shadow-2xl z-20" : isFree ? "opacity-90" : isEnterprise ? "border border-[#30363D]" : ""}`}
               >
                 {isCC && (
                   <div
@@ -231,22 +244,29 @@ export function PricingSection() {
                   <div className="flex flex-col">
                     <div className="flex items-baseline gap-1">
                       <span className="text-[56px] font-extrabold text-[#E6EDF3] tracking-[-0.03em] leading-none">
-                        ${isAnnual ? tier.annualPrice : tier.monthlyPrice}
+                        {tier.monthlyPrice === "Custom"
+                          ? "Custom"
+                          : `$${isAnnual ? tier.annualPrice : tier.monthlyPrice}`}
                       </span>
                       <span className="text-[16px] text-[#8B949E] font-normal">
-                        / {isAnnual ? "year" : "month"}
+                        {tier.monthlyPrice === "Custom"
+                          ? "pricing"
+                          : `/ ${isAnnual ? "year" : "month"}`}
                       </span>
                     </div>
-                    {isAnnual && tier.monthlyPrice !== "0" && (
-                      <div className="mt-2 flex flex-col gap-1">
-                        <span className="text-[#3FB950] text-[13px] font-bold">
-                          {tier.savings}
-                        </span>
-                        <span className="text-[#8B949E] text-sm line-through decoration-slate-500">
-                          {tier.strikethrough}/yr
-                        </span>
-                      </div>
-                    )}
+                    {isAnnual &&
+                      tier.monthlyPrice !== "0" &&
+                      tier.monthlyPrice !== "Custom" && (
+                        <div className="mt-2 flex flex-col gap-1">
+                          <span className="text-[#8B949E] text-sm">
+                            {tier.name === "SOC Pro"
+                              ? "$1,499/mo billed annually"
+                              : tier.name === "Command Center"
+                                ? "$4,999/mo billed annually"
+                                : "Billed annually"}
+                          </span>
+                        </div>
+                      )}
                   </div>
                 </div>
 
@@ -297,11 +317,7 @@ export function PricingSection() {
                   }
                   className="font-bold text-[15px] transition-all duration-200 focus:outline-none tracking-[0.01em] hover:opacity-90"
                 >
-                  {tier.name === "Free"
-                    ? "Get Started"
-                    : isCC
-                      ? "Get Started"
-                      : "Get Started"}
+                  {tier.cta}
                 </button>
               </motion.div>
             );
@@ -311,4 +327,3 @@ export function PricingSection() {
     </section>
   );
 }
-

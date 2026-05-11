@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { toast } from "sonner";
 import { Shield, Loader2 } from "lucide-react";
+import { CONTACT_EMAIL, SUPPORT_EMAIL } from "@/lib/email";
 
 export function Footer() {
   const [email, setEmail] = useState("");
@@ -45,8 +46,8 @@ export function Footer() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-12">
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 text-[#E6EDF3] font-bold text-lg mb-3 tracking-tight">
-              <Shield className="w-5 h-5 text-[#2DD4BF]" strokeWidth={1.5} />{" "}
-              PHISH-SLAYER
+              <img src="/logo.png" alt="PhishSlayer" className="h-5 w-auto" />
+              <span>PhishSlayer</span>
             </div>
             <p className="text-sm leading-[1.7] mb-6 text-[#8B949E]">
               Autonomous Blue Team AI â€” Monitor. Analyze. Neutralize.
@@ -136,7 +137,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-[#1C2128] flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-          <p>Â© 2026 Phish-Slayer. All rights reserved.</p>
+          <p>© 2026 PhishSlayer. All rights reserved.</p>
           <p>
             Built by{" "}
             <a
@@ -146,9 +147,23 @@ export function Footer() {
               Muhammad Zain
             </a>
           </p>
+          <p className="flex gap-3 items-center">
+            <a
+              href={`mailto:${SUPPORT_EMAIL}`}
+              className="text-[#2DD4BF] hover:underline"
+            >
+              {SUPPORT_EMAIL}
+            </a>
+            <span className="text-[#6B7280]">•</span>
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="text-[#2DD4BF] hover:underline"
+            >
+              {CONTACT_EMAIL}
+            </a>
+          </p>
         </div>
       </div>
     </footer>
   );
 }
-

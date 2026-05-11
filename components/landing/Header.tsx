@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Shield, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface HeaderProps {
@@ -33,21 +33,34 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
           href="/"
           className="flex items-center gap-2 text-[#2DD4BF] font-bold text-xl tracking-tight"
         >
-          <Shield className="w-6 h-6" /> PHISH-SLAYER
+          <img src="/logo.png" alt="PhishSlayer" className="h-8 w-auto" />
+          <span className="hidden sm:inline">PhishSlayer</span>
         </Link>
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#8B949E]">
-          <Link href="/#features" className="hover:text-[#E6EDF3] transition-colors">
+          <Link
+            href="/#features"
+            className="hover:text-[#E6EDF3] transition-colors"
+          >
             Features
           </Link>
-          <Link href="/#how-it-works" className="hover:text-[#E6EDF3] transition-colors">
+          <Link
+            href="/#how-it-works"
+            className="hover:text-[#E6EDF3] transition-colors"
+          >
             How It Works
           </Link>
-          <Link href="/pricing" className="hover:text-[#E6EDF3] transition-colors">
+          <Link
+            href="/pricing"
+            className="hover:text-[#E6EDF3] transition-colors"
+          >
             Pricing
           </Link>
-          <Link href="/api-docs" className="hover:text-[#E6EDF3] transition-colors">
+          <Link
+            href="/api-docs"
+            className="hover:text-[#E6EDF3] transition-colors"
+          >
             API Docs
           </Link>
           <Link href="/blog" className="hover:text-[#E6EDF3] transition-colors">
@@ -57,7 +70,7 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
 
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
-            {isAuthenticated ? (
+          {isAuthenticated ? (
             <Link
               href="/dashboard"
               className="bg-[#2DD4BF] text-[#0D1117] hover:bg-[#2DD4BF]/90 font-bold px-6 py-2 rounded-full text-sm transition-colors"
@@ -100,12 +113,42 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
             exit={{ height: 0, opacity: 0 }}
             className="md:hidden bg-[#0D1117]/95 backdrop-blur-xl border-t border-white/10 px-6 pb-6 space-y-3 overflow-hidden"
           >
-            <Link href="/#features" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2">Features</Link>
-            <Link href="/#how-it-works" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2">How It Works</Link>
-            <Link href="/pricing" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2">Pricing</Link>
-            <Link href="/api-docs" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2">API Docs</Link>
-            <Link href="/blog" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2">Blog</Link>
-            
+            <Link
+              href="/#features"
+              onClick={() => setMenuOpen(false)}
+              className="block text-[#8B949E] py-2"
+            >
+              Features
+            </Link>
+            <Link
+              href="/#how-it-works"
+              onClick={() => setMenuOpen(false)}
+              className="block text-[#8B949E] py-2"
+            >
+              How It Works
+            </Link>
+            <Link
+              href="/pricing"
+              onClick={() => setMenuOpen(false)}
+              className="block text-[#8B949E] py-2"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/api-docs"
+              onClick={() => setMenuOpen(false)}
+              className="block text-[#8B949E] py-2"
+            >
+              API Docs
+            </Link>
+            <Link
+              href="/blog"
+              onClick={() => setMenuOpen(false)}
+              className="block text-[#8B949E] py-2"
+            >
+              Blog
+            </Link>
+
             {isAuthenticated ? (
               <Link
                 href="/dashboard"
@@ -116,7 +159,11 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
               </Link>
             ) : (
               <>
-                <Link href="/auth/login" onClick={() => setMenuOpen(false)} className="block text-[#8B949E] py-2 text-center border border-white/10 rounded-full mt-2">
+                <Link
+                  href="/auth/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="block text-[#8B949E] py-2 text-center border border-white/10 rounded-full mt-2"
+                >
                   Sign In
                 </Link>
                 <Link
@@ -134,4 +181,3 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
     </nav>
   );
 }
-

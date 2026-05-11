@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ShieldAlert, Home } from "lucide-react";
+import { CONTACT_EMAIL } from "@/lib/email";
 
 export default function NotFound() {
   return (
@@ -16,14 +17,16 @@ export default function NotFound() {
         </div>
 
         <h1 className="mb-4 text-6xl font-black tracking-tighter">404</h1>
-        <h2 className="mb-6 text-2xl font-bold text-slate-300">Target Not Found</h2>
-        
+        <h2 className="mb-6 text-2xl font-bold text-slate-300">
+          Target Not Found
+        </h2>
+
         <p className="mb-10 max-w-md mx-auto text-slate-500 leading-relaxed">
-          The coordinates you requested do not exist in the PhishSlayer grid. 
+          The coordinates you requested do not exist in the PhishSlayer grid.
           The path may have been quarantined or redirected.
         </p>
 
-        <Link 
+        <Link
           href="/dashboard"
           className="inline-flex items-center gap-2 rounded-xl bg-[#7c6af7] px-8 py-4 font-black text-white hover:bg-[#6b5ae6] transition-all shadow-[0_0_30px_rgba(124,106,247,0.3)]"
         >
@@ -34,6 +37,15 @@ export default function NotFound() {
 
       <footer className="fixed bottom-8 text-slate-700 text-xs font-mono uppercase tracking-[0.2em]">
         PhishSlayer Security Group // Access Log 404
+        <div className="mt-1 normal-case font-sans text-[11px] tracking-normal">
+          Need help?{" "}
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            className="text-[#2DD4BF] hover:underline"
+          >
+            {CONTACT_EMAIL}
+          </a>
+        </div>
       </footer>
     </div>
   );

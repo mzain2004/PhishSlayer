@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import Sidebar from "@/components/dashboard/Sidebar";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 
 export default async function DashboardLayout({
   children,
@@ -13,14 +13,5 @@ export default async function DashboardLayout({
     redirect("/sign-in");
   }
 
-  return (
-    <div
-      className="flex h-screen w-full overflow-hidden"
-      style={{ background: "var(--bg-primary)" }}
-    >
-      <Sidebar mobileOpen={false} onCloseMobile={() => {}} />
-
-      <div className="flex-1 overflow-auto md:ml-[240px]">{children}</div>
-    </div>
-  );
+  return <DashboardShell>{children}</DashboardShell>;
 }

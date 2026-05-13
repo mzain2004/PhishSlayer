@@ -9,17 +9,20 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const body = await req.json();
     const parsed = schema.safeParse(body);
-    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
     const { value } = parsed.data;
-    const ioc = await isKnownBad(value);
+    const ioc = await isKnownBad(value, orgId);
 
-    // Live enrichment (placeholder - would call VirusTotal, OTX, etc. live)
     const enrichment = {
       vt_score: 0,
       otx_pulse_count: 0,
@@ -31,7 +34,8 @@ export async function POST(req: NextRequest) {
       details: ioc,
       enrichment,
     });
-  } catch (error) {
+  } catch (err) {
+    console.error("[tip/iocs/lookup]", err);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },

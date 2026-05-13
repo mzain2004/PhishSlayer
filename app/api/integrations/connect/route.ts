@@ -1,24 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { encryptIntegrationSecret } from "@/lib/integration-secrets";
 import { getMcpToolById } from "@/lib/mcp-tools";
+import { requireRole } from "@/lib/security/rbac";
+import { rateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const ConnectSchema = z.object({
-  tool_id: z.string().trim().min(1),
-  api_key: z.string().trim().min(1),
-  config: z.record(z.string(), z.unknown()).optional(),
-});
+const ConnectSchema = z
+  .object({
+    tool_id: z.string().trim().min(1),
+    api_key: z.string().trim().min(1),
+    config: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
 
 export async function POST(request: NextRequest) {
-  const { orgId } = await auth();
-  if (!orgId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  // Connecting an integration writes a long-lived org-wide secret. Require
+  // admin/owner — viewers and analysts shouldn't be able to do this.
+  const guard = await requireRole();
+  if (!guard.ok) return guard.response;
+  const { orgId } = guard;
+
+  const limit = await rateLimit(`integrations:connect:${orgId}`, 10, 60);
+  if (!limit.allowed) return rateLimitResponse(limit.retryAfterSeconds);
 
   let body: unknown;
   try {

@@ -36,18 +36,31 @@ interface Alert {
   isNew?: boolean;
 }
 
-const SEED_ALERTS: Alert[] = [
-  { id: '3f92a1c0', severity: 'critical', attack: 'Credential stuffing', src_ip: '185.220.101.42', target: 'a.harrington@contoso.com', country: '🇷🇺 RU', status: 'triaging', confidence: null, age_seconds: 130, started_at: '12:34:01', resolved: false, blast_radius: 'user', fp_probability: 0.38, proposed_action: 'Revoke all sessions for a.harrington@contoso.com', proposed_action_short: 'sessions.revoke(user)', rollback_steps: ['Re-enable user account if flagged disabled', 'Restore previous Conditional Access policy version', 'Notify user via secondary email contact'], side_effects: ['User logged out of all Microsoft 365 apps', 'Outlook mobile + desktop will require re-auth', 'Active Teams call (if any) will drop'], recovery_time: '~5 min' },
-  { id: '8a2bf013', severity: 'high', attack: 'Impossible travel', src_ip: '45.33.32.156', target: 'm.bilic@contoso.com', country: '🇩🇪 DE → 🇧🇷 BR', status: 'escalated', confidence: 0.71, age_seconds: 510, started_at: '12:25:00', resolved: false, blast_radius: 'user', fp_probability: 0.22, proposed_action: 'Block sign-in from 45.33.32.156 + force MFA challenge', proposed_action_short: 'mfa.challenge(user)' },
-  { id: 'c01a92e4', severity: 'medium', attack: 'Brute force', src_ip: '192.0.2.135', target: 'svc-payroll@contoso.com', country: '🇨🇳 CN', status: 'responded', confidence: 0.88, age_seconds: 920, started_at: '12:18:15', resolved: false, blast_radius: 'device', fp_probability: 0.08 },
-  { id: 'b71e8f24', severity: 'high', attack: 'Suspicious OAuth grant', src_ip: '203.0.113.18', target: 'j.okeefe@contoso.com', country: '🇳🇱 NL', status: 'pending', confidence: null, age_seconds: 22, started_at: '12:35:48', resolved: false, blast_radius: 'org', fp_probability: 0.31, proposed_action: 'Revoke OAuth consent for "InvoiceProBoost" + audit org-wide grants', proposed_action_short: 'oauth.revoke(org)' },
-  { id: '4d8c2a91', severity: 'critical', attack: 'Anomalous data exfiltration', src_ip: '198.51.100.221', target: 's.zheng@contoso.com', country: '🇰🇵 KP', status: 'escalated', confidence: 0.94, age_seconds: 1240, started_at: '12:08:30', resolved: false, blast_radius: 'tenant', fp_probability: 0.06, proposed_action: 'Quarantine mailbox + isolate device from corp network', proposed_action_short: 'mailbox.quarantine + device.isolate' },
-  { id: 'e2f071b3', severity: 'medium', attack: 'Mailbox rule abuse', src_ip: '203.0.113.74', target: 'r.delacruz@contoso.com', country: '🇻🇳 VN', status: 'responded', confidence: 0.82, age_seconds: 1820, started_at: '11:59:12', resolved: false, blast_radius: 'user', fp_probability: 0.14 },
-  { id: '7c19af52', severity: 'low', attack: 'Password spray', src_ip: '94.198.40.7', target: '*.contoso.com (12 users)', country: '🇧🇷 BR', status: 'pending', confidence: null, age_seconds: 4, started_at: '12:36:06', resolved: false, blast_radius: 'org', fp_probability: 0.45 },
-  { id: '9af3211c', severity: 'low', attack: 'Tor exit node sign-in', src_ip: '185.220.101.42', target: 'k.osei@contoso.com', country: '🇩🇪 DE', status: 'closed', confidence: 0.91, age_seconds: 2240, started_at: '11:56:22', resolved: true, blast_radius: 'user', fp_probability: 0.07 },
-  { id: '5b8d31f9', severity: 'medium', attack: 'Token theft', src_ip: '85.62.10.211', target: 'finance-bot@contoso.com', country: '🇪🇸 ES', status: 'closed', confidence: 0.96, age_seconds: 2810, started_at: '11:46:20', resolved: true, blast_radius: 'device', fp_probability: 0.03 },
-  { id: 'a812ee03', severity: 'low', attack: 'Service principal anomaly', src_ip: '198.51.100.6', target: 'sp-graph-sync', country: '—', status: 'fp', confidence: 0.42, age_seconds: 3500, started_at: '11:35:30', resolved: true, blast_radius: 'org', fp_probability: 0.83 },
-];
+function mapApiAlert(raw: Record<string, unknown>): Alert {
+  const sev = String(raw.severity ?? 'medium').toLowerCase() as Severity;
+  const status = String(raw.status ?? 'pending').toLowerCase() as Status;
+  const createdAt = typeof raw.created_at === 'string' ? raw.created_at : new Date().toISOString();
+  const ageRaw = raw.triage_age_seconds;
+  const age = typeof ageRaw === 'number'
+    ? ageRaw
+    : Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / 1000));
+  const startedAt = createdAt.slice(11, 19);
+  return {
+    id: String(raw.id ?? ''),
+    severity: (['critical', 'high', 'medium', 'low'] as Severity[]).includes(sev) ? sev : 'medium',
+    attack: typeof raw.source === 'string' ? raw.source : 'Alert',
+    src_ip: typeof raw.src_ip === 'string' ? raw.src_ip : '—',
+    target: typeof raw.target === 'string' ? raw.target : '—',
+    country: typeof raw.country === 'string' ? raw.country : '—',
+    status: (['triaging', 'escalated', 'responded', 'closed', 'fp', 'pending'] as Status[]).includes(status) ? status : 'pending',
+    confidence: typeof raw.confidence === 'number' ? raw.confidence : null,
+    age_seconds: age,
+    started_at: startedAt,
+    resolved: status === 'closed' || status === 'fp' || Boolean(raw.acknowledged_at),
+    blast_radius: 'user',
+    fp_probability: typeof raw.fp_probability === 'number' ? raw.fp_probability : 0,
+  };
+}
 
 function ageString(seconds: number): string {
   if (seconds < 60) return `${Math.max(1, Math.floor(seconds))}s`;
@@ -143,16 +156,54 @@ function AlertRow({ alert, selected, flashing, onClick, resolved }: { alert: Ale
       </td>
       <td className="col-mono">{alert.src_ip}</td>
       <td><StatusBadge status={alert.status} /></td>
-      <td><ConfidenceBar score={alert.confidence} /></td>
-      <td className="col-mono muted">{alert.country}</td>
+      <td className="hidden md:table-cell"><ConfidenceBar score={alert.confidence} /></td>
+      <td className="col-mono muted hidden md:table-cell">{alert.country}</td>
       <td className="col-age">{ageString(alert.age_seconds)}</td>
       <td><span className="row-arrow"><IChevRight size={14} /></span></td>
     </tr>
   );
 }
 
+function AlertCard({ alert, selected, flashing, onClick, resolved }: { alert: Alert; selected: boolean; flashing: boolean; onClick: () => void; resolved?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left"
+      style={{
+        display: 'block',
+        padding: 12,
+        marginBottom: 8,
+        borderRadius: 8,
+        background: selected ? 'var(--bg-hover)' : 'var(--bg-surface)',
+        border: `1px solid ${selected ? 'var(--accent-500)' : 'var(--bg-border)'}`,
+        opacity: resolved ? 0.6 : 1,
+        transition: 'background 150ms, border-color 150ms',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+        <SeverityBadge severity={alert.severity} />
+        <StatusBadge status={alert.status} />
+        <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-tertiary)' }}>
+          {ageString(alert.age_seconds)}
+        </span>
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>
+        {alert.attack}
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
+        → {alert.target}
+      </div>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-tertiary)' }}>
+        {alert.src_ip}{flashing ? ' · NEW' : ''}
+      </div>
+    </button>
+  );
+}
+
 function AlertsPageContent() {
-  const [alerts, setAlerts] = useState<Alert[]>(SEED_ALERTS);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [loading, setLoading] = useState(true);
   const [flashIds, setFlashIds] = useState<Set<string>>(new Set());
   const [expandResolved, setExpandResolved] = useState(false);
   const [filters, setFilters] = useState({ severity: 'all', status: 'all', range: '24h' });
@@ -167,14 +218,19 @@ function AlertsPageContent() {
   useEffect(() => {
     fetch('/api/alerts')
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.alerts?.length) setAlerts(d.alerts); })
-      .catch(() => {/* keep seed data */});
+      .then(d => {
+        const items = Array.isArray(d?.data) ? d.data : Array.isArray(d?.alerts) ? d.alerts : [];
+        setAlerts(items.map(mapApiAlert));
+      })
+      .catch(() => { /* leave empty; empty-state will render */ })
+      .finally(() => setLoading(false));
 
     const channel = supabase
       .channel('alerts-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, payload => {
-        const a = payload.new as Alert;
-        if (!a?.id) return;
+        const raw = payload.new as Record<string, unknown>;
+        if (!raw?.id) return;
+        const a = mapApiAlert(raw);
         setAlerts(prev => {
           const idx = prev.findIndex(x => x.id === a.id);
           if (idx >= 0) { const next = [...prev]; next[idx] = a; return next; }
@@ -283,62 +339,122 @@ function AlertsPageContent() {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        <table className="alert-table" role="grid">
-          <thead>
-            <tr>
-              <th style={{ width: 80 }}>Sev</th>
-              <th>Attack type</th>
-              <th>Source IP</th>
-              <th>Status</th>
-              <th>Conf</th>
-              <th>Geo</th>
-              <th style={{ width: 60 }}>Age</th>
-              <th style={{ width: 40 }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {openAlerts.map(a => (
-              <AlertRow
-                key={a.id}
-                alert={a}
-                selected={a.id === selectedId}
-                flashing={flashIds.has(a.id)}
-                onClick={() => router.push(a.id === selectedId ? '/alerts' : `/alerts?alert=${a.id}`)}
-              />
-            ))}
-            {openAlerts.length === 0 && (
-              <tr><td colSpan={8}>
-                <div className="empty-state">
-                  <div className="ico">⌖</div>
-                  <h3>No alerts match these filters</h3>
-                  <p>Adjust filters or wait for new events</p>
-                </div>
-              </td></tr>
-            )}
-
-            {resolvedAlerts.length > 0 && (
-              <tr className={`resolved-group-row ${expandResolved ? 'expanded' : ''}`} onClick={() => setExpandResolved(e => !e)} style={{ cursor: 'pointer' }}>
-                <td colSpan={8}>
-                  <span className="chev"><IChevRight size={11} /></span>
-                  <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>AI Resolved ({resolvedAlerts.length})</span>
-                  <span style={{ marginLeft: 10 }}>
-                    {expandResolved ? 'Showing auto-closed alerts' : 'Click to expand auto-closed alerts'}
-                  </span>
-                </td>
+        {/* Desktop / tablet: table */}
+        <div className="hidden md:block">
+          <table className="alert-table" role="grid">
+            <thead>
+              <tr>
+                <th style={{ width: 80 }}>Sev</th>
+                <th>Attack type</th>
+                <th>Source IP</th>
+                <th>Status</th>
+                <th>Conf</th>
+                <th>Geo</th>
+                <th style={{ width: 60 }}>Age</th>
+                <th style={{ width: 40 }}></th>
               </tr>
-            )}
-            {expandResolved && resolvedAlerts.map(a => (
-              <AlertRow
-                key={a.id}
-                alert={a}
-                selected={a.id === selectedId}
-                flashing={false}
-                onClick={() => router.push(a.id === selectedId ? '/alerts' : `/alerts?alert=${a.id}`)}
-                resolved
-              />
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {openAlerts.map(a => (
+                <AlertRow
+                  key={a.id}
+                  alert={a}
+                  selected={a.id === selectedId}
+                  flashing={flashIds.has(a.id)}
+                  onClick={() => router.push(a.id === selectedId ? '/alerts' : `/alerts?alert=${a.id}`)}
+                />
+              ))}
+              {openAlerts.length === 0 && !loading && (
+                <tr><td colSpan={8}>
+                  <div className="empty-state">
+                    <div className="ico">⌖</div>
+                    <h3>{alerts.length === 0 ? 'No alerts yet' : 'No alerts match these filters'}</h3>
+                    <p>{alerts.length === 0 ? 'Wazuh will send alerts here once connected.' : 'Adjust filters or wait for new events'}</p>
+                  </div>
+                </td></tr>
+              )}
+              {loading && openAlerts.length === 0 && (
+                <tr><td colSpan={8}><div className="empty-state"><p>Loading…</p></div></td></tr>
+              )}
+
+              {resolvedAlerts.length > 0 && (
+                <tr className={`resolved-group-row ${expandResolved ? 'expanded' : ''}`} onClick={() => setExpandResolved(e => !e)} style={{ cursor: 'pointer' }}>
+                  <td colSpan={8}>
+                    <span className="chev"><IChevRight size={11} /></span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>AI Resolved ({resolvedAlerts.length})</span>
+                    <span style={{ marginLeft: 10 }}>
+                      {expandResolved ? 'Showing auto-closed alerts' : 'Click to expand auto-closed alerts'}
+                    </span>
+                  </td>
+                </tr>
+              )}
+              {expandResolved && resolvedAlerts.map(a => (
+                <AlertRow
+                  key={a.id}
+                  alert={a}
+                  selected={a.id === selectedId}
+                  flashing={false}
+                  onClick={() => router.push(a.id === selectedId ? '/alerts' : `/alerts?alert=${a.id}`)}
+                  resolved
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile: card list */}
+        <div className="md:hidden" style={{ padding: '8px 12px' }}>
+          {openAlerts.map(a => (
+            <AlertCard
+              key={a.id}
+              alert={a}
+              selected={a.id === selectedId}
+              flashing={flashIds.has(a.id)}
+              onClick={() => router.push(a.id === selectedId ? '/alerts' : `/alerts?alert=${a.id}`)}
+            />
+          ))}
+          {openAlerts.length === 0 && !loading && (
+            <div className="empty-state">
+              <div className="ico">⌖</div>
+              <h3>{alerts.length === 0 ? 'No alerts yet' : 'No alerts match these filters'}</h3>
+              <p>{alerts.length === 0 ? 'Wazuh will send alerts here once connected.' : 'Adjust filters or wait for new events'}</p>
+            </div>
+          )}
+          {loading && openAlerts.length === 0 && (
+            <div className="empty-state"><p>Loading…</p></div>
+          )}
+          {resolvedAlerts.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setExpandResolved(e => !e)}
+              className="w-full text-left"
+              style={{
+                marginTop: 8,
+                padding: '10px 12px',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--bg-border)',
+                borderRadius: 8,
+                color: 'var(--text-secondary)',
+                fontSize: 13,
+              }}
+            >
+              <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>AI Resolved ({resolvedAlerts.length})</span>
+              <span style={{ marginLeft: 8 }}>
+                {expandResolved ? '— hide' : '— tap to show'}
+              </span>
+            </button>
+          )}
+          {expandResolved && resolvedAlerts.map(a => (
+            <AlertCard
+              key={a.id}
+              alert={a}
+              selected={a.id === selectedId}
+              flashing={false}
+              onClick={() => router.push(a.id === selectedId ? '/alerts' : `/alerts?alert=${a.id}`)}
+              resolved
+            />
+          ))}
+        </div>
       </div>
 
       {/* Keyboard hint */}

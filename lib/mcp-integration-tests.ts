@@ -1,4 +1,5 @@
 import { performance } from "perf_hooks";
+import { assertExternalHost } from "@/lib/security/ssrf-guard";
 import type { MCPTool } from "@/lib/mcp-tools";
 
 export type IntegrationTestResult = {
@@ -232,11 +233,18 @@ export async function testMcpIntegration(
   const request = buildTestRequest(tool, apiKey, config);
 
   try {
+    // SSRF guard: refuse to hit private/loopback/link-local hosts. Resolve the
+    // hostname server-side because a user-supplied base_url can be a public
+    // domain that DNS-resolves to RFC1918 space.
+    await assertExternalHost(request.url);
+
     const response = await fetch(request.url, {
       method: request.init?.method ?? "GET",
       headers: request.init?.headers,
       body: request.init?.body,
-      redirect: "follow",
+      // Disallow following redirects — a 302 to http://169.254.169.254 would
+      // bypass the pre-flight DNS check above.
+      redirect: "manual",
     });
 
     return {

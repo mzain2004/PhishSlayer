@@ -5,19 +5,25 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { decryptIntegrationSecret } from "@/lib/integration-secrets";
 import { getMcpToolById } from "@/lib/mcp-tools";
 import { testMcpIntegration } from "@/lib/mcp-integration-tests";
+import { rateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const TestSchema = z.object({
-  tool_id: z.string().trim().min(1),
-});
+const TestSchema = z
+  .object({
+    tool_id: z.string().trim().min(1),
+  })
+  .strict();
 
 export async function POST(request: NextRequest) {
-  const { orgId } = await auth();
-  if (!orgId) {
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const limit = await rateLimit(`integrations:test:${orgId}`, 20, 60);
+  if (!limit.allowed) return rateLimitResponse(limit.retryAfterSeconds);
 
   let body: unknown;
   try {

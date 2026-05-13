@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
   const parsed = mispSchema.safeParse(body);
   if (!parsed.success) {
-    return apiError(API_CODES.VALIDATION_ERROR, parsed.error.message, 400);
+    return apiError(API_CODES.VALIDATION_ERROR, "Invalid input", 400);
   }
 
   const { misp_url, misp_api_key, misp_ssl } = parsed.data;

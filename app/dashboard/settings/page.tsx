@@ -3,30 +3,32 @@
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IPlus, IX } from "@/components/ui/icons";
 import { SUPPORT_EMAIL } from "@/lib/email";
 
-const TEAM_MEMBERS = [
-  {
-    name: "John R.",
-    email: "john@contoso.com",
-    role: "SOC Manager",
-    status: "active",
-  },
-  {
-    name: "Sarah K.",
-    email: "sarah@contoso.com",
-    role: "Analyst",
-    status: "active",
-  },
-  {
-    name: "Mike D.",
-    email: "mike@contoso.com",
-    role: "Analyst",
-    status: "pending",
-  },
-];
+type TeamMember = {
+  name: string;
+  email: string;
+  role: string;
+  status: "active" | "pending";
+};
+
+type BillingInfo = {
+  plan: string;
+  amount: string;
+  renews: string | null;
+  alertUsage: number;
+  alertLimit: number;
+};
+
+const FREE_BILLING: BillingInfo = {
+  plan: "Free",
+  amount: "$0/mo",
+  renews: null,
+  alertUsage: 0,
+  alertLimit: 100,
+};
 
 const GRAPH_SCOPES = [
   "User.Read.All",
@@ -35,12 +37,45 @@ const GRAPH_SCOPES = [
   "IdentityRiskEvent.Read.All",
 ];
 
-const ALERT_USAGE = 312;
-const ALERT_LIMIT = 10000;
-
 export default function SettingsPage() {
   const [showInvite, setShowInvite] = useState(false);
-  const usagePct = Math.round((ALERT_USAGE / ALERT_LIMIT) * 100);
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [teamLoading, setTeamLoading] = useState(true);
+  const [billing, setBilling] = useState<BillingInfo>(FREE_BILLING);
+  const usagePct = Math.min(100, Math.round((billing.alertUsage / Math.max(1, billing.alertLimit)) * 100));
+
+  useEffect(() => {
+    fetch("/api/team/members")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const items = Array.isArray(d) ? d : Array.isArray(d?.members) ? d.members : Array.isArray(d?.data) ? d.data : [];
+        setTeam(
+          items.map((m: Record<string, unknown>): TeamMember => ({
+            name: typeof m.name === "string" ? m.name : (typeof m.email === "string" ? m.email.split("@")[0] : "Member"),
+            email: typeof m.email === "string" ? m.email : "",
+            role: typeof m.role === "string" ? m.role : "Analyst",
+            status: m.status === "pending" ? "pending" : "active",
+          })),
+        );
+      })
+      .catch(() => { /* keep empty */ })
+      .finally(() => setTeamLoading(false));
+
+    fetch("/api/billing/subscription")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const sub = d?.subscription ?? d?.data ?? d;
+        if (!sub) return;
+        setBilling({
+          plan: typeof sub.plan === "string" ? sub.plan : FREE_BILLING.plan,
+          amount: typeof sub.amount === "string" ? sub.amount : FREE_BILLING.amount,
+          renews: typeof sub.renews === "string" ? sub.renews : null,
+          alertUsage: typeof sub.alert_usage === "number" ? sub.alert_usage : 0,
+          alertLimit: typeof sub.alert_limit === "number" ? sub.alert_limit : FREE_BILLING.alertLimit,
+        });
+      })
+      .catch(() => { /* leave Free tier */ });
+  }, []);
 
   return (
     <div style={{ height: "100%", overflowY: "auto" }}>
@@ -68,20 +103,14 @@ export default function SettingsPage() {
         <div className="settings-card">
           <div className="head">
             <h3>Wazuh</h3>
-            <span className="pill">Connected</span>
+            <span className="pill" style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)" }}>Not connected</span>
           </div>
           <div className="meta">
-            Last ping: 2 min ago · 247 alerts received today
-          </div>
-          <div className="copy-field">
-            <div className="url">
-              https://phishslayer.tech/api/webhooks/wazuh?token=wz_a3f928c...
-            </div>
-            <button className="copy-btn">Copy</button>
+            Generate a webhook token to receive alerts from your Wazuh manager.
           </div>
           <div className="actions">
-            <button className="btn">Regenerate token</button>
-            <button className="btn ghost">View logs</button>
+            <a className="btn" href="/dashboard/settings/integrations">Configure</a>
+            <a className="btn ghost" href="/docs/integrations">View docs</a>
           </div>
         </div>
 
@@ -89,9 +118,9 @@ export default function SettingsPage() {
         <div className="settings-card">
           <div className="head">
             <h3>Microsoft Graph</h3>
-            <span className="pill">Connected</span>
+            <span className="pill" style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)" }}>Not connected</span>
           </div>
-          <div className="meta">Tenant: contoso.onmicrosoft.com</div>
+          <div className="meta">Connect your Microsoft 365 tenant to enrich alerts and respond to identity threats.</div>
           <div
             style={{
               display: "flex",
@@ -132,14 +161,17 @@ export default function SettingsPage() {
             <span
               className="pill"
               style={{
-                background: "rgba(99,102,241,0.15)",
-                color: "var(--accent-400)",
+                background: billing.plan === "Free" ? "var(--bg-elevated)" : "rgba(99,102,241,0.15)",
+                color: billing.plan === "Free" ? "var(--text-secondary)" : "var(--accent-400)",
               }}
             >
-              SOC Pro
+              {billing.plan}
             </span>
           </div>
-          <div className="meta">$1,499/mo · Renews June 6, 2026</div>
+          <div className="meta">
+            {billing.amount}
+            {billing.renews ? ` · Renews ${billing.renews}` : ""}
+          </div>
 
           <div style={{ marginTop: 8 }}>
             <div
@@ -159,7 +191,7 @@ export default function SettingsPage() {
                   color: "var(--text-primary)",
                 }}
               >
-                {ALERT_USAGE.toLocaleString()}/{ALERT_LIMIT.toLocaleString()}
+                {billing.alertUsage.toLocaleString()}/{billing.alertLimit.toLocaleString()}
               </span>
             </div>
             <div
@@ -210,10 +242,18 @@ export default function SettingsPage() {
                 color: "var(--text-tertiary)",
               }}
             >
-              {TEAM_MEMBERS.length} members
+              {team.length} {team.length === 1 ? "member" : "members"}
             </span>
           </div>
 
+          {teamLoading ? (
+            <p style={{ marginTop: 12, fontSize: 12, color: "var(--text-tertiary)" }}>Loading…</p>
+          ) : team.length === 0 ? (
+            <div style={{ marginTop: 12, padding: 16, textAlign: "center", border: "1px dashed var(--bg-border)", borderRadius: 8 }}>
+              <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>You haven&rsquo;t invited any teammates yet.</p>
+              <p style={{ color: "var(--text-tertiary)", fontSize: 12, marginTop: 4 }}>Use &ldquo;Invite member&rdquo; below to add your first teammate.</p>
+            </div>
+          ) : (
           <table
             style={{ width: "100%", borderCollapse: "collapse", marginTop: 8 }}
           >
@@ -239,7 +279,7 @@ export default function SettingsPage() {
               </tr>
             </thead>
             <tbody>
-              {TEAM_MEMBERS.map((m) => (
+              {team.map((m) => (
                 <tr key={m.email}>
                   <td
                     style={{
@@ -370,6 +410,7 @@ export default function SettingsPage() {
               ))}
             </tbody>
           </table>
+          )}
 
           <div className="actions" style={{ marginTop: 12 }}>
             <button className="btn primary" onClick={() => setShowInvite(true)}>
@@ -397,7 +438,7 @@ export default function SettingsPage() {
                 <label>Email address</label>
                 <input
                   type="email"
-                  placeholder="colleague@contoso.com"
+                  placeholder="teammate@example.com"
                   style={{
                     width: "100%",
                     padding: "8px 12px",

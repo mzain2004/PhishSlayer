@@ -4,33 +4,48 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { HuntEngine } from "@/lib/soc/hunting/engine";
 import { HYPOTHESES } from "@/lib/soc/hunting/hypotheses";
+import { rateLimit, rateLimitResponse } from "@/lib/security/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const validHypothesisIds = Object.keys(HYPOTHESES) as [string, ...string[]];
-const schema = z.object({
-  hypothesis_id: z.enum(validHypothesisIds),
-  organization_id: z.string().optional().default("default")
-});
+// .strict() so we reject organization_id (or any other unexpected field)
+// from the request body. The org MUST come from the Clerk JWT, never from
+// user-supplied input.
+const schema = z
+  .object({
+    hypothesis_id: z.enum(validHypothesisIds),
+  })
+  .strict();
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const limit = await rateLimit(`hunting:run:${orgId}`, 10, 60);
+  if (!limit.allowed) return rateLimitResponse(limit.retryAfterSeconds);
 
   try {
     const body = await req.json();
-    const { hypothesis_id, organization_id } = schema.parse(body);
+    const parsed = schema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
+    const { hypothesis_id } = parsed.data;
 
     const supabase = await createClient();
     const engine = new HuntEngine(supabase);
-    const mission = await engine.runHunt(hypothesis_id, organization_id);
+    const mission = await engine.runHunt(hypothesis_id, orgId);
 
     return NextResponse.json(mission);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.issues }, { status: 400 });
-    }
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } catch (err) {
+    console.error("[hunting/run]", err);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

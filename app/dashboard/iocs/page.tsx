@@ -21,43 +21,28 @@ interface IOC {
   tags: string[];
 }
 
-const IOC_DATA: IOC[] = [
-  { id: 'ioc-001', indicator: '185.220.101.42', type: 'IP', confidence: 0.94, severity: 'critical',
-    first_seen: '2026-05-08 04:12', last_seen: '2026-05-10 12:31',
-    sources: ['VirusTotal','AbuseIPDB','Shodan'], hits: 8,
-    raw: { vt_score: '47/72', abuse_conf: '89%', country: 'RU', asn: 'AS60781 LeaseWeb' },
-    related_alerts: ['3f92a1c0','4d8c2a91'], tags: ['Tor exit','APT-41','cred-stuffing'] },
-  { id: 'ioc-002', indicator: 'kit-2024.tld', type: 'Domain', confidence: 0.91, severity: 'critical',
-    first_seen: '2026-05-07 18:40', last_seen: '2026-05-10 11:18',
-    sources: ['URLScan','PhishTank','GreyNoise'], hits: 5,
-    raw: { urlscan: 'phishing-kit fingerprint match', registrar: 'Namesilo', created: '2026-04-29' },
-    related_alerts: ['3f92a1c0'], tags: ['phishing-kit','credential-harvest'] },
-  { id: 'ioc-003', indicator: '3f924e51c0a8b...d792', type: 'Hash', confidence: 0.96, severity: 'critical',
-    first_seen: '2026-05-06 09:01', last_seen: '2026-05-10 08:44',
-    sources: ['VirusTotal','MalwareBazaar'], hits: 11,
-    raw: { vt_score: '62/72', family: 'AgentTesla', packer: 'UPX' },
-    related_alerts: ['4d8c2a91','3f92a1c0'], tags: ['infostealer','AgentTesla'] },
-  { id: 'ioc-004', indicator: '45.33.32.156', type: 'IP', confidence: 0.71, severity: 'high',
-    first_seen: '2026-05-09 22:14', last_seen: '2026-05-10 12:29',
-    sources: ['AbuseIPDB','Shodan'], hits: 3,
-    raw: { abuse_conf: '62%', open_ports: '22,80,443', country: 'DE' },
-    related_alerts: ['8a2bf013'], tags: ['brute-force','scanning'] },
-  { id: 'ioc-005', indicator: 'associated-domain.cc', type: 'Domain', confidence: 0.88, severity: 'high',
-    first_seen: '2026-05-08 11:22', last_seen: '2026-05-10 10:05',
-    sources: ['URLScan','WHOIS'], hits: 5,
-    raw: { redirect_chain: '→198.51.100.4→kit-2024.tld', registrar: 'GoDaddy', created: '2026-04-21' },
-    related_alerts: ['3f92a1c0'], tags: ['redirect','phishing'] },
-  { id: 'ioc-006', indicator: '198.51.100.4', type: 'IP', confidence: 0.78, severity: 'high',
-    first_seen: '2026-05-08 13:00', last_seen: '2026-05-10 09:18',
-    sources: ['GreyNoise','Shodan'], hits: 3,
-    raw: { greyNoise: 'internet scanner', open_ports: '80,443', country: 'NL' },
-    related_alerts: ['3f92a1c0'], tags: ['scanner','relay'] },
-  { id: 'ioc-007', indicator: 'j.okeefe@contoso.com', type: 'Email', confidence: 0.61, severity: 'medium',
-    first_seen: '2026-05-10 11:30', last_seen: '2026-05-10 12:05',
-    sources: ['HIBP','Internal SIEM'], hits: 2,
-    raw: { hibp_breaches: 'LinkedIn2021,Adobe2022', internal: 'OAuth anomaly' },
-    related_alerts: ['b71e8f24'], tags: ['compromised-creds','OAuth'] },
-];
+function mapApiIoc(raw: Record<string, unknown>): IOC {
+  const conf = raw.confidence;
+  const confidence = typeof conf === 'number'
+    ? (conf > 1 ? conf / 100 : conf)
+    : 0;
+  const type = String(raw.type ?? 'IP');
+  const sev = typeof raw.severity === 'string' ? raw.severity : 'medium';
+  return {
+    id: String(raw.id ?? raw._id ?? ''),
+    indicator: String(raw.indicator ?? raw.value ?? '—'),
+    type,
+    confidence,
+    severity: sev,
+    first_seen: typeof raw.firstSeen === 'string' ? raw.firstSeen : (typeof raw.first_seen === 'string' ? raw.first_seen : '—'),
+    last_seen: typeof raw.lastSeen === 'string' ? raw.lastSeen : (typeof raw.last_seen === 'string' ? raw.last_seen : '—'),
+    sources: Array.isArray(raw.sources) ? (raw.sources as string[]) : [],
+    hits: typeof raw.hits === 'number' ? raw.hits : 0,
+    raw: (typeof raw.raw === 'object' && raw.raw !== null ? raw.raw : {}) as Record<string, string>,
+    related_alerts: Array.isArray(raw.related_alerts) ? (raw.related_alerts as string[]) : [],
+    tags: Array.isArray(raw.tags) ? (raw.tags as string[]) : [],
+  };
+}
 
 function confLevel(score: number) {
   if (score >= 0.85) return 'high';
@@ -163,7 +148,8 @@ function IOCExpanded({ ioc }: { ioc: IOC }) {
 }
 
 export default function IOCsPage() {
-  const [iocs, setIocs] = useState<IOC[]>(IOC_DATA);
+  const [iocs, setIocs] = useState<IOC[]>([]);
+  const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState('all');
   const [filterSev, setFilterSev] = useState('all');
@@ -171,10 +157,14 @@ export default function IOCsPage() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    fetch('/api/iocs')
+    fetch('/api/tip/iocs')
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.iocs?.length) setIocs(d.iocs); })
-      .catch(() => {});
+      .then(d => {
+        const items = Array.isArray(d) ? d : Array.isArray(d?.iocs) ? d.iocs : Array.isArray(d?.data) ? d.data : [];
+        setIocs(items.map(mapApiIoc));
+      })
+      .catch(() => { /* leave empty */ })
+      .finally(() => setLoading(false));
   }, []);
 
   const filtered = iocs.filter(ioc => {
@@ -246,6 +236,18 @@ export default function IOCsPage() {
             </tr>
           </thead>
           <tbody>
+            {!loading && filtered.length === 0 && (
+              <tr><td colSpan={9}>
+                <div className="empty-state">
+                  <div className="ico">⌖</div>
+                  <h3>{iocs.length === 0 ? 'No IOCs tracked yet' : 'No IOCs match these filters'}</h3>
+                  <p>{iocs.length === 0 ? 'Indicators discovered by hunts and integrations will appear here.' : 'Adjust the filters above to broaden results.'}</p>
+                </div>
+              </td></tr>
+            )}
+            {loading && filtered.length === 0 && (
+              <tr><td colSpan={9}><div className="empty-state"><p>Loading…</p></div></td></tr>
+            )}
             {filtered.map(ioc => (
               <>
                 <tr

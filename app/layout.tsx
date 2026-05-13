@@ -12,6 +12,13 @@ validateEnv();
 export const metadata: Metadata = {
   title: "Phish Slayer",
   description: "Advanced phishing threat detection and response platform",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
+  },
 };
 
 export default function RootLayout({

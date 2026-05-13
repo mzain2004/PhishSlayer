@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   const parsed = exportSchema.safeParse(body);
   if (!parsed.success) {
-    return apiError(API_CODES.VALIDATION_ERROR, parsed.error.message, 400);
+    return apiError(API_CODES.VALIDATION_ERROR, "Invalid input", 400);
   }
 
   const { reportType, alertId, period, framework } = parsed.data;

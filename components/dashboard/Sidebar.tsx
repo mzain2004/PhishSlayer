@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Shield, X } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { dashboardNavGroups } from "@/components/dashboard/dashboard-nav";
 
@@ -21,10 +22,17 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         style={{ borderBottom: "1px solid var(--bg-border)" }}
       >
         <div
-          className="flex h-9 w-9 items-center justify-center rounded-lg"
+          className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden"
           style={{ background: "var(--accent-dim)" }}
         >
-          <img src="/logo.png" alt="PhishSlayer" className="h-5 w-auto" />
+          <Image
+            src="/logo.png"
+            alt="PhishSlayer"
+            width={32}
+            height={32}
+            priority
+            className="h-8 w-8 object-contain"
+          />
         </div>
         <div className="min-w-0">
           <p

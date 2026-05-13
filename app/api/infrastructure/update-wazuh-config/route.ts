@@ -17,7 +17,7 @@ const UpdateConfigPayloadSchema = z.object({
   webhookUrl: z.string().url(),
   webhookSecret: z.string().min(1),
   alertLevel: z.number().int().min(1).max(15).default(7),
-});
+}).strict();
 
 function getAdminClient() {
   return createSupabaseAdminClient(

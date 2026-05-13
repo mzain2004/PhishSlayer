@@ -7,9 +7,15 @@ import os
 import base64
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI, Header, HTTPException
+from dotenv import load_dotenv
+
+from fastapi import FastAPI, HTTPException
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env.local")
 
 from tools import (
     virustotal_tool, shodan_tool, abuseipdb_tool,
@@ -84,6 +90,27 @@ TOOL_REGISTRY = {
 _ENCRYPTION_KEY_B64 = os.environ.get("CREDENTIAL_ENCRYPTION_KEY", "")
 
 
+class OrgScopedRequest(BaseModel):
+    org_id: str
+    model_config = ConfigDict(extra="ignore")
+
+    @field_validator("org_id")
+    @classmethod
+    def validate_org_id(cls, value: str) -> str:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("org_id must be a non-empty string")
+        return value.strip()
+
+
+class InvokeToolRequest(OrgScopedRequest):
+    payload: dict = Field(default_factory=dict)
+    request_id: str = ""
+
+
+class ListToolsRequest(OrgScopedRequest):
+    pass
+
+
 def _decrypt_cred(encrypted: str) -> str:
     raw = base64.b64decode(encrypted)
     nonce = raw[:12]
@@ -111,6 +138,7 @@ def _get_org_key(org_id: str, tool_name: str) -> str:
                 if isinstance(creds, dict) and creds.get("api_key") and _ENCRYPTION_KEY_B64:
                     return _decrypt_cred(creds["api_key"])
         except Exception:
+            log.exception("org_key_lookup_failed")
             pass  # fall through to default
 
     return DEFAULT_KEYS.get(tool_name) or ""
@@ -134,36 +162,43 @@ async def health():
 @app.post("/mcp/{tool_name}/invoke")
 async def invoke_tool(
     tool_name: str,
-    payload: dict,
-    x_org_id: str = Header(...),
-    x_request_id: str = Header(default=""),
+    request: InvokeToolRequest,
 ):
-    api_key = _get_org_key(x_org_id, tool_name)
+    org_id = request.org_id
+    api_key = _get_org_key(org_id, tool_name)
     if not api_key:
-        raise HTTPException(404, f"Tool '{tool_name}' not configured — no default or org key")
+        raise HTTPException(404, "Tool not configured")
 
     handler = TOOL_REGISTRY.get(tool_name)
     if not handler:
-        raise HTTPException(404, f"Tool '{tool_name}' not found")
+        raise HTTPException(404, "Tool not found")
 
-    result = await handler(payload, api_key)
+    try:
+        result = await handler(request.payload, api_key)
+    except HTTPException:
+        raise
+    except Exception:
+        log.exception("tool_invoke_failed", extra={"tool_name": tool_name, "org_id": org_id})
+        raise HTTPException(500, "Internal server error")
 
     if _supabase:
         try:
             _supabase.table("tool_call_logs").insert({
-                "org_id": x_org_id,
+                "org_id": org_id,
                 "tool_name": tool_name,
                 "success": result.get("status") == "success",
-                "request_id": x_request_id,
+                "request_id": request.request_id,
             }).execute()
         except Exception:
+            log.exception("tool_call_log_write_failed")
             pass
 
     return result
 
 
-@app.get("/mcp/tools")
-async def list_tools(x_org_id: str = Header(...)):
+@app.post("/mcp/tools")
+async def list_tools(request: ListToolsRequest):
+    org_id = request.org_id
     tools = []
     for tool_name in DEFAULT_KEYS:
         has_custom = False
@@ -172,13 +207,14 @@ async def list_tools(x_org_id: str = Header(...)):
                 r = (
                     _supabase.table("org_integrations")
                     .select("id")
-                    .eq("org_id", x_org_id)
+                    .eq("org_id", org_id)
                     .eq("tool_name", tool_name)
                     .eq("enabled", True)
                     .execute()
                 )
                 has_custom = bool(r.data)
             except Exception:
+                log.exception("list_tools_lookup_failed", extra={"tool_name": tool_name, "org_id": org_id})
                 pass
         tools.append({
             "name": tool_name,

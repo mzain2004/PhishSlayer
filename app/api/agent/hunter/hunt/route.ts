@@ -24,7 +24,7 @@ const HunterFindingSchema = z.object({
   mitre_techniques: z.array(z.string()),
   recommended_action: z.string().min(1),
   hunt_queries: z.array(z.string()),
-});
+}).strict();
 
 const HunterDecisionSchema = z.object({
   findings: z.array(HunterFindingSchema),
@@ -32,7 +32,7 @@ const HunterDecisionSchema = z.object({
   confidence_overall: z.number().min(0).max(1),
   priority: z.enum(["immediate", "high", "medium", "monitor"]),
   analyst_briefing: z.string().min(1),
-});
+}).strict();
 
 type IntelRow = {
   id: string;

@@ -15,7 +15,7 @@ const ReviewDecisionSchema = z.object({
   approved_findings: z.array(z.number().int().nonnegative()),
   rejected_findings: z.array(z.string()),
   reviewer_notes: z.string().min(1),
-});
+}).strict();
 
 type ReviewDecision = z.infer<typeof ReviewDecisionSchema>;
 

@@ -32,7 +32,7 @@ const GeminiDecisionSchema = z.object({
   escalation_notes: z.string().min(1),
   iocs_confirmed: z.array(z.string()),
   action_scope: z.string().min(1),
-});
+}).strict();
 
 const OrganizationIdSchema = z.string().uuid();
 

@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { createClient as createServerClient } from "@/lib/supabase/server";
-import { auth } from '@clerk/nextjs/server';
+import { auth } from "@clerk/nextjs/server";
 import { checkTierAccess } from "@/lib/tier-guard";
-import { getAuthenticatedUser, resolveOrganizationForUser } from "@/lib/tenancy";
+import {
+  getAuthenticatedUser,
+  resolveOrganizationForUser,
+} from "@/lib/tenancy";
 import {
   buildGeminiAnalysisPrompt,
   calculateEntropy,
@@ -28,13 +31,13 @@ const StaticAnalysisRequestSchema = z.object({
   file_hash_sha256: z.string().min(32).optional(),
   file_hash_md5: z.string().min(16).optional(),
   alert_id: z.string().uuid().optional(),
-});
+}).strict();
 
 const QuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   verdict: z.enum(["clean", "suspicious", "malicious", "unknown"]).optional(),
-});
+}).strict();
 
 const GeminiStructuredSchema = z.object({
   threat_classification: z.enum([
@@ -56,7 +59,7 @@ const GeminiStructuredSchema = z.object({
     .default([]),
   recommended_actions: z.array(z.string()).default([]),
   evidence: z.array(z.string()).default([]),
-});
+}).strict();
 
 function getAdminClient() {
   return createClient(
@@ -244,11 +247,18 @@ export async function POST(request: Request) {
     const adminClient = getAdminClient();
 
     if (alert_id) {
-      const { data: alertRow } = await adminClient
+      const preferredOrganizationId = organizationId || organization_id || null;
+      let alertLookup = adminClient
         .from("alerts")
         .select("organization_id")
-        .eq("id", alert_id)
-        .maybeSingle();
+        .eq("id", alert_id);
+      if (preferredOrganizationId) {
+        alertLookup = alertLookup.eq(
+          "organization_id",
+          preferredOrganizationId,
+        );
+      }
+      const { data: alertRow } = await alertLookup.maybeSingle();
       if (alertRow?.organization_id) {
         organizationId = alertRow.organization_id;
       }

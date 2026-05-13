@@ -45,7 +45,7 @@ const ReaderResponseSchema = z.object({
   inserted: z.number().int().nonnegative().optional(),
   deduplicated: z.number().int().nonnegative().optional(),
   error: z.string().optional(),
-});
+}).strict();
 
 const HunterResponseSchema = z.object({
   success: z.boolean(),
@@ -55,7 +55,7 @@ const HunterResponseSchema = z.object({
   escalations_created: z.number().int().nonnegative().optional(),
   errors: z.number().int().nonnegative().optional(),
   error: z.string().optional(),
-});
+}).strict();
 
 const ReviewerResponseSchema = z.object({
   success: z.boolean(),
@@ -69,7 +69,7 @@ const ReviewerResponseSchema = z.object({
   escalations_reviewed: z.number().int().nonnegative().optional(),
   action_taken: z.string().optional(),
   error: z.string().optional(),
-});
+}).strict();
 
 function isInternalAgentAuthorized(request: NextRequest): boolean {
   const providedSecret =
@@ -189,7 +189,7 @@ async function triggerStaticAnalysisForFileAlerts(
     return { scanned: 0, triggered: 0, failed: 0, skipped: true };
   }
 
-  const { data: alerts, error } = await adminClient
+  let alertsQuery = adminClient
     .from("alerts")
     .select("id, file_hash_sha256, file_path")
     .eq("source", "wazuh")
@@ -197,6 +197,12 @@ async function triggerStaticAnalysisForFileAlerts(
     .not("file_hash_sha256", "is", null)
     .order("created_at", { ascending: false })
     .limit(25);
+
+  if (organizationId) {
+    alertsQuery = alertsQuery.eq("organization_id", organizationId);
+  }
+
+  const { data: alerts, error } = await alertsQuery;
 
   if (error) {
     await logStageFailure(
@@ -426,7 +432,7 @@ async function invokeStep<T>(
 
     return { ok: true as const, data: parsed.data };
   } catch (error) {
-    console.error('[l3-hunt:callL3Step]', path, error);
+    console.error("[l3-hunt:callL3Step]", path, error);
     return {
       ok: false as const,
       error: "INTERNAL_ERROR",
@@ -474,7 +480,7 @@ function parseL2Context(value: unknown): L3RunOptions["l2Context"] {
       z.string().uuid().safeParse(raw.organization_id).success
         ? raw.organization_id
         : typeof raw.tenant_id === "string" &&
-          z.string().uuid().safeParse(raw.tenant_id).success
+            z.string().uuid().safeParse(raw.tenant_id).success
           ? raw.tenant_id
           : typeof raw.organizationId === "string" &&
               z.string().uuid().safeParse(raw.organizationId).success
@@ -507,9 +513,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
   const adminClient = getAdminClient();
   const baseUrl = getInternalBaseUrl(request);
   const organizationId =
-    options.organizationId ||
-    options.l2Context?.organization_id ||
-    null;
+    options.organizationId || options.l2Context?.organization_id || null;
   const stageErrors: string[] = [];
   const hunterPath =
     options.minHuntRecordAgeMinutes > 0
@@ -722,7 +726,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
       organizationId,
     );
   } catch (error) {
-    console.error('[l3-hunt] static_analysis stage error', error);
+    console.error("[l3-hunt] static_analysis stage error", error);
     stageErrors.push("static_analysis: INTERNAL_ERROR");
     await logStageFailure(
       adminClient,
@@ -826,7 +830,7 @@ async function runL3Pipeline(request: NextRequest, options: L3RunOptions) {
       execution_time_ms: executionTimeMs,
     });
   } catch (error) {
-    console.error('[l3-hunt] findings_persisted stage error', error);
+    console.error("[l3-hunt] findings_persisted stage error", error);
     stageErrors.push("findings_persisted: INTERNAL_ERROR");
     await logStageFailure(
       adminClient,
@@ -882,31 +886,43 @@ export async function GET(request: NextRequest) {
   }
 
   const adminClient = getAdminClient();
-  const { data: orgs } = await adminClient.from('organizations').select('id');
+  const { data: orgs } = await adminClient.from("organizations").select("id");
   if (orgs) {
     for (const org of orgs) {
       const orgId = org.id;
       try {
         await generateAllHypotheses(orgId);
-        
+
         // Priority ordering mapping: CRITICAL > HIGH > MEDIUM > LOW
         // For simplicity we fetch all pending and sort in memory since it's a string enum
         const { data: pending } = await adminClient
-          .from('hunt_hypotheses')
-          .select('id, priority')
-          .eq('organization_id', orgId)
-          .eq('status', 'PENDING');
-          
+          .from("hunt_hypotheses")
+          .select("id, priority")
+          .eq("organization_id", orgId)
+          .eq("status", "PENDING");
+
         if (pending && pending.length > 0) {
-          const priorityWeights: Record<string, number> = { 'CRITICAL': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
-          const sorted = pending.sort((a, b) => (priorityWeights[b.priority || 'MEDIUM'] || 0) - (priorityWeights[a.priority || 'MEDIUM'] || 0));
-          
+          const priorityWeights: Record<string, number> = {
+            CRITICAL: 4,
+            HIGH: 3,
+            MEDIUM: 2,
+            LOW: 1,
+          };
+          const sorted = pending.sort(
+            (a, b) =>
+              (priorityWeights[b.priority || "MEDIUM"] || 0) -
+              (priorityWeights[a.priority || "MEDIUM"] || 0),
+          );
+
           for (const hyp of sorted.slice(0, 3)) {
-             await executeHunt(hyp.id, orgId);
+            await executeHunt(hyp.id, orgId);
           }
         }
       } catch (e) {
-        console.error(`[L3 Cron] Error generating/executing hypotheses for org ${orgId}:`, e);
+        console.error(
+          `[L3 Cron] Error generating/executing hypotheses for org ${orgId}:`,
+          e,
+        );
       }
     }
   }

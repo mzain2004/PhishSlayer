@@ -1,38 +1,53 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@/lib/supabase/server';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+import { requireRole } from "@/lib/security/rbac";
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-const updateSchema = z.object({
-  display_name: z.string().optional(),
-  is_active: z.boolean().optional(),
-  config: z.record(z.string(), z.any()).optional(),
-});
+const updateSchema = z
+  .object({
+    display_name: z.string().optional(),
+    is_active: z.boolean().optional(),
+    config: z.record(z.string(), z.any()).optional(),
+  })
+  .strict();
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const { orgId } = await auth();
   const { id } = await params;
-  if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!orgId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('connector_configs')
-    .select('*')
-    .eq('id', id)
-    .eq('organization_id', orgId)
+    .from("connector_configs")
+    .select("*")
+    .eq("id", id)
+    .eq("organization_id", orgId)
     .single();
 
-  if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 404 });
+  if (error)
+    return NextResponse.json(
+      { error: "INTERNAL_SERVER_ERROR" },
+      { status: 404 },
+    );
   return NextResponse.json(data);
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const { orgId } = await auth();
   const { id } = await params;
-  if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!orgId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const body = await req.json();
@@ -40,35 +55,51 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const supabase = await createClient();
     const { data, error } = await supabase
-      .from('connector_configs')
+      .from("connector_configs")
       .update({
         ...validated,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', id)
-      .eq('organization_id', orgId)
+      .eq("id", id)
+      .eq("organization_id", orgId)
       .select()
       .single();
 
-    if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
+    if (error)
+      return NextResponse.json(
+        { error: "INTERNAL_SERVER_ERROR" },
+        { status: 500 },
+      );
     return NextResponse.json(data);
   } catch (err: any) {
-    return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 400 });
+    return NextResponse.json(
+      { error: "INTERNAL_SERVER_ERROR" },
+      { status: 400 },
+    );
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { orgId } = await auth();
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const guard = await requireRole(["org:owner", "org:admin"]);
+  if (!guard.ok) return guard.response;
+
+  const { orgId } = guard;
   const { id } = await params;
-  if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const supabase = await createClient();
   const { error } = await supabase
-    .from('connector_configs')
+    .from("connector_configs")
     .delete()
-    .eq('id', id)
-    .eq('organization_id', orgId);
+    .eq("id", id)
+    .eq("organization_id", orgId);
 
-  if (error) return NextResponse.json({ error: "INTERNAL_SERVER_ERROR" }, { status: 500 });
+  if (error)
+    return NextResponse.json(
+      { error: "INTERNAL_SERVER_ERROR" },
+      { status: 500 },
+    );
   return NextResponse.json({ success: true });
 }

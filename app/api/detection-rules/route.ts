@@ -13,7 +13,7 @@ const RuleSchema = z.object({
   organization_id: z.string().uuid(),
   severity: z.string().optional().default('medium'),
   mitre_technique: z.string().optional()
-});
+}).strict();
 
 import { auth } from '@clerk/nextjs/server';
 

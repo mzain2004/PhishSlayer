@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { calculateOrgRisk } from "@/lib/l3/orgRiskScore";
 import { z } from "zod";
 
-const schema = z.object({ organizationId: z.string().optional() });
+const schema = z.object({ organizationId: z.string().optional() }).strict();
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

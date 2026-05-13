@@ -12,7 +12,7 @@ const L1AlertSchema = z.object({
   severity: z.enum(["low", "medium", "high", "critical"]).optional(),
   attack_type: z.string().optional(),
   source_ip: z.string().optional(),
-});
+}).strict();
 
 export async function POST(request: NextRequest) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();

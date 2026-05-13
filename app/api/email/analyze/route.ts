@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
 const AnalyzeSchema = z.object({
   rawHeaders: z.string(),
   organizationId: z.string().uuid(),
-});
+}).strict();
 
 import { auth } from '@clerk/nextjs/server';
 

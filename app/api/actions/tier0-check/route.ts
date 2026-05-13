@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 
 const Tier0PayloadSchema = z.object({
   scanPayload: z.record(z.string(), z.unknown()),
-});
+}).strict();
 
 function getAdminClient() {
   return createSupabaseAdminClient(

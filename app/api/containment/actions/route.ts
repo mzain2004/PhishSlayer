@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
-const schema = z.object({ actionId: z.string() });
+const schema = z.object({ actionId: z.string() }).strict();
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

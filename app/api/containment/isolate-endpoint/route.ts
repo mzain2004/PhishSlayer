@@ -11,7 +11,7 @@ const schema = z.object({
   agentId: z.string().min(1),
   reason: z.string().min(5),
   organizationId: z.string().uuid()
-});
+}).strict();
 
 export async function POST(req: Request) {
   const { userId: authId } = await auth();

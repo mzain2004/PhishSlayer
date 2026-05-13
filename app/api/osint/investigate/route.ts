@@ -5,7 +5,7 @@ import { runInvestigation } from "@/lib/osint/orchestrator";
 import { OsintTargetType } from "@/lib/osint/types";
 import { z } from "zod";
 
-const schema = z.object({ targetType: z.string(), targetValue: z.string(), organizationId: z.string() });
+const schema = z.object({ targetType: z.string(), targetValue: z.string(), organizationId: z.string() }).strict();
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

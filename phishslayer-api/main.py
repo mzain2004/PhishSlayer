@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from starlette.middleware.base import BaseHTTPMiddleware
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 import os
 import time as _time
 import uuid as _uuid
@@ -44,6 +45,66 @@ from dataclasses import asdict
 
 _api_log = get_logger("phishslayer.api")
 
+
+class OrgScopedRequest(BaseModel):
+    org_id: str
+    model_config = ConfigDict(extra="ignore")
+
+    @field_validator("org_id")
+    @classmethod
+    def validate_org_id(cls, value: str) -> str:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("org_id must be a non-empty string")
+        return value.strip()
+
+
+class IngestAlertRequest(OrgScopedRequest):
+    alert_id: str | None = None
+    alert: dict = Field(default_factory=dict)
+
+
+class InvestigateAlertRequest(OrgScopedRequest):
+    alert_id: str
+    attacker_intent: str
+    mitre_techniques: list
+    likely_next_move: str
+    is_decoy_or_distraction: bool
+    is_real_threat: bool
+    confidence: float
+    immediate_actions: list
+    indicators_to_watch: list
+    escalate_to_l2: bool
+    requires_human_approval: bool
+    verdict: str
+    escalation_reason: str | None = None
+
+
+class HuntAlertRequest(OrgScopedRequest):
+    alert_id: str
+    l2_result: dict = Field(default_factory=dict)
+
+
+class SimulationRequest(OrgScopedRequest):
+    rounds: int = 5
+
+
+def _log_and_generic_error(op_name: str) -> JSONResponse:
+    _api_log.exception("%s_failed", op_name)
+    return JSONResponse({"error": "Internal server error"}, status_code=500)
+
+
+def _start_agentops_session(org_id: str, alert_id: str) -> None:
+    if not _AGENTOPS:
+        return
+    start_session = getattr(agentops, "start_session", None)
+    if not callable(start_session):
+        return
+    try:
+        session_id = f"{org_id}_{alert_id}_{uuid.uuid4()}"
+        start_session(session_id=session_id)
+    except Exception:
+        _api_log.exception("agentops_session_start_failed")
+
 # Import all routers
 from routers import (
     alerts, cases, connectors, detection, hunting, intel, metrics,
@@ -65,11 +126,11 @@ async def lifespan(app: FastAPI):
     from agents.orchestrator.supervisor import supervisor
     asyncio.create_task(supervisor.health_check())
 
-    print("PhishSlayer API starting...")
+    _api_log.info("api_starting")
     yield
     if _AGENTOPS:
         agentops.end_all_sessions()
-    print("PhishSlayer API shutting down...")
+    _api_log.info("api_stopping")
 
 
 # Create FastAPI app
@@ -148,11 +209,15 @@ app.include_router(wazuh_router)
 app.include_router(agent_dispatch_router, tags=["Agent Dispatch"])
 
 @app.post("/api/v1/alerts/ingest")
-async def ingest_alert(request: dict, current_user: dict = Depends(get_current_user)):
+async def ingest_alert(request: IngestAlertRequest, current_user: dict = Depends(get_current_user)):
     try:
-        org_id = current_user.get("org_id", "default")
-        alert_id = request.get("alert_id", str(uuid.uuid4()))
-        raw_alert = request.get("alert", {})
+        org_id = request.org_id
+        if current_user.get("org_id") and current_user.get("org_id") != org_id:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
+
+        alert_id = request.alert_id or str(uuid.uuid4())
+        raw_alert = request.alert
+        _start_agentops_session(org_id, alert_id)
 
         hooks = LifecycleHooks()
         verify = VerifyInterface()
@@ -166,13 +231,11 @@ async def ingest_alert(request: dict, current_user: dict = Depends(get_current_u
         )
         from dataclasses import asdict
         return JSONResponse(asdict(result))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+    except Exception:
+        return _log_and_generic_error("ingest_alert")
 
 @app.post("/api/v1/alerts/investigate")
-async def investigate_alert(request: dict, current_user: dict = Depends(get_current_user)):
+async def investigate_alert(request: InvestigateAlertRequest, current_user: dict = Depends(get_current_user)):
     """
     L2 investigation endpoint.
     Accepts L1 TriageResult JSON as body.
@@ -186,29 +249,33 @@ async def investigate_alert(request: dict, current_user: dict = Depends(get_curr
         from harness.state_store import StateStore
         from dataclasses import asdict
 
-        required = ["alert_id","org_id","attacker_intent","mitre_techniques",
-                    "likely_next_move","is_decoy_or_distraction","is_real_threat",
-                    "confidence","immediate_actions","indicators_to_watch",
-                    "escalate_to_l2","requires_human_approval","verdict"]
-        missing = [f for f in required if f not in request]
-        if missing:
-            return JSONResponse(
-                {"error": f"Missing fields: {missing}"}, status_code=400
-            )
+        if current_user.get("org_id") and current_user.get("org_id") != request.org_id:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
 
-        l1_result = TriageResult(**{k: request[k] for k in required},
-                                  escalation_reason=request.get("escalation_reason"))
+        _start_agentops_session(request.org_id, request.alert_id)
+
+        required = [
+            "alert_id", "org_id", "attacker_intent", "mitre_techniques",
+            "likely_next_move", "is_decoy_or_distraction", "is_real_threat",
+            "confidence", "immediate_actions", "indicators_to_watch",
+            "escalate_to_l2", "requires_human_approval", "verdict",
+        ]
+        request_data = request.model_dump()
+        l1_result = TriageResult(
+            **{k: request_data[k] for k in required},
+            escalation_reason=request.escalation_reason,
+        )
         hooks = LifecycleHooks()
         verify = VerifyInterface()
         state = StateStore()
         agent = L2InvestigatorAgent(lifecycle_hooks=hooks, verify=verify, state_store=state)
         result = await agent.investigate(l1_result, {"max_blast_radius": "medium"})
         return JSONResponse(asdict(result))
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+    except Exception:
+        return _log_and_generic_error("investigate_alert")
 
 @app.post("/api/v1/alerts/hunt")
-async def hunt_alert(request: dict, current_user: dict = Depends(get_current_user)):
+async def hunt_alert(request: HuntAlertRequest, current_user: dict = Depends(get_current_user)):
     """
     L3 hunter endpoint.
     Accepts L2 InvestigationResult JSON as body.
@@ -220,17 +287,19 @@ async def hunt_alert(request: dict, current_user: dict = Depends(get_current_use
         from harness.state_store import StateStore
         from dataclasses import asdict
 
-        org_id = current_user.get("org_id", "default")
+        org_id = request.org_id
+        if current_user.get("org_id") and current_user.get("org_id") != org_id:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
+
+        _start_agentops_session(org_id, request.alert_id)
 
         verify = VerifyInterface()
         state = StateStore()
         agent = L3HunterAgent(verify=verify, state_store=state)
-        result = await agent.hunt(l2_result=request, org_id=org_id)
+        result = await agent.hunt(l2_result=request.l2_result, org_id=org_id)
         return JSONResponse(asdict(result))
-    except Exception as e:
-        return JSONResponse(
-            {"error": str(e)}, status_code=500
-        )
+    except Exception:
+        return _log_and_generic_error("hunt_alert")
 
 @app.get("/api/v1/alerts/{alert_id}/state")
 async def get_alert_state(alert_id: str, current_user: dict = Depends(get_current_user)):
@@ -245,22 +314,22 @@ async def get_alert_state(alert_id: str, current_user: dict = Depends(get_curren
         if not doc:
             return JSONResponse({"error": "Alert state not found"}, status_code=404)
         return JSONResponse(doc)
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+    except Exception:
+        return _log_and_generic_error("get_alert_state")
 
 @app.post("/api/v1/sim/decepticon")
-async def run_simulation(request: dict):
+async def run_simulation(request: SimulationRequest):
     """
     Runs a red-blue simulation.
     """
     try:
         from simulations.decepticon_sim import DecepticonSimulation
-        rounds = request.get("rounds", 5)
+        rounds = request.rounds
         sim = DecepticonSimulation()
         report = await sim.run(rounds=rounds)
         return JSONResponse(report)
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+    except Exception:
+        return _log_and_generic_error("run_simulation")
 
 # Root endpoint
 @app.get("/")
@@ -277,11 +346,10 @@ async def root():
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """Global exception handler"""
-    import traceback
-    traceback.print_exc()
+    _api_log.exception("unhandled_exception")
     return JSONResponse(
         status_code=500,
-        content={"error": str(exc)}
+        content={"error": "Internal server error"}
     )
 
 if __name__ == "__main__":

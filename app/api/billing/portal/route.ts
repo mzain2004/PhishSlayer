@@ -1,13 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
-import { auth } from '@clerk/nextjs/server';
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { polar } from "@/lib/polar-client";
+import { requireRole } from "@/lib/security/rbac";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 async function getBillingPortal() {
+  const guard = await requireRole(["org:owner", "org:admin"]);
+  if (!guard.ok) return guard.response;
+
   if (!process.env.POLAR_ACCESS_TOKEN) {
     return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
   }
@@ -16,10 +20,7 @@ async function getBillingPortal() {
     const supabase = await createClient();
 
     // 1. Get authenticated user
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { userId } = guard;
 
     const session = await polar.customerSessions.create({
       externalCustomerId: userId,

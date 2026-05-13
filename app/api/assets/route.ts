@@ -14,7 +14,7 @@ const assetSchema = z.object({
   criticality: z.enum(['critical', 'high', 'medium', 'low']).default('medium'),
   department: z.string().optional(),
   owner_user_id: z.string().optional(),
-});
+}).strict();
 
 export async function GET(req: NextRequest) {
   const { orgId } = await auth();

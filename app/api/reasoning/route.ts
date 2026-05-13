@@ -12,7 +12,7 @@ const QuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   agent_level: z.enum(["L1", "L2", "L3"]).optional(),
   alert_id: z.string().uuid().optional(),
-});
+}).strict();
 
 function getAdminClient() {
   return createClient(

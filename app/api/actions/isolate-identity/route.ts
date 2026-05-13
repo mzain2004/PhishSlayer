@@ -15,7 +15,7 @@ const IsolatePayloadSchema = z.object({
     .string()
     .min(3, { message: "reason must be at least 3 characters" }),
   tenantId: z.string().uuid().optional().nullable(),
-});
+}).strict();
 
 import { auth } from '@clerk/nextjs/server';
 

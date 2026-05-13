@@ -23,7 +23,7 @@ const CreateOrganizationSchema = z.object({
     .enum(["trial", "starter", "pro", "enterprise", "mssp"])
     .default("trial"),
   owner_id: z.string().uuid().optional(),
-});
+}).strict();
 
 function slugifyOrganizationName(name: string): string {
   const slug = name

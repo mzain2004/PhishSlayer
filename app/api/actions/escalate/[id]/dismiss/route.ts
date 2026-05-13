@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 const ParamsSchema = z.object({
   id: z.string().uuid(),
-});
+}).strict();
 
 function getAdminClient() {
   return createSupabaseAdminClient(

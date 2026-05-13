@@ -15,7 +15,7 @@ const BlockIpPayloadSchema = z.object({
   reason: z.string().min(1, { message: "reason is required" }),
   threatLevel: z.enum(["low", "medium", "high", "critical"]),
   tenantId: z.string().uuid().optional().nullable(),
-});
+}).strict();
 
 function mapThreatToAuditSeverity(
   threatLevel: "low" | "medium" | "high" | "critical",

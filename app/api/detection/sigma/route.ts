@@ -14,7 +14,7 @@ export const runtime = "nodejs";
 const PostSchema = z.object({
   alert_id: z.string().uuid(),
   analysis_id: z.string().uuid().optional(),
-});
+}).strict();
 
 const QuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -25,7 +25,7 @@ const QuerySchema = z.object({
   rule_status: z
     .enum(["stable", "test", "experimental", "deprecated"])
     .optional(),
-});
+}).strict();
 
 function getAdminClient() {
   return createClient(

@@ -4,28 +4,84 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { apiSuccess, apiError, API_CODES } from "@/lib/api/response";
 import { createCipheriv, randomBytes } from "crypto";
 import { z } from "zod";
+import { requireRole } from "@/lib/security/rbac";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const ALL_TOOLS = [
-  { name: "virustotal",    label: "VirusTotal",      category: "Threat Intel",  needs_key: true },
-  { name: "shodan",        label: "Shodan",           category: "Recon",         needs_key: true },
-  { name: "abuseipdb",    label: "AbuseIPDB",        category: "Reputation",    needs_key: true },
-  { name: "urlscan",       label: "URLScan.io",       category: "URL Analysis",  needs_key: true },
-  { name: "greynoise",     label: "GreyNoise",        category: "Noise Intel",   needs_key: true },
-  { name: "hibp",          label: "HaveIBeenPwned",  category: "Breach Intel",  needs_key: true },
-  { name: "hunter",        label: "Hunter.io",        category: "Email Intel",   needs_key: true },
-  { name: "otx",           label: "AlienVault OTX",  category: "Threat Intel",  needs_key: true },
-  { name: "censys",        label: "Censys",           category: "Recon",         needs_key: true },
-  { name: "misp",          label: "MISP",             category: "Threat Sharing",needs_key: true },
-  { name: "opencti",       label: "OpenCTI",          category: "Threat Sharing",needs_key: true },
-  { name: "crtsh",         label: "crt.sh",           category: "Cert Trans.",   needs_key: false },
-  { name: "urlhaus",       label: "URLhaus",          category: "Malware",       needs_key: false },
-  { name: "threatfox",     label: "ThreatFox",        category: "Malware",       needs_key: false },
-  { name: "malwarebazaar", label: "MalwareBazaar",    category: "Malware",       needs_key: false },
-  { name: "passivedns",    label: "Passive DNS",      category: "Recon",         needs_key: false },
-  { name: "whois",         label: "WHOIS",            category: "Recon",         needs_key: false },
+  {
+    name: "virustotal",
+    label: "VirusTotal",
+    category: "Threat Intel",
+    needs_key: true,
+  },
+  { name: "shodan", label: "Shodan", category: "Recon", needs_key: true },
+  {
+    name: "abuseipdb",
+    label: "AbuseIPDB",
+    category: "Reputation",
+    needs_key: true,
+  },
+  {
+    name: "urlscan",
+    label: "URLScan.io",
+    category: "URL Analysis",
+    needs_key: true,
+  },
+  {
+    name: "greynoise",
+    label: "GreyNoise",
+    category: "Noise Intel",
+    needs_key: true,
+  },
+  {
+    name: "hibp",
+    label: "HaveIBeenPwned",
+    category: "Breach Intel",
+    needs_key: true,
+  },
+  {
+    name: "hunter",
+    label: "Hunter.io",
+    category: "Email Intel",
+    needs_key: true,
+  },
+  {
+    name: "otx",
+    label: "AlienVault OTX",
+    category: "Threat Intel",
+    needs_key: true,
+  },
+  { name: "censys", label: "Censys", category: "Recon", needs_key: true },
+  { name: "misp", label: "MISP", category: "Threat Sharing", needs_key: true },
+  {
+    name: "opencti",
+    label: "OpenCTI",
+    category: "Threat Sharing",
+    needs_key: true,
+  },
+  { name: "crtsh", label: "crt.sh", category: "Cert Trans.", needs_key: false },
+  { name: "urlhaus", label: "URLhaus", category: "Malware", needs_key: false },
+  {
+    name: "threatfox",
+    label: "ThreatFox",
+    category: "Malware",
+    needs_key: false,
+  },
+  {
+    name: "malwarebazaar",
+    label: "MalwareBazaar",
+    category: "Malware",
+    needs_key: false,
+  },
+  {
+    name: "passivedns",
+    label: "Passive DNS",
+    category: "Recon",
+    needs_key: false,
+  },
+  { name: "whois", label: "WHOIS", category: "Recon", needs_key: false },
 ];
 
 function encryptApiKey(plaintext: string): string {
@@ -34,16 +90,21 @@ function encryptApiKey(plaintext: string): string {
   const key = Buffer.from(keyB64, "base64");
   const nonce = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key, nonce);
-  const encrypted = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+  const encrypted = Buffer.concat([
+    cipher.update(plaintext, "utf8"),
+    cipher.final(),
+  ]);
   const tag = cipher.getAuthTag();
   // Format: base64(nonce + ciphertext + tag) — matches Python AESGCM.decrypt
   return Buffer.concat([nonce, encrypted, tag]).toString("base64");
 }
 
-const saveSchema = z.object({
-  tool_name: z.string().min(1),
-  api_key: z.string().min(1),
-});
+const saveSchema = z
+  .object({
+    tool_name: z.string().min(1),
+    api_key: z.string().min(1),
+  })
+  .strict();
 
 export async function GET() {
   const { orgId } = await auth();
@@ -54,7 +115,9 @@ export async function GET() {
     .select("tool_name, enabled")
     .eq("org_id", orgId);
 
-  const customTools = new Set((existing ?? []).map((r: { tool_name: string }) => r.tool_name));
+  const customTools = new Set(
+    (existing ?? []).map((r: { tool_name: string }) => r.tool_name),
+  );
 
   const tools = ALL_TOOLS.map((t) => ({
     ...t,
@@ -66,16 +129,21 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { orgId } = await auth();
-  if (!orgId) return apiError(API_CODES.UNAUTHORIZED, "Unauthorized", 401);
+  const guard = await requireRole(["org:owner", "org:admin"]);
+  if (!guard.ok) return guard.response;
+
+  const { orgId } = guard;
 
   let body: unknown;
-  try { body = await req.json(); } catch {
+  try {
+    body = await req.json();
+  } catch {
     return apiError(API_CODES.VALIDATION_ERROR, "Invalid JSON", 400);
   }
 
   const parsed = saveSchema.safeParse(body);
-  if (!parsed.success) return apiError(API_CODES.VALIDATION_ERROR, "Invalid input", 400);
+  if (!parsed.success)
+    return apiError(API_CODES.VALIDATION_ERROR, "Invalid input", 400);
 
   const { tool_name, api_key } = parsed.data;
 
@@ -94,21 +162,33 @@ export async function POST(req: NextRequest) {
       encrypted_credentials: { api_key: encrypted },
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "org_id,tool_name" }
+    { onConflict: "org_id,tool_name" },
   );
 
-  if (error) return apiError(API_CODES.INTERNAL_ERROR, "Failed to save integration", 500);
+  if (error)
+    return apiError(
+      API_CODES.INTERNAL_ERROR,
+      "Failed to save integration",
+      500,
+    );
 
   return apiSuccess({ message: `${tool_name} key saved` });
 }
 
 export async function DELETE(req: NextRequest) {
-  const { orgId } = await auth();
-  if (!orgId) return apiError(API_CODES.UNAUTHORIZED, "Unauthorized", 401);
+  const guard = await requireRole(["org:owner", "org:admin"]);
+  if (!guard.ok) return guard.response;
+
+  const { orgId } = guard;
 
   const { searchParams } = new URL(req.url);
   const tool_name = searchParams.get("tool");
-  if (!tool_name) return apiError(API_CODES.VALIDATION_ERROR, "tool query param required", 400);
+  if (!tool_name)
+    return apiError(
+      API_CODES.VALIDATION_ERROR,
+      "tool query param required",
+      400,
+    );
 
   const { error } = await supabaseAdmin
     .from("org_integrations")
@@ -116,7 +196,14 @@ export async function DELETE(req: NextRequest) {
     .eq("org_id", orgId)
     .eq("tool_name", tool_name);
 
-  if (error) return apiError(API_CODES.INTERNAL_ERROR, "Failed to remove integration", 500);
+  if (error)
+    return apiError(
+      API_CODES.INTERNAL_ERROR,
+      "Failed to remove integration",
+      500,
+    );
 
-  return apiSuccess({ message: `${tool_name} reverted to PhishSlayer default` });
+  return apiSuccess({
+    message: `${tool_name} reverted to PhishSlayer default`,
+  });
 }

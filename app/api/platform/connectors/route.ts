@@ -19,11 +19,11 @@ const RegisterConnectorSchema = z.object({
   ]),
   connector_name: z.string().min(1).max(120),
   config: z.record(z.string(), z.unknown()).default({}),
-});
+}).strict();
 
 const ListConnectorQuerySchema = z.object({
   organization_id: z.string().uuid().optional(),
-});
+}).strict();
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

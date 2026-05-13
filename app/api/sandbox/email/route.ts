@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 
 const EmailSandboxSchema = z.object({
   rawEmail: z.string(),
-});
+}).strict();
 
 export async function POST(req: NextRequest) {
   const { userId, orgId } = await auth();

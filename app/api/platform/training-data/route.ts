@@ -10,7 +10,7 @@ const QuerySchema = z.object({
     .string()
     .optional()
     .transform((value) => value === "1" || value === "true"),
-});
+}).strict();
 
 const AgentLevelSchema = z.enum(["L1", "L2", "L3"]);
 
@@ -24,7 +24,7 @@ const ReasoningRowSchema = z.object({
   iocs_considered: z.array(z.unknown()).nullable().optional(),
   actions_taken: z.array(z.unknown()).nullable().optional(),
   created_at: z.string().datetime(),
-});
+}).strict();
 
 type ReasoningRow = z.infer<typeof ReasoningRowSchema>;
 

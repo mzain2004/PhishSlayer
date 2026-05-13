@@ -11,7 +11,7 @@ const actionSchema = z.object({
   actionType: z.enum(['block_ip', 'isolate_host', 'kill_process', 'quarantine_file']),
   target: z.string(),
   metadata: z.record(z.string(), z.any()).optional(),
-});
+}).strict();
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { orgId, userId } = await auth();

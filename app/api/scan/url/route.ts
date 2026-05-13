@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 
 const ScanSchema = z.object({
   target: z.string().min(1),
-});
+}).strict();
 
 export async function POST(request: Request) {
   try {

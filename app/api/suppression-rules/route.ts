@@ -15,7 +15,7 @@ const ruleSchema = z.object({
   time_end: z.string().optional(),
   expires_at: z.string().optional(),
   is_active: z.boolean().default(true)
-});
+}).strict();
 
 export async function GET(req: Request) {
   const { userId } = await auth();

@@ -31,12 +31,12 @@ function toLabel(date: Date) {
   });
 }
 
-import { auth } from '@clerk/nextjs/server';
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET() {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const { userId, orgId } = await auth();
+    if (!userId || !orgId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -49,6 +49,7 @@ export async function GET() {
     const primary = await supabase
       .from("alerts")
       .select("created_at, severity")
+      .eq("organization_id", orgId)
       .gte("created_at", since.toISOString())
       .order("created_at", { ascending: true });
 
@@ -64,6 +65,7 @@ export async function GET() {
       const fallback = await supabase
         .from("alerts")
         .select("created_at, rule_level")
+        .eq("organization_id", orgId)
         .gte("created_at", since.toISOString())
         .order("created_at", { ascending: true });
 

@@ -20,7 +20,7 @@ const createCaseSchema = z.object({
   mitre_tactic: z.string().optional(),
   mitre_technique: z.string().optional(),
   sla_deadline: z.string().optional(),
-});
+}).strict();
 
 export async function GET(req: Request) {
   const { userId } = await auth();

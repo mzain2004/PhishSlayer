@@ -14,7 +14,7 @@ const EmailPayloadSchema = z.object({
   email: z.string().email().optional(),
   name: z.string().trim().max(120).optional(),
   message: z.string().trim().max(2000).optional(),
-});
+}).strict();
 
 export async function POST(request: Request) {
   try {

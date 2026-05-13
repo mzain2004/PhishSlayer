@@ -70,8 +70,6 @@ export async function POST(req: NextRequest) {
           confidence: payload.confidence ?? 50,
           tags: payload.tags ?? [],
           source: payload.source ?? "manual",
-        // The IOC interface from feedManager is structurally compatible here.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
       ],
       { orgId },

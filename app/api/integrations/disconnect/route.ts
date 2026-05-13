@@ -2,19 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireRole } from "@/lib/security/rbac";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const DisconnectSchema = z.object({
-  tool_id: z.string().trim().min(1),
-});
+const DisconnectSchema = z
+  .object({
+    tool_id: z.string().trim().min(1),
+  })
+  .strict();
 
 export async function DELETE(request: NextRequest) {
-  const { orgId } = await auth();
-  if (!orgId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { userId } = await auth();
+  const guard = await requireRole(["org:owner", "org:admin"]);
+  if (!guard.ok) return guard.response;
+
+  const { orgId } = guard;
 
   let body: unknown;
   try {

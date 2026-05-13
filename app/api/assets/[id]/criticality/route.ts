@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 const schema = z.object({
   criticality: z.enum(['low', 'medium', 'high', 'critical']),
   tags: z.array(z.string()).optional()
-});
+}).strict();
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { userId } = await auth();

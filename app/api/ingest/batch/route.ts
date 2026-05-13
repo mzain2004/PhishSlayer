@@ -13,7 +13,7 @@ const schema = z.object({
     source_ip: z.string().optional().nullable()
   })).max(1000),
   organization_id: z.string().min(1)
-});
+}).strict();
 
 import { auth } from '@clerk/nextjs/server';
 

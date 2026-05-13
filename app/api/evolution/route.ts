@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 const ApproveSchema = z.object({
   proposalId: z.string().uuid(),
   action: z.enum(["approve", "reject"]),
-});
+}).strict();
 
 export async function GET(request: NextRequest) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();

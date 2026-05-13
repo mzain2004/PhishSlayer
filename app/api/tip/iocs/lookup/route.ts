@@ -3,7 +3,7 @@ import { isKnownBad } from "@/lib/tip/iocStore";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
-const schema = z.object({ value: z.string() });
+const schema = z.object({ value: z.string() }).strict();
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

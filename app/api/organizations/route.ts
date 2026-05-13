@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 const createSchema = z.object({
   name: z.string().min(2),
   plan: z.enum(["starter", "professional", "enterprise"]).optional().default("starter")
-});
+}).strict();
 
 export async function GET() {
   const { userId } = await auth();

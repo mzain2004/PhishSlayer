@@ -50,7 +50,7 @@ export function ConnectModal({
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.error || `Failed to connect: ${response.status}`
+          errorData.error || `Failed to connect: ${response.status}`,
         );
       }
 

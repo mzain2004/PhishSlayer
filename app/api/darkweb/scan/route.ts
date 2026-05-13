@@ -10,7 +10,7 @@ const ScanSchema = z.object({
   emails: z.array(z.string().email()),
   domain: z.string(),
   organizationId: z.string().uuid(),
-});
+}).strict();
 
 import { auth } from '@clerk/nextjs/server';
 

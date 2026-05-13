@@ -23,7 +23,7 @@ const EscalatePayloadSchema = z.object({
     "MANUAL_REVIEW",
   ]),
   telemetrySnapshot: z.record(z.string(), z.unknown()).optional(),
-});
+}).strict();
 
 const severityColorMap: Record<"low" | "medium" | "high" | "critical", number> =
   {

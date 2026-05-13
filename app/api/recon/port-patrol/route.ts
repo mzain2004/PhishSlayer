@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 
 const bodySchema = z.object({
   target: z.string().min(1).max(253),
-});
+}).strict();
 
 export async function POST(request: Request) {
   try {

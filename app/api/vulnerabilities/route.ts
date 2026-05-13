@@ -18,7 +18,7 @@ const VulnSchema = z.object({
     .enum(["open", "in_progress", "resolved", "accepted"])
     .optional()
     .default("open"),
-});
+}).strict();
 
 export async function GET(req: NextRequest) {
   const { userId, orgId } = await auth();

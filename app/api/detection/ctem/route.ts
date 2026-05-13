@@ -22,7 +22,7 @@ const PostSchema = z.object({
   description: z.string().min(1),
   remediation: z.string().optional(),
   alert_id: z.string().uuid().optional(),
-});
+}).strict();
 
 const QuerySchema = z.object({
   organization_id: z.string().uuid().optional(),
@@ -30,7 +30,7 @@ const QuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   status: z.enum(["open", "in_progress", "resolved", "accepted"]).optional(),
   severity: z.enum(["critical", "high", "medium", "low"]).optional(),
-});
+}).strict();
 
 function getAdminClient() {
   return createClient(

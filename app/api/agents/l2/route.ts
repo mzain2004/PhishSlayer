@@ -10,7 +10,7 @@ const L2TriggerSchema = z.object({
   alert_id: z.string().min(1),
   l1_context: z.record(z.string(), z.unknown()),
   org_id: z.string().optional(),
-});
+}).strict();
 
 export async function POST(request: NextRequest) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();

@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { generateHandoverReport } from "@/lib/l1/shiftHandover";
 import { z } from "zod";
 
-const schema = z.object({ organization_id: z.string() });
+const schema = z.object({ organization_id: z.string() }).strict();
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

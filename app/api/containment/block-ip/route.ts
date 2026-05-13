@@ -12,7 +12,7 @@ const schema = z.object({
   alertId: z.string().uuid().optional(),
   reason: z.string().min(5),
   organizationId: z.string().uuid()
-});
+}).strict();
 
 export async function POST(req: Request) {
   const { userId } = await auth();

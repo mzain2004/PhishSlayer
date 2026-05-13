@@ -14,7 +14,7 @@ const EnrollPayloadSchema = z.object({
   agentIp: z.string().min(1),
   agentOs: z.enum(["ubuntu", "debian", "centos", "windows"]),
   agentArch: z.enum(["x86_64", "aarch64", "i386"]),
-});
+}).strict();
 
 type WazuhEnrollment = {
   agentId: string;
@@ -64,7 +64,7 @@ function extractEnrollmentPayload(apiResponse: unknown): WazuhEnrollment {
               z.object({
                 id: z.union([z.string(), z.number()]).optional(),
                 key: z.string().optional(),
-              }),
+              }).strict(),
             )
             .optional(),
         })

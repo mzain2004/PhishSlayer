@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 const TriggerMetricsSchema = z.object({
   organization_id: z.string().uuid().optional(),
-});
+}).strict();
 
 function isCronAuthorized(request: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET;

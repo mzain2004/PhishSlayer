@@ -32,7 +32,7 @@ const TriageSummarySchema = z.object({
     )
     .optional(),
   error: z.string().optional(),
-});
+}).strict();
 
 function isAuthorized(request: NextRequest): boolean {
   const auth = request.headers.get("authorization") || "";

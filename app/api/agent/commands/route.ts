@@ -10,7 +10,7 @@ const CommandSchema = z.object({
   agentId: z.string().uuid(),
   command: z.string().min(1).max(100),
   payload: z.record(z.string(), z.unknown()).optional(),
-});
+}).strict();
 
 export async function POST(request: Request) {
   try {

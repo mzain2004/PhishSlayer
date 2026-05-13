@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 const WaitlistSchema = z.object({
   email: z.string().email(),
   tier: z.string().trim().min(1).max(80).optional(),
-});
+}).strict();
 
 export async function POST(request: Request) {
   try {

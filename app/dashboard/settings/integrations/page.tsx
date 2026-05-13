@@ -23,13 +23,12 @@ const TIER_LABELS: Record<string, string> = {
 
 function getTierToolAccessCount(
   tier: string,
-  tools: MarketplaceTool[]
+  tools: MarketplaceTool[],
 ): number {
   return tools.filter(
     (tool) =>
       tool.tier === "free" ||
-      (tool.tier === "pro" &&
-        ["soc_pro", "command_center"].includes(tier))
+      (tool.tier === "pro" && ["soc_pro", "command_center"].includes(tier)),
   ).length;
 }
 
@@ -40,7 +39,7 @@ export default function IntegrationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [connectingTool, setConnectingTool] = useState<MarketplaceTool | null>(
-    null
+    null,
   );
   const [showModal, setShowModal] = useState(false);
   const [testingTool, setTestingTool] = useState<string | null>(null);
@@ -55,7 +54,7 @@ export default function IntegrationsPage() {
       setTools(data.tools);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to load integrations"
+        err instanceof Error ? err.message : "Failed to load integrations",
       );
     } finally {
       setLoading(false);
@@ -85,9 +84,7 @@ export default function IntegrationsPage() {
       fetchTools();
     } catch (err) {
       toast.error(
-        err instanceof Error
-          ? err.message
-          : "Failed to disconnect integration"
+        err instanceof Error ? err.message : "Failed to disconnect integration",
       );
     }
   };
@@ -107,7 +104,7 @@ export default function IntegrationsPage() {
       return { success: data.success, latency_ms: data.latency_ms };
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Connection test failed"
+        err instanceof Error ? err.message : "Connection test failed",
       );
       return { success: false, latency_ms: 0 };
     } finally {
@@ -128,15 +125,13 @@ export default function IntegrationsPage() {
   });
 
   // Group by category
-  const categories = [
-    ...new Set(tools.map((t) => t.category)),
-  ] as string[];
+  const categories = [...new Set(tools.map((t) => t.category))] as string[];
   const toolsByCategory = categories.reduce<Record<string, MarketplaceTool[]>>(
     (acc, cat) => {
       acc[cat] = filteredTools.filter((t) => t.category === cat);
       return acc;
     },
-    {}
+    {},
   );
 
   const connectedCount = tools.filter((t) => t.connected || t.shared).length;
@@ -151,7 +146,9 @@ export default function IntegrationsPage() {
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
           Connect to {accessibleCount} tools with{" "}
-          <span className="font-semibold">{TIER_LABELS[orgTier ?? "free"]}</span>{" "}
+          <span className="font-semibold">
+            {TIER_LABELS[orgTier ?? "free"]}
+          </span>{" "}
           tier • {connectedCount} connected
         </p>
       </div>

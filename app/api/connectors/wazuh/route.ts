@@ -28,6 +28,7 @@ const organizationRateLimitStore = new Map<
   }
 >();
 
+// Intentionally passthrough: Wazuh alert payloads may contain additional vendor fields.
 const WazuhRuleSchema = z
   .object({
     id: z.union([z.string(), z.number()]).optional(),
@@ -436,7 +437,7 @@ async function callStageJson(
       error instanceof Error &&
       (error.name === "AbortError" || /aborted|timeout/i.test(error.message));
 
-    console.error('[wazuh:stage]', error);
+    console.error("[wazuh:stage]", error);
     return {
       ok: false,
       status: 0,
@@ -998,7 +999,10 @@ async function processSingleAlert(
   let queued = false;
 
   try {
-    insertedAlertId = await queueAlert(alert, organizationContext?.organizationId || null);
+    insertedAlertId = await queueAlert(
+      alert,
+      organizationContext?.organizationId || null,
+    );
     queued = Boolean(insertedAlertId);
   } catch (error) {
     console.error("[wazuh webhook] Failed to insert alert", error);
@@ -1182,7 +1186,7 @@ async function queueAlert(
   return insertResult.data?.id ?? null;
 }
 
-import { auth } from '@clerk/nextjs/server';
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
@@ -1197,7 +1201,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const contentLength = parseInt(request.headers.get('content-length') || '0');
+  const contentLength = parseInt(request.headers.get("content-length") || "0");
 
   let organizationContext: OrganizationContext | null = null;
 
@@ -1231,7 +1235,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const authResult = await verifyOrganizationWebhookAuth(organizationId, apiKeyHeader);
+    const authResult = await verifyOrganizationWebhookAuth(
+      organizationId,
+      apiKeyHeader,
+    );
     if (!authResult.ok) {
       await writeAuditLogSafe(
         "WAZUH_WEBHOOK_AUTH_FAILED",
@@ -1278,7 +1285,8 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         {
-          error: "Internal Server Error: Wazuh webhook secret is not configured",
+          error:
+            "Internal Server Error: Wazuh webhook secret is not configured",
         },
         { status: 500 },
       );

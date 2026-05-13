@@ -12,7 +12,7 @@ const webhookSchema = z.object({
   name: z.string().min(1),
   url: z.string().url(),
   event_types: z.array(z.string()).min(1)
-});
+}).strict();
 
 export async function GET() {
   const { orgId } = await auth();

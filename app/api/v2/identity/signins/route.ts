@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 
 const querySchema = z.object({
   hours: z.coerce.number().int().min(1).max(168).default(24),
-});
+}).strict();
 
 export async function GET(request: Request) {
   try {

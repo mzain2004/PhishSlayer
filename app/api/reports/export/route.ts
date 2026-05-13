@@ -11,7 +11,7 @@ const exportSchema = z.object({
   alertId: z.string().uuid().optional(),
   period: z.number().int().min(1).max(365).default(30),
   framework: z.enum(["nist", "iso27001", "soc2"]).default("nist"),
-});
+}).strict();
 
 export async function POST(req: NextRequest) {
   const { orgId } = await auth();

@@ -11,7 +11,7 @@ const createSchema = z.object({
   name: z.string().min(1),
   scopes: z.array(z.string()).default(['all']),
   expires_at: z.string().optional()
-});
+}).strict();
 
 export async function GET() {
   const { orgId } = await auth();

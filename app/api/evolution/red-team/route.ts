@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 const TriggerSchema = z.object({
   suite: z.enum(["l1", "l2"]),
-});
+}).strict();
 
 export async function GET(request: NextRequest) {
   const { userId, orgId } = await auth();

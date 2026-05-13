@@ -3,6 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { IngestionPipeline } from "@/lib/ingestion/pipeline";
 import { logger } from "@/lib/logger";
+import { rateLimit } from "@/lib/security/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -18,7 +19,7 @@ function getAdminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
+    { auth: { autoRefreshToken: false, persistSession: false } },
   );
 }
 
@@ -31,37 +32,111 @@ export async function POST(request: NextRequest) {
   const providedSecret = request.headers.get("x-wazuh-webhook-secret") ?? "";
   const expected = process.env.WAZUH_WEBHOOK_SECRET ?? "";
   if (!expected || !safeEqual(providedSecret, expected)) {
-    logger.warn("auth_failed", { route, request_id: requestId, user_id: null, org_id: null, error_code: "UNAUTHORIZED" });
+    logger.warn("auth_failed", {
+      route,
+      request_id: requestId,
+      user_id: null,
+      org_id: null,
+      error_code: "UNAUTHORIZED",
+    });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate limit by source IP (after signature verification to prevent timing attacks)
+  const clientIp = (request.headers
+    .get("x-forwarded-for")
+    ?.split(",")[0]
+    ?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown") as string;
+  const { allowed, retryAfterSeconds } = await rateLimit(
+    `webhook:wazuh:${clientIp}`,
+    1000,
+    60,
+  );
+  if (!allowed) {
+    logger.warn("rate_limit_exceeded", {
+      route,
+      request_id: requestId,
+      user_id: null,
+      org_id: null,
+      error_code: "RATE_LIMITED",
+      metadata: { client_ip: clientIp },
+    });
+    return NextResponse.json(
+      { error: "Too many requests" },
+      {
+        status: 429,
+        headers: { "Retry-After": retryAfterSeconds.toString() },
+      },
+    );
   }
 
   // Get orgId from query param or header (assuming multi-tenant webhook setup)
   const orgId = request.nextUrl.searchParams.get("organization_id");
   if (!orgId) {
-    logger.warn("validation_failed", { route, request_id: requestId, user_id: null, org_id: null, error_code: "MISSING_ORG_ID" });
-    return NextResponse.json({ error: "Missing organization_id" }, { status: 400 });
+    logger.warn("validation_failed", {
+      route,
+      request_id: requestId,
+      user_id: null,
+      org_id: null,
+      error_code: "MISSING_ORG_ID",
+    });
+    return NextResponse.json(
+      { error: "Missing organization_id" },
+      { status: 400 },
+    );
   }
 
-  logger.info("webhook_received", { route, request_id: requestId, user_id: null, org_id: orgId, metadata: { source: "wazuh" } });
+  logger.info("webhook_received", {
+    route,
+    request_id: requestId,
+    user_id: null,
+    org_id: orgId,
+    metadata: { source: "wazuh" },
+  });
 
   let rawAlert;
   try {
     rawAlert = await request.text(); // Pipeline parses strings
   } catch {
-    logger.warn("validation_failed", { route, request_id: requestId, user_id: null, org_id: orgId, error_code: "INVALID_BODY" });
+    logger.warn("validation_failed", {
+      route,
+      request_id: requestId,
+      user_id: null,
+      org_id: orgId,
+      error_code: "INVALID_BODY",
+    });
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const connectorId = '00000000-0000-0000-0000-000000000000'; // Default wazuh connector ID
+  const connectorId = "00000000-0000-0000-0000-000000000000"; // Default wazuh connector ID
 
   // Background processing - do not await
   const supabase = getAdminClient();
   const pipeline = new IngestionPipeline(supabase);
 
-  pipeline.ingestEvent(rawAlert, connectorId, orgId, 'wazuh').catch((_err) => {
-    logger.error("request_failed", { route, request_id: requestId, user_id: null, org_id: orgId, duration_ms: Date.now() - start, error_code: "PIPELINE_ERROR" });
+  pipeline.ingestEvent(rawAlert, connectorId, orgId, "wazuh").catch((_err) => {
+    logger.error("request_failed", {
+      route,
+      request_id: requestId,
+      user_id: null,
+      org_id: orgId,
+      duration_ms: Date.now() - start,
+      error_code: "PIPELINE_ERROR",
+    });
   });
 
-  logger.info("request_complete", { route, request_id: requestId, user_id: null, org_id: orgId, duration_ms: Date.now() - start, metadata: { source: "wazuh" } });
-  return NextResponse.json({ success: true, message: "Accepted" }, { status: 200 });
+  logger.info("request_complete", {
+    route,
+    request_id: requestId,
+    user_id: null,
+    org_id: orgId,
+    duration_ms: Date.now() - start,
+    metadata: { source: "wazuh" },
+  });
+  return NextResponse.json(
+    { success: true, message: "Accepted" },
+    { status: 200 },
+  );
 }

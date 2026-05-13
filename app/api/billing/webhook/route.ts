@@ -3,90 +3,94 @@ import { validateEvent } from "@polar-sh/sdk/webhooks";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
+import { rateLimit } from "@/lib/security/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const PolarTierSchema = z.enum(["free", "soc_pro", "command_center"]);
 
-const PolarWebhookSchema = z.object({
-  type: z.enum([
-    "subscription.created",
-    "subscription.updated",
-    "subscription.canceled",
-    "order.created",
-  ]),
-  data: z
-    .object({
-      metadata: z
-        .object({
-          orgId: z.string().optional(),
-          org_id: z.string().optional(),
-        })
-        .passthrough()
-        .optional(),
-      product: z
-        .object({
-          metadata: z
-            .object({ tier: PolarTierSchema.optional() })
-            .passthrough()
-            .optional(),
-        })
-        .passthrough()
-        .optional(),
-      subscription: z
-        .object({
-          metadata: z
-            .object({
-              orgId: z.string().optional(),
-              org_id: z.string().optional(),
-            })
-            .passthrough()
-            .optional(),
-          product: z
-            .object({
-              metadata: z
-                .object({ tier: PolarTierSchema.optional() })
-                .passthrough()
-                .optional(),
-            })
-            .passthrough()
-            .optional(),
-        })
-        .passthrough()
-        .optional(),
-      order: z
-        .object({
-          metadata: z
-            .object({
-              orgId: z.string().optional(),
-              org_id: z.string().optional(),
-            })
-            .passthrough()
-            .optional(),
-          items: z
-            .array(
-              z
-                .object({
-                  product: z
-                    .object({
-                      metadata: z
-                        .object({ tier: PolarTierSchema.optional() })
-                        .passthrough()
-                        .optional(),
-                    })
-                    .passthrough()
-                    .optional(),
-                })
-                .passthrough(),
-            )
-            .optional(),
-        })
-        .passthrough()
-        .optional(),
-    })
-    .passthrough(),
-});
+// Intentionally passthrough: Polar webhook payloads are provider-defined and evolve over time.
+const PolarWebhookSchema = z
+  .object({
+    type: z.enum([
+      "subscription.created",
+      "subscription.updated",
+      "subscription.canceled",
+      "order.created",
+    ]),
+    data: z
+      .object({
+        metadata: z
+          .object({
+            orgId: z.string().optional(),
+            org_id: z.string().optional(),
+          })
+          .passthrough()
+          .optional(),
+        product: z
+          .object({
+            metadata: z
+              .object({ tier: PolarTierSchema.optional() })
+              .passthrough()
+              .optional(),
+          })
+          .passthrough()
+          .optional(),
+        subscription: z
+          .object({
+            metadata: z
+              .object({
+                orgId: z.string().optional(),
+                org_id: z.string().optional(),
+              })
+              .passthrough()
+              .optional(),
+            product: z
+              .object({
+                metadata: z
+                  .object({ tier: PolarTierSchema.optional() })
+                  .passthrough()
+                  .optional(),
+              })
+              .passthrough()
+              .optional(),
+          })
+          .passthrough()
+          .optional(),
+        order: z
+          .object({
+            metadata: z
+              .object({
+                orgId: z.string().optional(),
+                org_id: z.string().optional(),
+              })
+              .passthrough()
+              .optional(),
+            items: z
+              .array(
+                z
+                  .object({
+                    product: z
+                      .object({
+                        metadata: z
+                          .object({ tier: PolarTierSchema.optional() })
+                          .passthrough()
+                          .optional(),
+                      })
+                      .passthrough()
+                      .optional(),
+                  })
+                  .passthrough(),
+              )
+              .optional(),
+          })
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+  })
+  .strict();
 
 function getOrgId(data: z.infer<typeof PolarWebhookSchema>["data"]) {
   return (
@@ -167,6 +171,36 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Invalid webhook signature" },
         { status: 400 },
+      );
+    }
+
+    // Rate limit by source IP (after signature verification to prevent timing attacks)
+    const clientIp = (request.headers
+      .get("x-forwarded-for")
+      ?.split(",")[0]
+      ?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown") as string;
+    const { allowed, retryAfterSeconds } = await rateLimit(
+      `webhook:polar:${clientIp}`,
+      100,
+      60,
+    );
+    if (!allowed) {
+      logger.warn("rate_limit_exceeded", {
+        route,
+        request_id: requestId,
+        user_id: null,
+        org_id: null,
+        error_code: "RATE_LIMITED",
+        metadata: { client_ip: clientIp },
+      });
+      return NextResponse.json(
+        { error: "Too many requests" },
+        {
+          status: 429,
+          headers: { "Retry-After": retryAfterSeconds.toString() },
+        },
       );
     }
 

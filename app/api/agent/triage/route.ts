@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
-import { auth } from '@clerk/nextjs/server';
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { groqComplete } from "@/lib/ai/groq";
 import { sanitizePromptInput } from "@/lib/security/sanitize";
@@ -19,7 +19,7 @@ const DecisionSchema = z.object({
   threat_indicators: z.array(z.string()),
   recommended_action: z.string().min(1),
   analyst_notes: z.string().min(1),
-});
+}).strict();
 
 const TenantIdSchema = z.string().uuid();
 
@@ -199,12 +199,13 @@ function deriveSeverityFromRecord(record: QueueRecord): Severity {
 }
 
 function buildFallbackDecision(record: QueueRecord, error: unknown): Decision {
-  console.error('[agent:triage] fallback decision', error);
+  console.error("[agent:triage] fallback decision", error);
   return {
     decision: "ESCALATE",
     severity: deriveSeverityFromRecord(record),
     confidence: 0,
-    reasoning: "Groq unavailable or invalid response. Escalating for manual review.",
+    reasoning:
+      "Groq unavailable or invalid response. Escalating for manual review.",
     mitre_context: "No MITRE context available due to model failure.",
     false_positive_indicators: [],
     threat_indicators: [
@@ -452,7 +453,10 @@ async function fetchPendingWazuhAlerts(
   };
 }
 
-function sanitizePromptField(value: string | null | undefined, maxLength = 500): string {
+function sanitizePromptField(
+  value: string | null | undefined,
+  maxLength = 500,
+): string {
   if (!value) {
     return "";
   }
@@ -470,7 +474,8 @@ function buildSafePromptPayload(record: QueueRecord): Record<string, unknown> {
     rule_description: sanitizePromptField(record.rule_description, 400),
     alert_type: "wazuh",
     threat_level:
-      typeof record.rule_level === "number" && Number.isFinite(record.rule_level)
+      typeof record.rule_level === "number" &&
+      Number.isFinite(record.rule_level)
         ? record.rule_level
         : null,
     source_ip: sanitizePromptField(record.src_ip || record.agent_ip, 64),
@@ -485,7 +490,10 @@ async function runGeminiTriage(record: QueueRecord): Promise<Decision> {
     }
 
     const safePayload = buildSafePromptPayload(record);
-    const modelText = await groqComplete(SYSTEM_PROMPT, JSON.stringify(safePayload));
+    const modelText = await groqComplete(
+      SYSTEM_PROMPT,
+      JSON.stringify(safePayload),
+    );
 
     const decisionJson = JSON.parse(stripCodeFence(modelText));
     const parsedDecision = DecisionSchema.safeParse(decisionJson);
@@ -702,10 +710,16 @@ async function processBatch(
         }
 
         if (item.source === "wazuh") {
-          await logWazuhLifecycle(adminClient, "action_taken", item, organizationId, {
-            decision,
-            actionTaken: "CLOSE",
-          });
+          await logWazuhLifecycle(
+            adminClient,
+            "action_taken",
+            item,
+            organizationId,
+            {
+              decision,
+              actionTaken: "CLOSE",
+            },
+          );
         }
 
         closed += 1;
@@ -750,6 +764,10 @@ async function processBatch(
                 })
                 .eq("id", item.id);
 
+        if (item.source === "wazuh" && organizationId) {
+          updateQuery.eq("organization_id", organizationId);
+        }
+
         const { error: updateError } = await updateQuery;
 
         if (updateError) {
@@ -759,11 +777,17 @@ async function processBatch(
         }
 
         if (item.source === "wazuh") {
-          await logWazuhLifecycle(adminClient, "action_taken", item, organizationId, {
-            decision,
-            actionTaken: "ESCALATE",
-            escalationId: escalationResult.escalationId,
-          });
+          await logWazuhLifecycle(
+            adminClient,
+            "action_taken",
+            item,
+            organizationId,
+            {
+              decision,
+              actionTaken: "ESCALATE",
+              escalationId: escalationResult.escalationId,
+            },
+          );
         }
 
         escalated += 1;
@@ -788,11 +812,17 @@ async function processBatch(
       errors += 1;
 
       if (item.source === "wazuh") {
-        await logWazuhLifecycle(adminClient, "action_taken", item, organizationId, {
-          decision: decision || undefined,
-          actionTaken: "ERROR",
-          error,
-        });
+        await logWazuhLifecycle(
+          adminClient,
+          "action_taken",
+          item,
+          organizationId,
+          {
+            decision: decision || undefined,
+            actionTaken: "ERROR",
+            error,
+          },
+        );
       }
 
       console.error("[L1 triage] Failed to process record", {

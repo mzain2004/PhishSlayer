@@ -14,7 +14,7 @@ const bodySchema = z.object({
   domText: z.string().max(50000),
   target: z.string().min(1).max(253),
   existingRiskScore: z.number().min(0).max(100),
-});
+}).strict();
 
 const SYSTEM_PROMPT = `You are a cybersecurity AI specializing in phishing and social engineering detection. Analyze the provided webpage text and identify:
 1. Psychological manipulation tactics (urgency, fear, scarcity, authority)

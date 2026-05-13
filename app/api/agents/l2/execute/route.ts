@@ -13,7 +13,7 @@ const ExecuteSchema = z.object({
   approved: z.boolean(),
   approvedBy: z.string().min(1),
   rejectReason: z.string().optional(),
-});
+}).strict();
 
 export async function POST(request: NextRequest) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();

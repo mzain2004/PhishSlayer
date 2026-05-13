@@ -16,7 +16,7 @@ const GenerateKeySchema = z.object({
   name: z.string().trim().min(1).max(120),
   manager_ip: z.string().trim().min(1).max(255).optional().nullable(),
   organization_id: z.string().uuid().optional(),
-});
+}).strict();
 
 const WEBHOOK_BASE_URL = "https://phishslayer.tech/api/connectors/wazuh";
 const BCRYPT_ROUNDS = 12;

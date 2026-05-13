@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { parseSigmaRule } from '@/lib/detection/sigmaParser';
 import { z } from 'zod';
 
-const schema = z.object({ ruleContent: z.string(), type: z.string() });
+const schema = z.object({ ruleContent: z.string(), type: z.string() }).strict();
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

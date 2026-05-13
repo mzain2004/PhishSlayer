@@ -12,7 +12,7 @@ const watchlistSchema = z.object({
   entity_value: z.string().min(1),
   reason: z.string().optional(),
   expires_at: z.string().optional()
-});
+}).strict();
 
 export async function GET(req: Request) {
   const { userId } = await auth();

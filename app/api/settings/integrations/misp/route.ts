@@ -3,15 +3,18 @@ import { auth } from "@clerk/nextjs/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { apiSuccess, apiError, API_CODES } from "@/lib/api/response";
 import { z } from "zod";
+import { requireRole } from "@/lib/security/rbac";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const mispSchema = z.object({
-  misp_url: z.string().url(),
-  misp_api_key: z.string().min(10),
-  misp_ssl: z.boolean().default(true),
-});
+const mispSchema = z
+  .object({
+    misp_url: z.string().url(),
+    misp_api_key: z.string().min(10),
+    misp_ssl: z.boolean().default(true),
+  })
+  .strict();
 
 export async function GET() {
   const { orgId } = await auth();
@@ -24,14 +27,21 @@ export async function GET() {
     .eq("provider", "misp")
     .maybeSingle();
 
-  if (error) return apiError(API_CODES.INTERNAL_ERROR, "Failed to fetch MISP config", 500);
+  if (error)
+    return apiError(
+      API_CODES.INTERNAL_ERROR,
+      "Failed to fetch MISP config",
+      500,
+    );
 
   return apiSuccess({ connected: !!data, integration: data ?? null });
 }
 
 export async function POST(req: NextRequest) {
-  const { orgId, userId } = await auth();
-  if (!orgId || !userId) return apiError(API_CODES.UNAUTHORIZED, "Unauthorized", 401);
+  const guard = await requireRole(["org:owner", "org:admin"]);
+  if (!guard.ok) return guard.response;
+
+  const { orgId, userId } = guard;
 
   let body: unknown;
   try {
@@ -56,17 +66,24 @@ export async function POST(req: NextRequest) {
       credentials: { misp_api_key },
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "organization_id,provider" }
+    { onConflict: "organization_id,provider" },
   );
 
-  if (error) return apiError(API_CODES.INTERNAL_ERROR, "Failed to save MISP config", 500);
+  if (error)
+    return apiError(
+      API_CODES.INTERNAL_ERROR,
+      "Failed to save MISP config",
+      500,
+    );
 
   return apiSuccess({ message: "MISP integration saved" });
 }
 
 export async function DELETE() {
-  const { orgId } = await auth();
-  if (!orgId) return apiError(API_CODES.UNAUTHORIZED, "Unauthorized", 401);
+  const guard = await requireRole(["org:owner", "org:admin"]);
+  if (!guard.ok) return guard.response;
+
+  const { orgId } = guard;
 
   const { error } = await supabaseAdmin
     .from("integrations")
@@ -74,7 +91,12 @@ export async function DELETE() {
     .eq("organization_id", orgId)
     .eq("provider", "misp");
 
-  if (error) return apiError(API_CODES.INTERNAL_ERROR, "Failed to remove MISP config", 500);
+  if (error)
+    return apiError(
+      API_CODES.INTERNAL_ERROR,
+      "Failed to remove MISP config",
+      500,
+    );
 
   return apiSuccess({ message: "MISP integration removed" });
 }

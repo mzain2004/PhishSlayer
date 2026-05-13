@@ -23,7 +23,7 @@ const connectorSchema = z.object({
   connector_type: z.enum(['edr', 'siem', 'firewall', 'wazuh']),
   display_name: z.string(),
   config: z.record(z.string(), z.any()),
-});
+}).strict();
 
 export async function GET(req: NextRequest) {
   const { orgId } = await auth();

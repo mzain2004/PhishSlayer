@@ -15,7 +15,7 @@ const feedbackSchema = z.object({
   source_ip: z.string().optional(),
   rule_id: z.string().optional(),
   original_action: z.string().optional().default("escalated"),
-});
+}).strict();
 
 export async function POST(
   req: Request,

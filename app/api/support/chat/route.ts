@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 
 const BodySchema = z.object({
   message: z.string().trim().min(1).max(2000),
-});
+}).strict();
 
 function createServiceRoleClient() {
   return createClient(

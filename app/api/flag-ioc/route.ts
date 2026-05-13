@@ -58,11 +58,11 @@ const eventSchema = z.object({
   timestamp: z.string().optional(),
   threatLevel: z.string().optional(),
   source: z.string().optional().default("agent_telemetry"),
-});
+}).strict();
 
 const bodySchema = z.object({
   events: z.array(eventSchema).min(1),
-});
+}).strict();
 
 function isPrivateIp(ip: string): boolean {
   const ipType = net.isIP(ip);

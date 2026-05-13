@@ -13,7 +13,7 @@ const schema = z.object({
   agentId: z.string().min(1),
   processId: z.string().min(1),
   caseId: z.string().optional(),
-});
+}).strict();
 
 export async function POST(req: Request) {
   const { userId } = await auth();

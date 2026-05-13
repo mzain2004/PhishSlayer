@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 
 const QuerySchema = z.object({
   organization: z.string().uuid().optional(),
-});
+}).strict();
 
 const WEBHOOK_BASE_URL = "https://phishslayer.tech/api/connectors/wazuh";
 

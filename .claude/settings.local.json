@@ -107,7 +107,11 @@
       "Bash(Select-String -Pattern \"compiled|error|failed|warn|✓|Route\" --AllMatches)",
       "Bash(Get-Content *)",
       "Bash(Select-Object -First 80)",
-      "PowerShell(Rename-Item *)"
+      "PowerShell(Rename-Item *)",
+      "Bash(Get-ChildItem -Path \"app\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(git -C \"D:\\\\Phish Slayer\" status --short)",
+      "Bash(git *)"
     ]
   },
   "enableAllProjectMcpServers": true,

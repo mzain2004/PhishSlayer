@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { tagAlertWithMitre } from '@/lib/mitre/tagger';
 import { z } from "zod";
 
-const schema = z.object({ alertId: z.string().optional(), caseId: z.string().optional() });
+const schema = z.object({ alertId: z.string().optional(), caseId: z.string().optional() }).strict();
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

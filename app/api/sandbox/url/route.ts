@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 const UrlScanSchema = z.object({
   urls: z.array(z.string().url()),
-});
+}).strict();
 
 export async function POST(req: NextRequest) {
   const { userId, orgId } = await auth();

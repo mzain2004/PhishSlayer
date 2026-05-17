@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     return new Response(pdfBuffer, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="phish-slayer-identity-report-${new Date().toISOString().split("T")[0]}.pdf"`,
+        "Content-Disposition": `attachment; filename="phishslayer-identity-report-${new Date().toISOString().split("T")[0]}.pdf"`,
       },
     });
   } catch (error) {

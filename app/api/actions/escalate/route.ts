@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
               color: severityColorMap[payload.severity],
               fields: embedFields,
               footer: {
-                text: "Phish-Slayer Autonomous SOC | L1 Agent Escalation",
+                text: "PhishSlayer Autonomous SOC | L1 Agent Escalation",
               },
               timestamp: new Date().toISOString(),
             },

@@ -92,10 +92,10 @@ export async function POST(request: Request) {
           body: JSON.stringify({
             from: `PhishSlayer <${SUPPORT_EMAIL}>`,
             to: [email],
-            subject: "Welcome to Phish-Slayer Updates",
+            subject: "Welcome to PhishSlayer Updates",
             html: `
               <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #2DD4BF;">Welcome to Phish-Slayer 🛡️</h2>
+                <h2 style="color: #2DD4BF;">Welcome to PhishSlayer 🛡️</h2>
                 <p>Thanks for subscribing! You'll be the first to know about:</p>
                 <ul>
                   <li>New threat intelligence features</li>
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
                   style="background: #2DD4BF; color: #0D1117;
                   padding: 12px 24px; border-radius: 6px;
                   text-decoration: none; display: inline-block;">
-                  Visit Phish-Slayer
+                  Visit PhishSlayer
                 </a>
                 <p style="color: #8B949E; margin-top: 24px; font-size: 12px;">
                   You can unsubscribe at any time by replying to this email.

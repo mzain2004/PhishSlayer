@@ -15,9 +15,12 @@ const validHypothesisIds = Object.keys(HYPOTHESES) as [string, ...string[]];
 // user-supplied input.
 const schema = z
   .object({
-    hypothesis_id: z.enum(validHypothesisIds),
+    ioc: z.string().min(1).max(500).optional(),
+    hypothesis_id: z.enum(validHypothesisIds).optional(),
   })
-  .strict();
+  .refine(d => d.ioc || d.hypothesis_id, {
+    message: "Either ioc or hypothesis_id required",
+  });
 
 export async function POST(req: Request) {
   const { userId, orgId } = await auth();
@@ -34,11 +37,23 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
-    const { hypothesis_id } = parsed.data;
+    const { hypothesis_id, ioc } = parsed.data;
 
     const supabase = await createClient();
     const engine = new HuntEngine(supabase);
-    const mission = await engine.runHunt(hypothesis_id, orgId);
+    let resolvedHypothesis = hypothesis_id;
+    if (!resolvedHypothesis && ioc) {
+      const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+      const hashRegex = /^[a-fA-F0-9]{32,64}$/;
+      const urlRegex = /^https?:\/\//;
+      if (ipRegex.test(ioc)) resolvedHypothesis = "c2_beacon_detection";
+      else if (hashRegex.test(ioc)) resolvedHypothesis = "malware_execution";
+      else if (urlRegex.test(ioc)) resolvedHypothesis = "dns_tunneling";
+      else resolvedHypothesis = "lateral_movement";
+      const available = Object.keys(HYPOTHESES);
+      if (!available.includes(resolvedHypothesis)) resolvedHypothesis = available[0];
+    }
+    const mission = await engine.runHunt(resolvedHypothesis!, orgId);
 
     return NextResponse.json(mission);
   } catch (err) {

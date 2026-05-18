@@ -314,6 +314,10 @@ jobs:
             docker compose ps
           ENDSSH
 
+      - name: Post-deploy security check
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} 'bash /home/mzain2004/Phish-Slayer/scripts/security-check.sh'
+
       - name: Notify Discord on success
         if: success()
         run: |

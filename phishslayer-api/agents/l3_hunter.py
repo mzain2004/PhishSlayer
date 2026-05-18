@@ -12,7 +12,7 @@ import os
 import json
 import requests
 from groq import Groq
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Optional
 from dotenv import load_dotenv
 from pathlib import Path
@@ -21,6 +21,7 @@ load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env.local")
 from harness.page_index_rag import DocumentTree
 from harness.verify_interface import VerifyInterface
 from harness.state_store import StateStore
+from services.stix_exporter import STIXExporter
 
 
 @dataclass
@@ -56,6 +57,7 @@ class HuntResult:
     incident_summary: str
     patch_recommendations: list[str]
     requires_human_approval: bool
+    stix_bundle: Optional[dict] = field(default=None)
 
 
 class L3HunterAgent:
@@ -79,6 +81,7 @@ class L3HunterAgent:
         self.verify = verify
         self.doc_tree = doc_tree or DocumentTree()
         self.state_store = state_store
+        self.stix_exporter = STIXExporter()
 
     async def hunt(self, l2_result: dict, org_id: str) -> HuntResult:
         """
@@ -94,6 +97,7 @@ class L3HunterAgent:
             intel = self._reader(l2_result)
             osint = self._hunter(l2_result)
             result = self._reviewer(alert_id, org_id, l2_result, intel, osint)
+            result.stix_bundle = self.stix_exporter.export_hunt_result(asdict(result))
             self.verify.log_agent_action(session_id, "l3_hunter", asdict(result))
 
             # Persist to MongoDB

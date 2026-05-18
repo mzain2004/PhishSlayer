@@ -10,7 +10,7 @@ Phase 4 implementation.
 import os
 import json
 from groq import Groq
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Optional
 from harness.lifecycle_hooks import LifecycleHooks, GateDecision, ALWAYS_REQUIRE_HUMAN
 from harness.verify_interface import VerifyInterface
@@ -49,6 +49,7 @@ class InvestigationResult:
     escalate_to_l3: bool
     requires_human_approval: bool
     verdict: str    # "escalate"|"contain"|"close"|"human_required"
+    diamond_model: dict = field(default_factory=dict)
 
 
 class L2InvestigatorAgent:
@@ -87,10 +88,12 @@ class L2InvestigatorAgent:
             opplan = self._generate_opplan(l1_json)
             red_pivot = self._red_hat_pivot(l1_json, asdict(opplan))
             blue_response = self._blue_hat_response(l1_json, asdict(opplan), red_pivot)
+            diamond = self._diamond_analysis(l1_json, asdict(opplan), red_pivot, blue_response)
             result = self._apply_consequence_gates(
                 l1_result.alert_id, l1_result.org_id,
                 opplan, blue_response, org_scope
             )
+            result.diamond_model = diamond
             self.verify.log_agent_action(session_id, "l2_investigator", asdict(result))
 
             # Persist to MongoDB
@@ -219,6 +222,57 @@ quarantine_file, add_watchlist, close_false_positive"""
             messages=[{"role": "user", "content": prompt}]
         )
         return self._parse_json_safe(response.choices[0].message.content, "blue_response")
+
+    def _diamond_analysis(self, l1_json: dict, opplan: dict, red_pivot: dict, blue_response: dict) -> dict:
+        """
+        Diamond Model of Intrusion Analysis.
+        Maps the incident across 4 axes: Adversary, Capability, Infrastructure, Victim.
+        DO NOT modify the existing OPPLAN/red/blue logic — this runs alongside them.
+        """
+        prompt = f"""You are a threat intelligence analyst applying the Diamond Model of Intrusion Analysis.
+Map this incident across the 4 Diamond Model axes. Do NOT repeat OPPLAN steps — focus on attribution context.
+
+The Diamond Model axes:
+  Adversary   — who is attacking (identity, motivation, sophistication)
+  Capability  — what tools, techniques, malware they employed
+  Infrastructure — C2 servers, hosting, domains, relay points
+  Victim      — who was targeted, why them, what assets at risk
+
+L1 Findings: {json.dumps(l1_json, indent=2)}
+OPPLAN: {json.dumps(opplan, indent=2)}
+Red Team Pivot: {json.dumps(red_pivot, indent=2)}
+Blue Response: {json.dumps(blue_response, indent=2)}
+
+Return ONLY valid JSON:
+{{
+  "adversary": {{
+    "identity": "<nation-state|criminal|insider|unknown>",
+    "motivation": "<financial|espionage|disruption|unknown>",
+    "sophistication": "<low|medium|high|apt>"
+  }},
+  "capability": {{
+    "tools": ["<tool1>"],
+    "techniques": ["<T1234>"],
+    "malware_suspected": "<name or none>"
+  }},
+  "infrastructure": {{
+    "c2_indicators": ["<ip or domain>"],
+    "hosting_type": "<datacenter|residential|tor|unknown>",
+    "infrastructure_reuse": "<likely|unlikely|unknown>"
+  }},
+  "victim": {{
+    "targeting": "<opportunistic|targeted>",
+    "assets_at_risk": ["<asset1>"],
+    "crown_jewels_proximity": "<low|medium|high>"
+  }},
+  "meta_feature": "<key activity linking all 4 axes in one sentence>"
+}}"""
+
+        response = self.groq.chat.completions.create(
+            model=self.MODEL, max_tokens=800,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return self._parse_json_safe(response.choices[0].message.content, "diamond")
 
     def _apply_consequence_gates(
         self, alert_id: str, org_id: str,

@@ -15,6 +15,7 @@ from typing import Optional
 from harness.lifecycle_hooks import LifecycleHooks, GateDecision, ALWAYS_REQUIRE_HUMAN
 from harness.verify_interface import VerifyInterface
 from harness.state_store import StateStore
+from services.threat_feeds import ThreatFeedEnricher
 
 
 @dataclass
@@ -65,6 +66,7 @@ class L1TriageAgent:
         self.hooks = lifecycle_hooks
         self.verify = verify
         self.state_store = state_store
+        self.enricher = ThreatFeedEnricher()
 
     async def triage(self, alert_id: str, org_id: str, raw_alert: dict) -> TriageResult:
         """
@@ -77,8 +79,10 @@ class L1TriageAgent:
         session_id = None
         try:
             session_id = self.verify.start_session(alert_id, name="l1_triage")
-            red_findings = self._red_hat(alert_id, raw_alert)
-            blue_findings = self._blue_hat(alert_id, raw_alert, red_findings)
+            enrichment_map = await self.enricher.enrich_alert(raw_alert)
+            threat_context = self._enrichment_summary(enrichment_map)
+            red_findings = self._red_hat(alert_id, raw_alert, threat_context)
+            blue_findings = self._blue_hat(alert_id, raw_alert, red_findings, threat_context)
             result = self._build_result(alert_id, org_id, red_findings, blue_findings)
             self.verify.log_agent_action(session_id, "l1_triage", asdict(result))
             
@@ -94,13 +98,27 @@ class L1TriageAgent:
                 self.verify.end_session(session_id, "Fail")
             return self._safe_fallback(alert_id, org_id, str(e))
 
-    def _red_hat(self, alert_id: str, raw_alert: dict) -> dict:
+    def _enrichment_summary(self, enrichment_map: dict) -> str:
+        """Convert enrichment results to a compact context string for LLM prompts."""
+        if not enrichment_map:
+            return "No external threat intelligence available."
+        parts = []
+        for ioc_val, enrichment in enrichment_map.items():
+            summary = enrichment.threat_summary_for_llm
+            if "No threat" not in summary:
+                parts.append(f"{ioc_val}: {summary}")
+        return "\n".join(parts) if parts else "No threat intelligence matches found in monitored feeds."
+
+    def _red_hat(self, alert_id: str, raw_alert: dict, threat_context: str = "") -> dict:
         """Call 1: attacker perspective. Returns structured dict."""
         prompt = f"""You are an expert red team operator analyzing a security alert.
 Think like the attacker who caused this alert.
 
 Alert data:
 {json.dumps(raw_alert, indent=2)}
+
+External threat intelligence (pre-enriched from ThreatFox/AbuseIPDB/URLHaus):
+{threat_context}
 
 Return ONLY valid JSON — no preamble, no markdown fences, no explanation:
 {{
@@ -119,7 +137,7 @@ Return ONLY valid JSON — no preamble, no markdown fences, no explanation:
         raw = response.choices[0].message.content.strip()
         return self._parse_json_safe(raw, "red_hat", alert_id)
 
-    def _blue_hat(self, alert_id: str, raw_alert: dict, red_findings: dict) -> dict:
+    def _blue_hat(self, alert_id: str, raw_alert: dict, red_findings: dict, threat_context: str = "") -> dict:
         """
         Call 2: defender perspective informed by red hat.
         Receives red_findings dict only — NOT full conversation history.
@@ -132,6 +150,9 @@ Original alert:
 
 Red team analysis:
 {json.dumps(red_findings, indent=2)}
+
+External threat intelligence:
+{threat_context}
 
 Return ONLY valid JSON — no preamble, no markdown fences, no explanation:
 {{

@@ -12,6 +12,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const supabase = await createClient();
+
+  const { data: caseData } = await supabase
+    .from('cases')
+    .select('id')
+    .eq('id', id)
+    .eq('organization_id', orgId)
+    .single();
+
+  if (!caseData) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
   const { data: records } = await supabase
     .from('forensic_custody')
     .select('*')

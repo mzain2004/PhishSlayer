@@ -6,8 +6,8 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const { userId } = await auth();
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { userId, orgId } = await auth();
+    if (!userId || !orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
     const supabase = await createClient();
@@ -16,9 +16,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         .from('cases')
         .select('*')
         .eq('id', id)
+        .eq('organization_id', orgId)
         .single();
 
-    if (caseError) return NextResponse.json({ error: caseError.message }, { status: 500 });
+    if (caseError || !caseData) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const { data: timeline } = await supabase
         .from('case_timeline')

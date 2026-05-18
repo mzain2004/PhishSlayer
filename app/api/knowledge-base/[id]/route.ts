@@ -22,8 +22,8 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { userId } = await auth();
-  if (!userId)
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
@@ -32,13 +32,11 @@ export async function GET(
     .from("knowledge_base")
     .select("*")
     .eq("id", id)
+    .eq("organization_id", orgId)
     .single();
 
-  if (error)
-    return NextResponse.json(
-      { error: "INTERNAL_SERVER_ERROR" },
-      { status: 500 },
-    );
+  if (error || !data)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(data);
 }
 
@@ -46,8 +44,8 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { userId } = await auth();
-  if (!userId)
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
@@ -62,14 +60,12 @@ export async function PUT(
       .from("knowledge_base")
       .update({ ...body, updated_at: new Date().toISOString() })
       .eq("id", id)
+      .eq("organization_id", orgId)
       .select()
       .single();
 
-    if (error)
-      return NextResponse.json(
-        { error: "INTERNAL_SERVER_ERROR" },
-        { status: 500 },
-      );
+    if (error || !data)
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
@@ -86,9 +82,14 @@ export async function DELETE(
   const guard = await requireRole(["org:owner", "org:admin"]);
   if (!guard.ok) return guard.response;
 
+  const { orgId } = guard;
   const { id } = await params;
   const supabase = await createClient();
-  const { error } = await supabase.from("knowledge_base").delete().eq("id", id);
+  const { error } = await supabase
+    .from("knowledge_base")
+    .delete()
+    .eq("id", id)
+    .eq("organization_id", orgId);
 
   if (error)
     return NextResponse.json(

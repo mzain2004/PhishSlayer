@@ -25,6 +25,7 @@ export async function PUT(
   const guard = await requireRole(["org:owner", "org:admin"]);
   if (!guard.ok) return guard.response;
 
+  const { orgId } = guard;
   const { id } = await params;
 
   try {
@@ -36,14 +37,12 @@ export async function PUT(
       .from("suppression_rules")
       .update(validatedData)
       .eq("id", id)
+      .eq("organization_id", orgId)
       .select()
       .single();
 
-    if (error)
-      return NextResponse.json(
-        { error: "INTERNAL_SERVER_ERROR" },
-        { status: 500 },
-      );
+    if (error || !data)
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(data);
   } catch (error) {
     if (error instanceof z.ZodError)
@@ -62,13 +61,15 @@ export async function DELETE(
   const guard = await requireRole(["org:owner", "org:admin"]);
   if (!guard.ok) return guard.response;
 
+  const { orgId } = guard;
   const { id } = await params;
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("suppression_rules")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("organization_id", orgId);
 
   if (error)
     return NextResponse.json(

@@ -63,6 +63,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    console.error('api_error', {
+      route: '/api/waitlist',
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
   }
 }

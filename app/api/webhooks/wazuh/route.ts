@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { IngestionPipeline } from "@/lib/ingestion/pipeline";
 import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/security/rate-limit";
+import { WazuhAlertSchema } from "@/lib/schemas/wazuh-webhook.schema";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
     "unknown") as string;
   const { allowed, retryAfterSeconds } = await rateLimit(
     `webhook:wazuh:${clientIp}`,
-    1000,
+    200,
     60,
   );
   if (!allowed) {
@@ -96,18 +97,36 @@ export async function POST(request: NextRequest) {
     metadata: { source: "wazuh" },
   });
 
-  let rawAlert;
+  const rawAlert = await request.text();
+
+  let parsedBody: unknown;
   try {
-    rawAlert = await request.text(); // Pipeline parses strings
+    parsedBody = JSON.parse(rawAlert);
   } catch {
     logger.warn("validation_failed", {
       route,
       request_id: requestId,
       user_id: null,
       org_id: orgId,
-      error_code: "INVALID_BODY",
+      error_code: "INVALID_JSON",
     });
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const parseResult = WazuhAlertSchema.safeParse(parsedBody);
+  if (!parseResult.success) {
+    console.error("wazuh_webhook_validation_failed", {
+      errors: parseResult.error.issues.map((e) => ({ path: e.path, message: e.message })),
+      source_ip: clientIp,
+    });
+    logger.warn("validation_failed", {
+      route,
+      request_id: requestId,
+      user_id: null,
+      org_id: orgId,
+      error_code: "INVALID_PAYLOAD",
+    });
+    return NextResponse.json({ error: "Invalid payload structure" }, { status: 422 });
   }
 
   const connectorId = "00000000-0000-0000-0000-000000000000"; // Default wazuh connector ID

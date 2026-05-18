@@ -54,9 +54,25 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  poweredByHeader: false,
   serverExternalPackages: ["ssh2"],
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [
+      { source: "/(.*)", headers: securityHeaders },
+      {
+        source: "/api/(.*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "default-src 'none'; frame-ancestors 'none'",
+          },
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate",
+          },
+        ],
+      },
+    ];
   },
   experimental: {
     optimizePackageImports: [

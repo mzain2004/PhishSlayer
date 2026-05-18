@@ -11,6 +11,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+from utils.safe_path import safe_path
 
 
 @dataclass
@@ -41,8 +42,9 @@ class DocumentTree:
         Never raises — logs and returns 0 on failure.
         """
         try:
-            source = Path(path).name
-            with pdfplumber.open(path) as pdf:
+            safe_file = safe_path(path, directory="rag_docs")
+            source = safe_file.name
+            with pdfplumber.open(safe_file) as pdf:
                 full_text = ""
                 page_map = {}
                 for i, page in enumerate(pdf.pages):

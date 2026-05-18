@@ -17,6 +17,57 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: SCA - Dependency Audit
+        run: |
+          npm audit --audit-level=high --json > audit-report.json || true
+          node -e "
+            const r = require('./audit-report.json');
+            const crits = r.metadata?.vulnerabilities?.critical || 0;
+            const highs = r.metadata?.vulnerabilities?.high || 0;
+            if (crits > 0) { console.error('CRITICAL vulns found:', crits); process.exit(1); }
+            if (highs > 5) { console.error('Too many HIGH vulns:', highs); process.exit(1); }
+            console.log('SCA passed. Critical:', crits, 'High:', highs);
+          "
+
+      - name: SAST - Semgrep
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: >-
+            p/nodejs
+            p/typescript
+            p/nextjs
+            p/secrets
+            p/owasp-top-ten
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: Secret Scan - TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
   pre-deploy-checks:
     name: Pre-Deploy Checks
     runs-on: ubuntu-latest
@@ -73,7 +124,7 @@ jobs:
   build-and-push:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    needs: pre-deploy-checks
+    needs: [pre-deploy-checks, security-scan]
     if: needs.pre-deploy-checks.outputs.should_deploy == 'true'
     timeout-minutes: 20
     env:
@@ -122,6 +173,15 @@ jobs:
             AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
             NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+
+      - name: Container Scan - Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ghcr.io/mzain2004/phish-slayer:latest'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
 
       - name: Build and push API image
         uses: docker/build-push-action@v5

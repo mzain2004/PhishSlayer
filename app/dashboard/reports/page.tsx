@@ -5,6 +5,7 @@ export const runtime = 'nodejs';
 
 import { useEffect, useState } from 'react';
 import { IDownload, IExternal, IPlus, IShield, IX } from '@/components/ui/icons';
+import { TLPBadge, TLPSelector, type TLPLevel } from '@/components/ui/TLPBadge';
 
 interface Report {
   id: string;
@@ -14,27 +15,29 @@ interface Report {
   alerts: number;
   size: string;
   desc: string;
+  tlp_level?: string;
 }
 
 const REPORT_DATA: Report[] = [
   { id: 'r001', name: 'Weekly Executive Briefing', type: 'executive', date: '2026-05-10', alerts: 247, size: '1.2 MB',
-    desc: 'High-level summary of threat landscape, MTTR trends, and top incidents for leadership.' },
+    desc: 'High-level summary of threat landscape, MTTR trends, and top incidents for leadership.', tlp_level: 'amber' },
   { id: 'r002', name: 'APT-41 Campaign Deep-Dive', type: 'threat-intel', date: '2026-05-10', alerts: 12, size: '3.8 MB',
-    desc: 'Full technical breakdown of APT-41 credential harvesting campaign targeting M365.' },
+    desc: 'Full technical breakdown of APT-41 credential harvesting campaign targeting M365.', tlp_level: 'red' },
   { id: 'r003', name: 'ISO 27001 Compliance Audit', type: 'compliance', date: '2026-05-08', alerts: 98, size: '2.1 MB',
-    desc: 'Automated compliance evidence export covering all active controls for auditors.' },
+    desc: 'Automated compliance evidence export covering all active controls for auditors.', tlp_level: 'amber' },
   { id: 'r004', name: 'Daily Ops Report — May 9', type: 'technical', date: '2026-05-09', alerts: 219, size: '0.8 MB',
-    desc: 'Full incident log with agent decisions, latency breakdown, and FP analysis.' },
+    desc: 'Full incident log with agent decisions, latency breakdown, and FP analysis.', tlp_level: 'amber' },
   { id: 'r005', name: 'Credential Stuffing Postmortem', type: 'technical', date: '2026-05-07', alerts: 6, size: '1.5 MB',
-    desc: 'Root cause analysis and timeline reconstruction for the May 7 stuffing wave.' },
+    desc: 'Root cause analysis and timeline reconstruction for the May 7 stuffing wave.', tlp_level: 'amber' },
   { id: 'r006', name: 'SOC KPI Monthly Summary — April', type: 'executive', date: '2026-04-30', alerts: 2810, size: '0.9 MB',
-    desc: 'Monthly KPIs: MTTR, auto-close rate, agent performance, FP rate trends.' },
+    desc: 'Monthly KPIs: MTTR, auto-close rate, agent performance, FP rate trends.', tlp_level: 'green' },
 ];
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>(REPORT_DATA);
   const [showModal, setShowModal] = useState(false);
   const [reportType, setReportType] = useState('executive');
+  const [reportTlp, setReportTlp] = useState<TLPLevel>('amber');
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
 
@@ -71,9 +74,12 @@ export default function ReportsPage() {
           <div key={r.id} className="report-card">
             <div className="rc-head">
               <h3 className="rc-title">{r.name}</h3>
-              <span className={`rc-type ${r.type}`}>
-                {r.type === 'threat-intel' ? 'THREAT INTEL' : r.type.toUpperCase()}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <TLPBadge level={(r.tlp_level as TLPLevel) ?? 'amber'} size="sm" />
+                <span className={`rc-type ${r.type}`}>
+                  {r.type === 'threat-intel' ? 'THREAT INTEL' : r.type.toUpperCase()}
+                </span>
+              </div>
             </div>
             <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{r.desc}</div>
             <div className="rc-meta">
@@ -126,6 +132,7 @@ export default function ReportsPage() {
                   <option>JSON only</option>
                 </select>
               </div>
+              <TLPSelector value={reportTlp} onChange={setReportTlp} />
             </div>
             <div className="modal-actions">
               <button className="btn" onClick={() => setShowModal(false)}>Cancel</button>

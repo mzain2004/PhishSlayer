@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import {
   IChevRight, IChevDown, ISearch, IPlus,
 } from '@/components/ui/icons';
+import { TLPBadge, type TLPLevel } from '@/components/ui/TLPBadge';
 
 type Severity = 'critical' | 'high' | 'medium' | 'low';
 type Status = 'triaging' | 'escalated' | 'responded' | 'closed' | 'fp' | 'pending';
@@ -28,6 +29,7 @@ interface Alert {
   resolved: boolean;
   blast_radius: BlastRadius;
   fp_probability: number;
+  tlp_level?: string;
   proposed_action?: string;
   proposed_action_short?: string;
   side_effects?: string[];
@@ -59,6 +61,7 @@ function mapApiAlert(raw: Record<string, unknown>): Alert {
     resolved: status === 'closed' || status === 'fp' || Boolean(raw.acknowledged_at),
     blast_radius: 'user',
     fp_probability: typeof raw.fp_probability === 'number' ? raw.fp_probability : 0,
+    tlp_level: typeof raw.tlp_level === 'string' ? raw.tlp_level : undefined,
   };
 }
 
@@ -147,7 +150,12 @@ function AlertRow({ alert, selected, flashing, onClick, resolved }: { alert: Ale
       tabIndex={0}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
     >
-      <td><SeverityBadge severity={alert.severity} /></td>
+      <td>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <SeverityBadge severity={alert.severity} />
+          <TLPBadge level={(alert.tlp_level as TLPLevel) ?? 'amber'} size="sm" />
+        </div>
+      </td>
       <td>
         <div className="attack-cell">
           <span>{alert.attack}</span>
@@ -183,6 +191,7 @@ function AlertCard({ alert, selected, flashing, onClick, resolved }: { alert: Al
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
         <SeverityBadge severity={alert.severity} />
+        <TLPBadge level={(alert.tlp_level as TLPLevel) ?? 'amber'} size="sm" />
         <StatusBadge status={alert.status} />
         <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-tertiary)' }}>
           {ageString(alert.age_seconds)}

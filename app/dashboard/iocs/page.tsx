@@ -4,8 +4,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 import { useEffect, useRef, useState } from 'react';
-import { IChevDown, IChevRight, ICheck, ICrosshair, IDownload, IPlus, ISearch, IX } from '@/components/ui/icons';
-import { TLPBadge, TLPSelector, type TLPLevel } from '@/components/ui/TLPBadge';
+import { IChevDown, IChevRight, ICheck, ICrosshair, IDownload, IPlus, ISearch } from '@/components/ui/icons';
 
 interface IOC {
   id: string;
@@ -20,7 +19,6 @@ interface IOC {
   raw: Record<string, string>;
   related_alerts: string[];
   tags: string[];
-  tlp_level: string;
 }
 
 function mapApiIoc(raw: Record<string, unknown>): IOC {
@@ -43,7 +41,6 @@ function mapApiIoc(raw: Record<string, unknown>): IOC {
     raw: (typeof raw.raw === 'object' && raw.raw !== null ? raw.raw : {}) as Record<string, string>,
     related_alerts: Array.isArray(raw.related_alerts) ? (raw.related_alerts as string[]) : [],
     tags: Array.isArray(raw.tags) ? (raw.tags as string[]) : [],
-    tlp_level: typeof raw.tlp_level === 'string' ? raw.tlp_level : 'amber',
   };
 }
 
@@ -159,13 +156,6 @@ export default function IOCsPage() {
   const [filterConf, setFilterConf] = useState('all');
   const [search, setSearch] = useState('');
 
-  // Add IOC modal
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [addValue, setAddValue] = useState('');
-  const [addType, setAddType] = useState('IP');
-  const [addTlp, setAddTlp] = useState<TLPLevel>('amber');
-  const [addSubmitting, setAddSubmitting] = useState(false);
-
   useEffect(() => {
     fetch('/api/tip/iocs')
       .then(r => r.ok ? r.json() : null)
@@ -210,7 +200,7 @@ export default function IOCsPage() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn"><IDownload size={13} /> Export</button>
-          <button className="btn primary" onClick={() => { setShowAddModal(true); setAddValue(''); setAddType('IP'); setAddTlp('amber'); }}><IPlus size={13} /> Add IOC</button>
+          <button className="btn primary"><IPlus size={13} /> Add IOC</button>
         </div>
       </header>
 
@@ -237,7 +227,6 @@ export default function IOCsPage() {
               <th style={{ width: 80 }}>Type</th>
               <th>Indicator</th>
               <th style={{ width: 90 }}>Severity</th>
-              <th style={{ width: 90 }}>TLP</th>
               <th style={{ width: 130 }}>Confidence</th>
               <th>Sources</th>
               <th style={{ width: 90 }}>Hits</th>
@@ -248,7 +237,7 @@ export default function IOCsPage() {
           </thead>
           <tbody>
             {!loading && filtered.length === 0 && (
-              <tr><td colSpan={10}>
+              <tr><td colSpan={9}>
                 <div className="empty-state">
                   <div className="ico">⌖</div>
                   <h3>{iocs.length === 0 ? 'No IOCs tracked yet' : 'No IOCs match these filters'}</h3>
@@ -257,7 +246,7 @@ export default function IOCsPage() {
               </td></tr>
             )}
             {loading && filtered.length === 0 && (
-              <tr><td colSpan={10}><div className="empty-state"><p>Loading…</p></div></td></tr>
+              <tr><td colSpan={9}><div className="empty-state"><p>Loading…</p></div></td></tr>
             )}
             {filtered.map(ioc => (
               <>
@@ -271,7 +260,6 @@ export default function IOCsPage() {
                   <td><span className="ioc-type">{ioc.type}</span></td>
                   <td className="col-mono" style={{ color: 'var(--accent-400)' }}>{ioc.indicator}</td>
                   <td><SeverityBadge severity={ioc.severity} /></td>
-                  <td><TLPBadge level={(ioc.tlp_level as TLPLevel) ?? 'amber'} size="sm" /></td>
                   <td><ConfidenceBar score={ioc.confidence} /></td>
                   <td>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -293,7 +281,7 @@ export default function IOCsPage() {
                 </tr>
                 {expandedId === ioc.id && (
                   <tr key={`${ioc.id}-exp`}>
-                    <td colSpan={10} style={{ padding: 0 }}>
+                    <td colSpan={9} style={{ padding: 0 }}>
                       <IOCExpanded ioc={ioc} />
                     </td>
                   </tr>
@@ -303,68 +291,6 @@ export default function IOCsPage() {
           </tbody>
         </table>
       </div>
-
-      {showAddModal && (
-        <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
-          <div className="modal-card" onClick={e => e.stopPropagation()}>
-            <h3>
-              Add IOC
-              <button className="btn ghost" style={{ padding: '2px 6px' }} onClick={() => setShowAddModal(false)}>
-                <IX size={13} />
-              </button>
-            </h3>
-            <div className="field-group">
-              <div>
-                <label>Indicator value</label>
-                <input
-                  value={addValue}
-                  onChange={e => setAddValue(e.target.value)}
-                  placeholder="IP, domain, hash, URL…"
-                  autoFocus
-                />
-              </div>
-              <div>
-                <label>Type</label>
-                <select value={addType} onChange={e => setAddType(e.target.value)}>
-                  <option value="IP">IP</option>
-                  <option value="Domain">Domain</option>
-                  <option value="Hash">Hash</option>
-                  <option value="URL">URL</option>
-                  <option value="Email">Email</option>
-                </select>
-              </div>
-              <TLPSelector value={addTlp} onChange={setAddTlp} />
-            </div>
-            <div className="modal-actions">
-              <button className="btn" onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button
-                className="btn primary"
-                disabled={!addValue.trim() || addSubmitting}
-                onClick={async () => {
-                  setAddSubmitting(true);
-                  try {
-                    const res = await fetch('/api/tip/iocs', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ value: addValue.trim(), iocType: addType, tlp_level: addTlp }),
-                    });
-                    if (res.ok) {
-                      setShowAddModal(false);
-                      const d = await fetch('/api/tip/iocs').then(r => r.ok ? r.json() : null);
-                      const items = Array.isArray(d) ? d : Array.isArray(d?.iocs) ? d.iocs : Array.isArray(d?.data) ? d.data : [];
-                      setIocs(items.map(mapApiIoc));
-                    }
-                  } finally {
-                    setAddSubmitting(false);
-                  }
-                }}
-              >
-                {addSubmitting ? 'Adding…' : 'Add IOC'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

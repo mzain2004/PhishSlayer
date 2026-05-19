@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { auth } from '@clerk/nextjs/server';
 import { checkTierAccess } from "@/lib/tier-guard";
 import { scanTarget } from "@/lib/scanners/threatScanner";
-import { detectMobilePhishing } from "@/lib/services/mobile-phishing-detector";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -45,14 +44,7 @@ export async function POST(request: Request) {
 
     const finding = await scanTarget(payload.data.target);
 
-    let mobile_phishing = null;
-    try {
-      mobile_phishing = await detectMobilePhishing(payload.data.target);
-    } catch {
-      // mobile phishing detection is best-effort; don't fail the whole scan
-    }
-
-    return NextResponse.json({ success: true, data: { ...finding, mobile_phishing } });
+    return NextResponse.json({ success: true, data: finding });
   } catch (error) {
     return NextResponse.json(
       {

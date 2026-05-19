@@ -111,22 +111,7 @@
       "Bash(Get-ChildItem -Path \"app\" -Recurse -Directory)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(git -C \"D:\\\\Phish Slayer\" status --short)",
-      "Bash(git *)",
-      "Bash(ls phishslayer-api/utils)",
-      "Bash(ls phishslayer-api/harness/__init__.py)",
-      "Bash(ls lib/schemas)",
-      "Bash(ls lib/security/rate-limit*)",
-      "Bash(node -e \"console.log\\(require\\('./node_modules/zod/package.json'\\).version\\)\")",
-      "Bash(cd D:\\\\Phish Slayer\\\\phishslayer-api *)",
-      "Bash(New-Item -ItemType Directory -Force \"D:\\\\Phish Slayer\\\\app\\\\api\\\\intelligence\\\\reports\\\\generate\")",
-      "Bash(Out-Null)",
-      "Bash(New-Item -ItemType Directory -Force \"D:\\\\Phish Slayer\\\\app\\\\api\\\\intelligence\\\\reports\\\\[id]\\\\stix\")",
-      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
-      "Bash(xargs grep -l \"AddIOC\\\\|CreateIOC\\\\|tlp\\\\|ioc.*form\")",
-      "Bash(Get-ChildItem *)",
-      "Bash(Measure-Object -Line)",
-      "Bash(Select-Object -ExpandProperty Lines)",
-      "Bash(xargs grep -l \"value.*iocType\\\\|iocType.*value\")"
+      "Bash(git *)"
     ]
   },
   "enableAllProjectMcpServers": true,

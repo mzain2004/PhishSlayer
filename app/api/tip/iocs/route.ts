@@ -14,7 +14,6 @@ const PostSchema = z
     confidence: z.number().min(0).max(100).optional(),
     tags: z.array(z.string()).optional(),
     source: z.string().trim().min(1).optional(),
-    tlp_level: z.enum(['white', 'green', 'amber', 'red']).optional(),
   })
   .strict();
 
@@ -71,7 +70,6 @@ export async function POST(req: NextRequest) {
           confidence: payload.confidence ?? 50,
           tags: payload.tags ?? [],
           source: payload.source ?? "manual",
-          tlp_level: payload.tlp_level ?? "amber",
         } as any,
       ],
       { orgId },
